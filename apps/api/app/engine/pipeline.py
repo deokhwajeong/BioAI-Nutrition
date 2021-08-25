@@ -757,3 +757,4 @@ class NutritionPipeline:
 # FIXME: potential edge case
 
 # NOTE: reviewed 2025-11-25
+# NOTE: reviewed 2021-08-25
