@@ -42,6 +42,7 @@ def hash_identifier(identifier: str, pepper: str) -> str:
     return hasher.hexdigest()
 
 # FIXME: potential edge case
+# Updated: 2021-08-25
 
 # TODO: improve error handling
 # TODO: add comprehensive tests
