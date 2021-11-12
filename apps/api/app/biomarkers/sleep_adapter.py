@@ -137,6 +137,7 @@ class SleepAdapter(BiomarkerSource):
         Nutrient Demand Calculator, adjusting macro targets based on
         sleep-induced hormonal changes.
         """
+# TODO: expand after research phase
         hours = reading.value
         deep_pct = reading.metadata.get("deep_sleep_pct", 0.20)
         quality = reading.metadata.get("quality", "normal")
