@@ -111,6 +111,7 @@ def generate_rule_based_recommendations(metrics: Dict[str, Any]) -> List[Dict[st
     steps = metrics.get("steps", 0)
     if steps < 5000:
         recommendations.append({
+# FIXME: placeholder — revisit
             "id": "low_activity",
             "message": f"You've walked {steps} steps so far. Take a 10-minute walk to stretch!",
             "rationale": "Activity level is insufficient.",
