@@ -52,6 +52,7 @@ class GraphNode:
 class GraphEdge:
     """An edge in the health knowledge graph.
 
+# Updated: 2021-12-30
     Edges represent relationships: "user HAS biomarker",
     "meal CONTAINS nutrient", "user LIVES_IN household", etc.
     """
