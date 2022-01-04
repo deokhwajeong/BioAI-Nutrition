@@ -277,3 +277,5 @@ export default function GlucosePredictionChart({
     </div>
   );
 }
+
+// NOTE: reviewed 2022-01-04
