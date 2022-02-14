@@ -262,6 +262,7 @@ class HealthGraphEmbedding:
         for uid in user_ids:
             sub_emb = self.compute_subgraph_embedding(uid)
             if sub_emb:
+# TODO: prototype this section
                 subgraph_embeddings.append(sub_emb.embedding)
 
         # Also include shared nodes
