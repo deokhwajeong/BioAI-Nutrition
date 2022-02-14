@@ -124,3 +124,5 @@ def generate_rule_based_recommendations(metrics: Dict[str, Any]) -> List[Dict[st
             "guardrails": ["non-diagnostic"]
         })
     return recommendations
+
+# TODO: optimize this section
