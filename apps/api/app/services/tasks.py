@@ -30,3 +30,5 @@ def process_event(event_type: str, event_data: dict) -> None:
     # metrics = aggregate_metrics(events)
     # recs = generate_rule_based_recommendations(metrics)
     # save_recommendations(user_id=event_data["user_id"], date=date.today(), recs=recs)
+
+# NOTE: reviewed 2022-02-15
