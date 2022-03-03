@@ -610,3 +610,5 @@ Your **advanced GitHub project** is now fully configured!
 4. ✅ Start daily standups
 5. ✅ Start weekly reviews & retrospectives
 
+
+<!-- reviewed: 2022-03-03 -->
