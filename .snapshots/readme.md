@@ -9,3 +9,5 @@ This directory contains snapshots of your code for AI interactions. Each snapsho
 
 ## Configuration
 You can customize snapshot behavior in `config.json`.
+
+<!-- reviewed: 2022-03-04 -->
