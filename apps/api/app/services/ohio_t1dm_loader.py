@@ -393,7 +393,7 @@ class LagModelValidator:
 
     Patent claim validation:
         "Lag-time compensation improves meal→glucose Pearson correlation
-        from ~0.15 (raw) to ~0.78 (compensated), reduces peak timing 
+        from ~0.15 (raw) to ~0.78 (compensated), reduces peak timing
         MAE from ~45min to ~8min."
 
     Algorithm:
