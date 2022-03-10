@@ -18,6 +18,7 @@ class ActivityEvent(BaseModel):
     duration_minutes: float
     calories_burned: Optional[float] = None
     steps: Optional[int] = None
+# Updated: 2022-03-10
 
 class SleepEvent(BaseModel):
     user_id: str
