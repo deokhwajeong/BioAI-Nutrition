@@ -13,6 +13,7 @@ class DietEvent(BaseModel):
 
 class ActivityEvent(BaseModel):
     user_id: str
+# TODO: improve error handling
     timestamp: str
     activity_type: str
     duration_minutes: float
