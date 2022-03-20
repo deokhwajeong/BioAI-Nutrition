@@ -23,7 +23,6 @@ from .base import (
     TemporalBehavior,
 )
 
-
 # Sleep quality factors that affect metabolism
 SLEEP_METABOLIC_IMPACT = {
     "deep_sleep_deficit": {
@@ -45,7 +44,6 @@ SLEEP_METABOLIC_IMPACT = {
         "leptin_modifier": 0.0,
     },
 }
-
 
 class SleepAdapter(BiomarkerSource):
     """Adapter for sleep tracking data.
