@@ -1,7 +1,7 @@
 # 👥 Team Collaboration & Project Management Guide
 
-**Last Updated**: 2026-01-15  
-**Audience**: All team members  
+**Last Updated**: 2026-01-15
+**Audience**: All team members
 **Purpose**: Streamline communication, reduce friction, enable self-organization
 
 ---
@@ -39,9 +39,9 @@
 
 ### Sprint Planning (Monday 2:00 PM)
 
-**Duration**: 1.5 hours (30 min per week of sprint)  
-**Attendees**: Entire team  
-**Facilitator**: Product Manager  
+**Duration**: 1.5 hours (30 min per week of sprint)
+**Attendees**: Entire team
+**Facilitator**: Product Manager
 **Goal**: Confirm Sprint n work and prepare for Sprint n+1
 
 #### Agenda
@@ -85,8 +85,8 @@
 
 ### Daily Standup (10:00 AM every day)
 
-**Duration**: 15 minutes  
-**Format**: Synchronous (Zoom/Teams)  
+**Duration**: 15 minutes
+**Format**: Synchronous (Zoom/Teams)
 **Structure**: Each person gets 2 minutes max
 
 #### Speaking Order
@@ -99,10 +99,10 @@
 ```
 ✓ Yesterday:
   - "Completed X task (5 points)"
-  
+
 ✓ Today:
   - "Working on Y task (8 points)"
-  
+
 ✓ Blockers:
   - "Need decision on API schema"
   - "Waiting for code review"
@@ -117,9 +117,9 @@
 
 ### Sprint Review (Friday 4:00 PM)
 
-**Duration**: 1 hour  
-**Attendees**: Team + stakeholders  
-**Facilitator**: Product Manager  
+**Duration**: 1 hour
+**Attendees**: Team + stakeholders
+**Facilitator**: Product Manager
 **Goal**: Demo completed work & gather feedback
 
 #### Agenda
@@ -152,9 +152,9 @@
 
 ### Retrospective (Friday 4:00 PM - after Review)
 
-**Duration**: 30 minutes  
-**Attendees**: Team only (no external stakeholders)  
-**Facilitator**: Rotating team member  
+**Duration**: 30 minutes
+**Attendees**: Team only (no external stakeholders)
+**Facilitator**: Rotating team member
 **Goal**: Continuous improvement
 
 #### Structure (3-column format)
@@ -418,27 +418,27 @@ Test Pass Rate      | 100%    | 100%    | ✅
 ```
 1. BACKLOG (Created by PM)
    └─ Priority set, no milestone
-   
+
 2. REFINED (Estimated by team)
    ├─ Story points assigned
    ├─ Acceptance criteria defined
    └─ Ready for sprint planning
-   
+
 3. SPRINT (Committed in sprint)
    ├─ Milestone set
    ├─ Owner assigned
    └─ Status: Todo
-   
+
 4. IN PROGRESS (Developer working)
    ├─ Branch created
    ├─ Status: In Progress
    └─ Updates in PR
-   
+
 5. IN REVIEW (Code review)
    ├─ PR created
    ├─ Status: In Review
    └─ 2 approvals needed
-   
+
 6. DONE (Merged to main)
    ├─ Tests passing
    ├─ Status: Done
@@ -496,7 +496,7 @@ def calculate_calories(foods):
 def calculate_calories(foods):
     """
     Calculate total calories from multiple food items.
-    
+
     Uses food database nutritional info rather than user estimates
     to ensure accuracy for recommendation engine.
     """
@@ -509,18 +509,18 @@ def calculate_calories(foods):
 def create_user(email: str, password: str) -> User:
     """
     Create a new user account with authentication.
-    
+
     Args:
         email: User email address (must be unique)
         password: User password (minimum 12 characters)
-        
+
     Returns:
         User: Created user object with ID
-        
+
     Raises:
         ValueError: If email already exists
         ValueError: If password too short
-        
+
     Example:
         >>> user = create_user("alice@example.com", "secure_password123")
         >>> user.id
