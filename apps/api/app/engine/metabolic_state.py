@@ -31,7 +31,6 @@ from typing import Any, Dict, List, Optional, Set
 from ..biomarkers.base import BiomarkerType
 from .temporal_sync import SynchronizedFrame, AlignedSignal
 
-
 class MetabolicPhase(str, Enum):
     """Individual metabolic phases that can combine."""
 
@@ -56,7 +55,6 @@ class MetabolicPhase(str, Enum):
     METABOLIC_STRESS = "metabolic_stress"  # High cortisol indicators
     RECOVERY = "recovery"                  # High parasympathetic
     CIRCADIAN_LOW = "circadian_low"        # Afternoon energy dip
-
 
 @dataclass
 class MetabolicState:
@@ -109,7 +107,6 @@ class MetabolicState:
         if MetabolicPhase.RECOVERY_IMMEDIATE in self.active_phases:
             return "recovery"
         return "unknown"
-
 
 # Nutrient priority modifiers per metabolic phase
 # >1.0 = increased need, <1.0 = decreased need
@@ -169,7 +166,6 @@ PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
         "electrolyte_priority": 1.8,
     },
 }
-
 
 class MetabolicStateEstimator:
     """Estimates current metabolic state from synchronized biomarker frames.
