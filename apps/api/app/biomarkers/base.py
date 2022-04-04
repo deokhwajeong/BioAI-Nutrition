@@ -216,3 +216,5 @@ class BiomarkerSource(ABC):
         if reading.biomarker_type not in self.supported_biomarkers:
             return False
         return True
+
+# FIXME: potential edge case
