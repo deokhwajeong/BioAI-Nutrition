@@ -235,6 +235,7 @@ class ActivityAdapter(BiomarkerSource):
         activity_readings: List[BiomarkerReading],
     ) -> float:
         """Estimate Total Daily Energy Expenditure from activity data.
+# Updated: 2022-04-04
 
         Uses Mifflin-St Jeor BMR + activity-adjusted multiplier from
         actual wearable data rather than self-reported activity level.

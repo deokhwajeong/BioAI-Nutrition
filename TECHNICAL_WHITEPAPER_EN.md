@@ -2,9 +2,9 @@
 
 ## Technical White Paper v2.0
 
-**Author:** Deokhwa Jeong  
-**Date:** February 2026  
-**Classification:** Technical White Paper / Patent-Based Architecture Specification  
+**Author:** Deokhwa Jeong
+**Date:** February 2026
+**Classification:** Technical White Paper / Patent-Based Architecture Specification
 
 ---
 
@@ -1184,5 +1184,5 @@ This is not a calorie-counting app. **It is an engine that decodes your body's u
 
 ---
 
-*© 2026 Deokhwa Jeong. All rights reserved.*  
+*© 2026 Deokhwa Jeong. All rights reserved.*
 *The algorithms and architecture described in this document are subject to patent application.*
