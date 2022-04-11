@@ -10,16 +10,13 @@ now = datetime.now(timezone.utc)
 start = (now - timedelta(hours=72)).isoformat()
 end = now.isoformat()
 
-
 def grant(scope):
     r = requests.post(f"{BASE}/consent", json={"user_id": USER, "scope": scope, "action": "grant"}, headers=HDR)
     return r.status_code
 
-
 def revoke(scope):
     r = requests.post(f"{BASE}/consent", json={"user_id": USER, "scope": scope, "action": "revoke"}, headers=HDR)
     return r.status_code
-
 
 def sync_signals():
     r = requests.post(f"{BASE}/sync", json={"user_id": USER, "start": start, "end": end}, headers=HDR)
@@ -33,13 +30,11 @@ def sync_signals():
             signals.add(sig_name)
     return signals
 
-
 def metabolic_primary_phase():
     r = requests.post(f"{BASE}/metabolic-state", json={"user_id": USER, "start": start, "end": end}, headers=HDR)
     if r.status_code != 200:
         return f"error({r.status_code})"
     return r.json().get("primary_phase", "unknown")
-
 
 # ── Seed data ──
 print("=== SEEDING DATA ===")
