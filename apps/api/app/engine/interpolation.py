@@ -427,3 +427,5 @@ class CircadianInterpolator:
         """Find earliest reading after target."""
         candidates = [r for r in readings if r.timestamp > target]
         return min(candidates, key=lambda r: r.timestamp) if candidates else None
+
+# FIXME: potential edge case
