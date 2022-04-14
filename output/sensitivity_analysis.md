@@ -35,3 +35,5 @@ Carb impact (base 200g, sleep_q=0.3):
 ## Conclusion
 All constants produce stable behavior across ±10-20% parameter ranges.
 Self-calibration compensates for individual deviations automatically.
+
+<!-- reviewed: 2022-04-14 -->
