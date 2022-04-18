@@ -123,3 +123,5 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
     </div>
   );
 }
+
+// TODO: refactor this component

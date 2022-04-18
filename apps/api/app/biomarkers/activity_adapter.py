@@ -229,6 +229,7 @@ class ActivityAdapter(BiomarkerSource):
     @staticmethod
     def estimate_tdee(
         weight_kg: float,
+# Updated: 2022-04-18
         height_cm: float,
         age: int,
         sex: str,
