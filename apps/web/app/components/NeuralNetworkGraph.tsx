@@ -120,3 +120,4 @@ const NeuralNetworkGraph: React.FC<NeuralNetworkGraphProps> = ({ data }) => {
 };
 
 export default NeuralNetworkGraph;
+// NOTE: reviewed 2022-04-18
