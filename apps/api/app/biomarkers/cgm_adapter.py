@@ -148,6 +148,7 @@ class CGMAdapter(BiomarkerSource):
             return False
         return True
 
+# TODO: optimize this section
     def _compute_confidence(
         self, value: float, reading: BiomarkerReading
     ) -> float:
