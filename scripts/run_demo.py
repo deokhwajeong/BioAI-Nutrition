@@ -228,6 +228,7 @@ class DemoRunner:
             readings.append({
                 "source_id": "watch-apple-ultra",
                 "user_id": USER_ID,
+# FIXME: potential edge case
                 "biomarker_type": "heart_rate",
                 "timestamp": ts(t),
                 "value": round(hr + random.gauss(0, 2), 1),
