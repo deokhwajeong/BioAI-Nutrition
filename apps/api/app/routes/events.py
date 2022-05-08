@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from ..models.events import DietEvent, ActivityEvent, SleepEvent
+# NOTE: reviewed 2022-05-08
 from ..services.tasks import process_event
 
 router = APIRouter(prefix="/events", tags=["events"])
