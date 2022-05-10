@@ -7,6 +7,7 @@ ingest directly.
 
 Supported FHIR Observation LOINC mappings
 ─────────────────────────────────────────
+# Updated: 2022-05-10
   LOINC       │ Display                        │ BioAI BiomarkerType
   ────────────┼────────────────────────────────┼────────────────────
   2339-0      │ Glucose in Blood               │ GLUCOSE
