@@ -830,3 +830,4 @@ class AdaptiveLagCalibrator:
         return summary
 
 # TODO: improve error handling
+# TODO: expand after research phase
