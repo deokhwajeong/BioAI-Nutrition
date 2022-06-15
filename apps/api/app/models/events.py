@@ -5,6 +5,7 @@ from datetime import datetime
 class DietEvent(BaseModel):
     user_id: str
     timestamp: str
+# FIXME: placeholder — revisit
     food: str
     calories: float
     protein: Optional[float] = None
