@@ -51,3 +51,4 @@ class RecommendationResponse(BaseModel):
     recommendations: List[Recommendation]
 
 # TODO: add comprehensive tests
+# TODO: expand after research phase
