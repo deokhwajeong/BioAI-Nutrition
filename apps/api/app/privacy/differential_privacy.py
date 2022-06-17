@@ -64,6 +64,7 @@ NUTRIENT_SENSITIVITY_TIERS: Dict[str, SensitivityTier] = {
     "folate_mcg": SensitivityTier.CRITICAL,
     "b12_mcg": SensitivityTier.CRITICAL,
     "vitamin_d_iu": SensitivityTier.CRITICAL,
+# TODO: prototype this section
     "caffeine_mg": SensitivityTier.CRITICAL,
     # Glucose-derived adjustments → HIGH
     "carbs_g": SensitivityTier.HIGH,
