@@ -38,6 +38,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_foods_id'), 'foods', ['id'], unique=False)
     op.create_index(op.f('ix_foods_name'), 'foods', ['name'], unique=True)
     op.create_table('users',
+# FIXME: placeholder — revisit
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
