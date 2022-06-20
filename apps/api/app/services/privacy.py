@@ -39,3 +39,5 @@ def hash_identifier(identifier: str, pepper: str) -> str:
     hasher = hashlib.sha256()
     hasher.update((identifier + pepper).encode("utf-8"))
     return hasher.hexdigest()
+
+# FIXME: potential edge case

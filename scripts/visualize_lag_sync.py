@@ -67,7 +67,6 @@ class SyntheticUser:
     meals: List[MealEvent] = field(default_factory=list)
     glucose: List[GlucoseReading] = field(default_factory=list)
 
-
 # ──────────────────────────────────────────────────────────────
 # 2. Circadian Rhythm Model (φ_circadian)
 # ──────────────────────────────────────────────────────────────
@@ -84,7 +83,6 @@ def circadian_modifier(hour: float) -> float:
     phi = 1.0 + 0.15 * math.cos(2 * math.pi * (hour - 9.0) / 24.0)
     return phi
 
-
 def genetic_modifier(genotype: str) -> float:
     """
     Compute γ_genetic based on TCF7L2 genotype.
@@ -94,7 +92,6 @@ def genetic_modifier(genotype: str) -> float:
     TT (Homozygous): γ = 1.25 (25% slower glucose clearance)
     """
     return {"CC": 1.0, "CT": 1.12, "TT": 1.25}.get(genotype, 1.0)
-
 
 # ──────────────────────────────────────────────────────────────
 # 3. Core: Dynamic Lag-Time Computation
@@ -113,7 +110,6 @@ def compute_dynamic_lag(event_time: datetime, gamma: float) -> float:
     phi = circadian_modifier(hour)
     lag_min = BASE_LAG_GLUCOSE_MIN * gamma * phi
     return lag_min
-
 
 # ──────────────────────────────────────────────────────────────
 # 4. Synthetic User Data Generation
@@ -153,7 +149,6 @@ def generate_glucose_response(
         points.append((t, glucose))
     
     return points
-
 
 def generate_synthetic_user(
     name: str = "User_Alpha",
@@ -244,7 +239,6 @@ def generate_synthetic_user(
     
     return user
 
-
 # ──────────────────────────────────────────────────────────────
 # 5. Correlation Analysis
 # ──────────────────────────────────────────────────────────────
@@ -303,7 +297,6 @@ def compute_meal_glucose_correlation(
     r = cov_xy / math.sqrt(var_x * var_y)
     return r, carbs_list, glucose_values
 
-
 def find_peak_timing_error(
     meals: List[MealEvent],
     glucose: List[GlucoseReading],
@@ -342,7 +335,6 @@ def find_peak_timing_error(
     mae = sum(errors) / len(errors) if errors else 0
     return mae, errors
 
-
 # ──────────────────────────────────────────────────────────────
 # 6. Visualization
 # ──────────────────────────────────────────────────────────────
@@ -354,7 +346,6 @@ COLOR_DYNAMIC = "#3498DB"        # Blue (dynamic compensation)
 COLOR_GLUCOSE = "#8E44AD"        # Purple (glucose curve)
 COLOR_MEAL = "#F39C12"           # Orange (meal events)
 COLOR_BASELINE = "#95A5A6"       # Gray (baseline)
-
 
 def plot_before_after_panel(user: SyntheticUser, output_dir: str):
     """
@@ -567,7 +558,6 @@ def plot_before_after_panel(user: SyntheticUser, output_dir: str):
         "r_dynamic": r_dyn,
     }
 
-
 def plot_correlation_scatter(user: SyntheticUser, output_dir: str):
     """
     Correlation scatter plot: Before vs After
@@ -622,7 +612,6 @@ def plot_correlation_scatter(user: SyntheticUser, output_dir: str):
     fig.savefig(output_path, dpi=200, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  ✅ Saved: {output_path}")
-
 
 def plot_dynamic_vs_static(user: SyntheticUser, output_dir: str):
     """
@@ -710,7 +699,6 @@ def plot_dynamic_vs_static(user: SyntheticUser, output_dir: str):
     print(f"  ✅ Saved: {output_path}")
     
     return mae_static, mae_dynamic
-
 
 # ──────────────────────────────────────────────────────────────
 # 7. Result Report Generation
@@ -815,7 +803,6 @@ def generate_report(user: SyntheticUser, results: dict, output_dir: str):
     
     return report_text
 
-
 # ──────────────────────────────────────────────────────────────
 # 8. Main
 # ──────────────────────────────────────────────────────────────
@@ -874,7 +861,6 @@ def main():
     print()
     print("🎉 All visualizations generated successfully!")
     print(f"   Output directory: {output_dir}")
-
 
 if __name__ == "__main__":
     main()
