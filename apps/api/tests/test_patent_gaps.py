@@ -1769,3 +1769,5 @@ class TestDynamicEpsilonBudget:
         assert report.exposure_index > 0
         assert report.risk_level in ("low", "moderate", "high", "critical")
         assert sum(report.per_tier_query_count.values()) > 0
+
+# FIXME: potential edge case
