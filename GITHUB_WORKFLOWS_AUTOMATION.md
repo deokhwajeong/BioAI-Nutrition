@@ -1,7 +1,7 @@
 # GitHub Project Workflows Automation Setup
 
-**Purpose**: Automatically generate and manage issues based on documents created in GitHub Project  
-**Scope**: `deokhwajeong/BioAI-Nutrition` project  
+**Purpose**: Automatically generate and manage issues based on documents created in GitHub Project
+**Scope**: `deokhwajeong/BioAI-Nutrition` project
 **Created**: 2026-01-15
 
 ---
@@ -50,7 +50,7 @@ Project → Automation → (Right) Workflows Button
 #### Workflow 1: Auto-add to Project
 ```
 When: Issue or pull request is created
-Then: 
+Then:
   ✓ Add to project
   ✓ Set field: Status = Backlog
 ```
@@ -267,7 +267,7 @@ jobs:
       with:
         script: |
           const issue = context.payload.issue || context.payload.pull_request;
-          
+
           // Auto-add phase milestone
           if (issue.labels.some(l => l.name.startsWith('phase-'))) {
             const phase = issue.labels.find(l => l.name.startsWith('phase-')).name;
@@ -277,7 +277,7 @@ jobs:
               'phase-3': 'Q3 2026',
               'phase-4': 'Q4 2026'
             };
-            
+
             const milestone = milestoneMap[phase];
             if (milestone) {
               // Get milestone ID
@@ -285,7 +285,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo
               });
-              
+
               const ms = milestones.data.find(m => m.title === milestone);
               if (ms) {
                 await github.rest.issues.update({
@@ -297,7 +297,7 @@ jobs:
               }
             }
           }
-          
+
           console.log(`✅ Synced issue #${issue.number}`);
 ```
 
@@ -419,7 +419,7 @@ labels: ['report']
 
 ---
 
-**Creation Date**: 2026-01-15  
-**Status**: 📋 Implementation Ready  
+**Creation Date**: 2026-01-15
+**Status**: 📋 Implementation Ready
 **Next Update**: 2026-01-22 (Weekly Review)
 
