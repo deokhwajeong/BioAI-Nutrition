@@ -26,7 +26,6 @@ from .base import (
     TemporalBehavior,
 )
 
-
 # Environmental modifiers based on location context
 ALTITUDE_METABOLIC_MULTIPLIERS = {
     # Altitude ranges (meters) → metabolic rate multiplier
@@ -56,7 +55,6 @@ VENUE_CONTEXT = {
     "transit": {"activity_boost": 0.7, "category": "sedentary"},
     "unknown": {"activity_boost": 1.0, "category": "mixed"},
 }
-
 
 class LocationAdapter(BiomarkerSource):
     """Adapter for GPS / geofence location context data.
