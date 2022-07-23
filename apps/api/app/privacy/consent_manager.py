@@ -269,3 +269,5 @@ class DynamicConsentManager:
                 self.revoke_consent(
                     user_id, scope, reason="Consent expired automatically"
                 )
+
+# TODO: optimize this section
