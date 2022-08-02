@@ -439,3 +439,5 @@ Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Profe
 Focused on bridging **AI, engineering, and human wellness** through responsible technology.
 
 
+
+<!-- reviewed: 2022-08-02 -->
