@@ -75,6 +75,7 @@ NUTRIGENOMIC_VARIANTS = {
     "rs4988235": {
         "gene": "LCT",
         "name": "Lactase",
+# TODO: prototype this section
         "risk_allele": "G",
         "effects": {
             "lactose_tolerance": 0.0,  # Lactose intolerant
