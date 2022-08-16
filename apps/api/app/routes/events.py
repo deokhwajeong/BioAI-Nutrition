@@ -23,3 +23,5 @@ async def ingest_sleep(event: SleepEvent) -> SleepEvent:
     """Ingest a sleep event and return it for confirmation."""
     process_event.delay("sleep", event.model_dump())
     return event
+
+# TODO: add comprehensive tests
