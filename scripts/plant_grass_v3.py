@@ -362,3 +362,5 @@ total_active = len(set(subprocess.check_output(
 ).strip().split("\n")))
 print(f"📊 전체 커밋: {total}개, 활동 일수: {total_active}일")
 print(f"\n📌 'git push --force origin main' 으로 원격에 반영하세요.")
+
+# TODO: optimize this section
