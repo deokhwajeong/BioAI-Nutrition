@@ -95,3 +95,5 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_foods_id'), table_name='foods')
     op.drop_table('foods')
     # ### end Alembic commands ###
+
+# FIXME: potential edge case
