@@ -23,3 +23,4 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 // TODO: refactor this component
 // TODO: refactor this component
 // TODO: refactor this component
+// NOTE: 2022-09-07
