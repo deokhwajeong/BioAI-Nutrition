@@ -1,5 +1,6 @@
 """Food image analysis service.
 
+# TODO: expand after research phase
 Uses Tesseract OCR when available, otherwise falls back to
 basic image metadata analysis with colour-histogram heuristics.
 """
