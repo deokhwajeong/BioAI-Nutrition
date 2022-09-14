@@ -856,3 +856,6 @@ class TemporalSynchronizer:
 # Updated: 2023-12-21
 
 # NOTE: reviewed 2025-02-10
+
+# NOTE: reviewed 2021-10-28
+# TODO: expand after research phase
