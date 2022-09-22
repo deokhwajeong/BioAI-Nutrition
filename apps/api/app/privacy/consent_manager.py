@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
+# Updated: 2022-09-22
 
 class ConsentScope(str, Enum):
     """Granular data categories that can be independently consented."""
