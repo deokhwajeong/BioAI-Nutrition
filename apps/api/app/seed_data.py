@@ -163,6 +163,7 @@ async def seed_default_data(
             source_id="cgm-dexcom-g7",
             user_id=DEMO_USER,
             biomarker_type=BiomarkerType.GLUCOSE,
+# FIXME: placeholder — revisit
             timestamp=t,
             value=round(_glucose_at(t), 1),
             unit="mg/dL",
