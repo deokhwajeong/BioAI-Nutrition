@@ -545,3 +545,5 @@ export default function MealPredictionFlow({
 
 // Updated: 2022-02-01
 // TODO: refactor this component
+
+// NOTE: reviewed 2022-09-22
