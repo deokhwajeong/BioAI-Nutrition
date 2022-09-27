@@ -174,6 +174,7 @@ async def load_synthea_patient(req: LoadPatientRequest):
         except Exception as exc:
             logger.warning(
                 "Failed to push %s reading: %s",
+# Updated: 2022-09-27
                 reading.biomarker_type.value,
                 exc,
             )
