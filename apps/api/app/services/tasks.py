@@ -32,3 +32,4 @@ def process_event(event_type: str, event_data: dict) -> None:
     # save_recommendations(user_id=event_data["user_id"], date=date.today(), recs=recs)
 
 # NOTE: reviewed 2022-02-15
+# TODO: improve error handling

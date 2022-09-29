@@ -1,6 +1,6 @@
 # 🚀 GitHub Project Setup Guide
 
-**Target**: Project Managers, Scrum Masters  
+**Target**: Project Managers, Scrum Masters
 **Complexity**: Intermediate | **Duration**: 30 minutes
 
 ---
@@ -79,7 +79,7 @@ labels: ['epic', 'needs-triage']
 [Team/Person]
 
 ## 📅 Timeline
-**Start**: [Date]  
+**Start**: [Date]
 **Target**: [Date]
 ```
 
@@ -92,7 +92,7 @@ labels: ['story', 'needs-estimation']
 ---
 
 ## 👤 As a [user type]
-I want to [action/feature]  
+I want to [action/feature]
 So that [benefit/value]
 
 ## 📝 Acceptance Criteria
@@ -105,7 +105,7 @@ So that [benefit/value]
 - Related Stories: [Links]
 
 ## 📊 Estimation
-**Points**: [5/8/13]  
+**Points**: [5/8/13]
 **Priority**: [Critical/High/Medium/Low]
 
 ## 🛠️ Technical Notes
@@ -170,7 +170,7 @@ A complete user authentication and profile management system.
 Backend Team
 
 ## 📅 Timeline
-**Start**: 2026-01-15  
+**Start**: 2026-01-15
 **Target**: 2026-02-15" \
   --label "epic,phase-1,critical" \
   --milestone "Q1 2026"
@@ -179,7 +179,7 @@ Backend Team
 gh issue create -R $REPO \
   --title "Story: Implement user registration endpoint" \
   --body "## 👤 As a new user
-I want to register for an account with email and password  
+I want to register for an account with email and password
 So that I can access the platform
 
 ## 📝 Acceptance Criteria
@@ -202,7 +202,7 @@ So that I can access the platform
 gh issue create -R $REPO \
   --title "Story: Add API key authentication" \
   --body "## 👤 As a backend service
-I want to validate API keys on protected endpoints  
+I want to validate API keys on protected endpoints
 So that only authorized clients can access the API
 
 ## 📝 Acceptance Criteria
@@ -458,7 +458,7 @@ jobs:
       with:
         script: |
           const issue = context.payload.issue;
-          
+
           // Automatically add milestone if label is phase-1
           if (issue.labels.some(l => l.name === 'phase-1')) {
             github.rest.issues.update({
@@ -494,7 +494,7 @@ jobs:
             state: 'closed',
             milestone: tag
           });
-          
+
           console.log(JSON.stringify(issues.data, null, 2));
 ```
 
