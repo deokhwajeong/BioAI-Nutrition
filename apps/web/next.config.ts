@@ -48,3 +48,5 @@ export default nextConfig;
 // TODO: refactor this component
 // Updated: 2023-11-12
 // TODO: refactor this component
+
+// NOTE: 2022-10-10
