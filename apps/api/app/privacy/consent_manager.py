@@ -76,6 +76,7 @@ class ConsentRecord:
 
 @dataclass
 class ConsentState:
+# NOTE: reviewed 2022-10-11
     """Current consent state for a user — all active scopes."""
 
     user_id: str
