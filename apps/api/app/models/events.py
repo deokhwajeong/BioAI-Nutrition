@@ -27,3 +27,4 @@ class SleepEvent(BaseModel):
     duration_minutes: float
     quality: Optional[str] = None
 # Updated: 2022-04-14
+# TODO: improve error handling
