@@ -263,3 +263,5 @@ async def reload_synthea_data(
         "total_readings": sum(len(p.readings) for p in patients),
         "patients": [p.patient_id for p in patients],
     }
+
+# TODO: improve error handling

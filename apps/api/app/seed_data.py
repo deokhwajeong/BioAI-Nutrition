@@ -67,7 +67,6 @@ def _glucose_at(t: datetime) -> float:
         circadian += 8 * ((hour - 4) / 3)
     return circadian + spikes + random.gauss(0, 3)
 
-
 def _heart_rate_at(t: datetime) -> float:
     """Resting ~60–70 bpm, circadian variation, exercise bouts."""
     hour = t.hour + t.minute / 60.0
@@ -86,13 +85,11 @@ def _heart_rate_at(t: datetime) -> float:
             resting += peak * math.sin(math.pi * phase)
     return max(45, resting + random.gauss(0, 2.5))
 
-
 def _hrv_at(t: datetime, hr: float) -> float:
     """HRV (ms) inversely correlated with HR."""
     base = 120 - 0.8 * hr  # higher HR → lower HRV
     circadian_boost = 15 * math.sin(2 * math.pi * (t.hour - 3) / 24)
     return max(15, base + circadian_boost + random.gauss(0, 5))
-
 
 def _steps_at(t: datetime) -> float:
     """Steps per 5-min window, realistic daily pattern."""
@@ -113,7 +110,6 @@ def _steps_at(t: datetime) -> float:
             phase = delta / dur
             base += peak * math.sin(math.pi * phase)
     return max(0, int(base + random.gauss(0, 15)))
-
 
 # ── Main seed function ──────────────────────────────────────────────
 
