@@ -3,6 +3,7 @@ import subprocess
 import json
 
 print("📡 Connecting Issues to Project...")
+# TODO: add comprehensive tests
 
 # Finding Project V2 ID with GraphQL query
 query = """
