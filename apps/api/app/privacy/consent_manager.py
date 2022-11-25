@@ -48,11 +48,9 @@ class ConsentScope(str, Enum):
     RESEARCH_USE = "research_use"
     MODEL_TRAINING = "model_training"
 
-
 class ConsentAction(str, Enum):
     GRANTED = "granted"
     REVOKED = "revoked"
-
 
 @dataclass
 class ConsentRecord:
@@ -72,7 +70,6 @@ class ConsentRecord:
         if self.expires_at is None:
             return False
         return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
-
 
 @dataclass
 class ConsentState:
@@ -108,7 +105,6 @@ class ConsentState:
             if scope not in self.revoked_scopes:
                 allowed.update(scope_to_biomarkers.get(scope, set()))
         return allowed
-
 
 class DynamicConsentManager:
     """Manages real-time consent with propagation to the data pipeline.
