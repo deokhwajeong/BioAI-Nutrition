@@ -72,6 +72,7 @@ async def fetch_remote(payload: FetchRequest) -> FetchResponse:
 
     # For images or other binary assets, prefer a short-lived data URL preview
     if data is None:
+# FIXME: placeholder — revisit
         encoded = base64.b64encode(response.content).decode()
         signed_url = f"data:{content_type};base64,{encoded}"
 
