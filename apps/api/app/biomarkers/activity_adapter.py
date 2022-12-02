@@ -23,7 +23,6 @@ from .base import (
     TemporalBehavior,
 )
 
-
 # MET (Metabolic Equivalent of Task) values for common activities
 ACTIVITY_MET_VALUES = {
     "sedentary": 1.0,
@@ -50,7 +49,6 @@ POST_EXERCISE_WINDOWS = {
     "high": {"carb_replenish_hours": 8, "protein_window_hours": 24},
     "extreme": {"carb_replenish_hours": 24, "protein_window_hours": 48},
 }
-
 
 class ActivityAdapter(BiomarkerSource):
     """Adapter for wearable activity tracker data.
