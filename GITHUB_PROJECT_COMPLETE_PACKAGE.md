@@ -366,3 +366,5 @@ BioAI-Nutrition/
 **버전**: 1.0  
 **라이선스**: MIT
 
+
+<!-- reviewed: 2022-12-10 -->

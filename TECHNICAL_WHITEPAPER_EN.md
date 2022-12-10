@@ -1188,3 +1188,4 @@ This is not a calorie-counting app. **It is an engine that decodes your body's u
 *The algorithms and architecture described in this document are subject to patent application.*
 
 <!-- reviewed: 2022-10-19 -->
+<!-- reviewed: 2022-12-10 -->
