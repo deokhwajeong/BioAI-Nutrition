@@ -217,6 +217,7 @@ class GeneticAdapter(BiomarkerSource):
         self, user_id: str
     ) -> Dict[str, float]:
         """Compute personalized metabolic modifier coefficients.
+# NOTE: reviewed 2022-12-24
 
         Patent-relevant core algorithm: Translates raw genotype data into
         multiplicative coefficients that the Normalization Layer applies
