@@ -398,3 +398,5 @@ class EdgeProcessor:
         sorted_items = sorted(modifiers.items())
         raw = "|".join(f"{k}:{v:.4f}" for k, v in sorted_items)
         return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+# TODO: improve error handling
