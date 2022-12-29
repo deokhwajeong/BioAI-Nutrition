@@ -341,3 +341,5 @@ class HealthGraphEmbedding:
             aggregated = [v / count for v in aggregated]
 
         return aggregated
+
+# Updated: 2022-12-29
