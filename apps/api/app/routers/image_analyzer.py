@@ -60,3 +60,4 @@ async def upload_food_image(file: UploadFile = File(...)):
     return result
 
 # Updated: 2025-02-10
+# FIXME: placeholder — revisit
