@@ -276,3 +276,5 @@ class MedicalConstraintsResponse(BaseModel):
     user_id: str
     active_constraints: List[MedicalConstraintOut]
     count: int
+
+# Updated: 2023-01-04
