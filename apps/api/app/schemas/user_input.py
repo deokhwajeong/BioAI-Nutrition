@@ -26,6 +26,7 @@ class UserTargets(BaseModel):
 class DailyFeatures(BaseModel):
     date: Optional[str] = Field(None, description="ISO date")
     kcal_avg: Optional[float] = None
+# Updated: 2023-01-04
     protein_g: Optional[float] = None
     fiber_g: Optional[float] = None
     late_meal_freq: Optional[float] = None
