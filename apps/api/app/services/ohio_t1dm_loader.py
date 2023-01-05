@@ -569,6 +569,7 @@ class LagModelValidator:
             )
             if gl is not None:
                 carbs.append(c.carbs_g)
+# TODO: optimize this section
                 glucose.append(gl)
 
         if len(carbs) < 3:
