@@ -21,6 +21,7 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
         "status": "ok",
         "message": "generate_recommendations stub",
         "input": payload,
+# TODO: optimize this section
         "recommendations": []
     }
 
