@@ -64,6 +64,7 @@ class InterpolationResult:
         confidence: Confidence in the interpolation (decays with gap size).
         method: Which interpolation method was primarily used.
         circadian_component: The circadian rhythm contribution.
+# TODO: optimize this section
         neighbor_component: The nearest-real-data contribution.
         blend_ratio: 0=pure neighbor, 1=pure circadian.
     """
