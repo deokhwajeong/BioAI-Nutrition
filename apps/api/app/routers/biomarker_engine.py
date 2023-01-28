@@ -64,9 +64,7 @@ from ..schemas.biomarker_schemas import (
     TimeBucketOut,
 )
 
-
 router = APIRouter(prefix="/engine", tags=["biomarker-engine"])
-
 
 # ── Singleton pipeline components ───────────────────────────────────
 # In production these would be injected via DI / managed lifecycle.
@@ -125,7 +123,6 @@ _consent_manager.register_revocation_callback(
     lambda user_id, scope: _graph_embedding.sever_edges_by_consent(scope.value)
 )
 
-
 # ── Seed default sample data on module load ─────────────────────────
 # This provides 72 hours of realistic biomarker data so the pipeline
 # works out-of-the-box. New data ingested via API extends/overrides it.
@@ -134,7 +131,6 @@ import asyncio
 import logging as _logging
 
 _seed_logger = _logging.getLogger("biomarker_engine.seed")
-
 
 def _run_seed() -> None:
     """Seed default data synchronously at import time."""
@@ -160,9 +156,7 @@ def _run_seed() -> None:
         # No running loop — run synchronously
         asyncio.run(_do_seed())
 
-
 _run_seed()
-
 
 # ── Helper ──────────────────────────────────────────────────────────
 
@@ -177,9 +171,7 @@ def _parse_biomarker_type(raw: str) -> BiomarkerType:
             f"Valid: {[b.value for b in BiomarkerType]}",
         )
 
-
 # ── Endpoints ───────────────────────────────────────────────────────
-
 
 @router.post(
     "/ingest",
@@ -253,7 +245,6 @@ async def ingest_biomarkers(
     return BiomarkerIngestionResult(
         accepted=accepted, rejected=rejected, details=details
     )
-
 
 @router.post(
     "/sync",
@@ -342,7 +333,6 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
         frames=frame_outputs,
         total_frames=len(frame_outputs),
     )
-
 
 @router.post(
     "/nutrient-budget",
@@ -487,7 +477,6 @@ async def calculate_nutrient_budget(
         confidence=budget.confidence,
     )
 
-
 @router.post(
     "/metabolic-state",
     response_model=MetabolicStateOut,
@@ -549,7 +538,6 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
         decision_log=state.decision_log,
     )
 
-
 @router.post(
     "/genetic-profile",
     response_model=GeneticModifiersOut,
@@ -592,7 +580,6 @@ async def set_genetic_profile(
         modifiers=modifiers,
         genetic_baseline=baseline.to_dict() if baseline else None,
     )
-
 
 @router.post(
     "/consent",
@@ -655,7 +642,6 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
         policy_gates=policy_gates,
     )
 
-
 @router.get(
     "/consent/{user_id}",
     response_model=ConsentStatusOut,
@@ -690,7 +676,6 @@ async def get_consent_status(user_id: str) -> ConsentStatusOut:
         policy_gates=policy_gates,
     )
 
-
 @router.get(
     "/status",
     response_model=PipelineStatusOut,
@@ -718,9 +703,7 @@ async def get_pipeline_status() -> PipelineStatusOut:
         privacy_engine_active=True,
     )
 
-
 # ── Edge-Processing / On-Device Privacy Endpoints ──────────────────
-
 
 @router.post(
     "/lag-comparison",
@@ -858,7 +841,6 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
         },
     }
 
-
 @router.get(
     "/edge-manifest",
     summary="Get on-device processing manifest",
@@ -880,7 +862,6 @@ async def get_edge_manifest() -> Dict[str, Any]:
         "dp_epsilon": _edge_processor.dp_epsilon,
         "embedding_dim": _edge_processor.embedding_dim,
     }
-
 
 @router.post(
     "/edge-process",
@@ -992,9 +973,7 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
         "privacy_manifest": _edge_processor.get_manifest().to_dict(),
     }
 
-
 # ── Medical Constraints ─────────────────────────────────────────────
-
 
 @router.post(
     "/medical-constraints",
@@ -1038,7 +1017,6 @@ async def set_medical_constraints(
         ],
         count=len(constraints),
     )
-
 
 @router.get(
     "/medical-constraints/{user_id}",
