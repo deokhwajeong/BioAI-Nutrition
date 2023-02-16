@@ -619,3 +619,5 @@ The BioAI edge manifest defines what stays on your device:
 ---
 
 *© 2026 BioAI Nutrition. All rights reserved.*
+
+<!-- reviewed: 2023-02-16 -->
