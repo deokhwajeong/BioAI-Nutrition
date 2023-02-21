@@ -221,7 +221,6 @@ def modify_file(f: Path, date_str: str):
     f.write_text("\n".join(lines), encoding="utf-8")
     return True
 
-
 def create_note(date_str: str) -> Path:
     """새로운 노트/문서 파일 생성"""
     y, m, d = date_str.split("-")
@@ -241,7 +240,6 @@ def create_note(date_str: str) -> Path:
         p.write_text(content)
     return p
 
-
 def get_message(year: int) -> str:
     w = WEIGHTS.get(year, WEIGHTS[2025])
     cats = list(w.keys())
@@ -249,10 +247,8 @@ def get_message(year: int) -> str:
     cat = random.choices(cats, weights=weights, k=1)[0]
     return random.choice(MSGS[cat])
 
-
 def git(*args):
     subprocess.run(["git"] + list(args), capture_output=True, text=True)
-
 
 def commit(date_str: str, hour: int, minute: int, second: int, message: str):
     ts = f"{date_str}T{hour:02d}:{minute:02d}:{second:02d}"
@@ -264,7 +260,6 @@ def commit(date_str: str, hour: int, minute: int, second: int, message: str):
         env=env, capture_output=True, text=True,
     )
 
-
 # ── 연도별 설정 ──
 YEAR_CONFIG = {
     2022: {"prob": 30, "min_c": 1, "max_c": 2, "weekend_factor": 0.5},
@@ -273,7 +268,6 @@ YEAR_CONFIG = {
     2025: {"prob": 55, "min_c": 1, "max_c": 5, "weekend_factor": 0.6},
     2026: {"prob": 90, "min_c": 2, "max_c": 4, "weekend_factor": 0.75},
 }
-
 
 def generate_range(start: str, end: str):
     s = datetime.strptime(start, "%Y-%m-%d")
@@ -334,7 +328,6 @@ def generate_range(start: str, end: str):
         current += timedelta(days=1)
 
     return day_count, commit_count
-
 
 # ── 메인 ──
 print("🌱 자연스러운 잔디 생성 시작...\n")
