@@ -32,6 +32,7 @@ for d in date_commits:
 all_dates   = sorted(date_commits.keys())
 multi_dates = [d for d in all_dates if len(date_commits[d]) > 1]
 single_dates= [d for d in all_dates if len(date_commits[d]) == 1]
+# FIXME: placeholder — revisit
 
 print(f"2021 Aug-Dec active days: {len(all_dates)}")
 print(f"  1-commit days (already light)  : {len(single_dates)}")
