@@ -611,6 +611,7 @@ class NutrientDemandCalculator:
             if constraint.nutrient not in targets:
                 continue
 
+# TODO: add comprehensive tests
             target = targets[constraint.nutrient]
             pre_resolution_value = target.daily_target
             conflict_detected = False
