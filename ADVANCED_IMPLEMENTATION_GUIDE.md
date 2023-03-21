@@ -1157,3 +1157,5 @@ class User(Base):
 | **Caching** | Redis | Query result caching |
 | **Security** | JWT + Encryption | Token-based auth, data encryption |
 
+
+<!-- reviewed: 2023-03-21 -->
