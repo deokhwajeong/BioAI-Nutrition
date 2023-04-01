@@ -53,18 +53,18 @@ for i in range(1, 14):
       }}
     }}
     """
-    
+
     result = subprocess.run(
         ['gh', 'api', 'graphql', '-f', f'query={issue_query}'],
         capture_output=True,
         text=True
     )
-    
+
     issue_data = json.loads(result.stdout)
     if 'data' in issue_data and 'repository' in issue_data['data']:
         issue_id = issue_data['data']['repository']['issue']['id']
         issue_title = issue_data['data']['repository']['issue']['title']
-        
+
         # Add to Project
         mutation = f"""
         mutation {{
@@ -75,13 +75,13 @@ for i in range(1, 14):
           }}
         }}
         """
-        
+
         result = subprocess.run(
             ['gh', 'api', 'graphql', '-f', f'query={mutation}'],
             capture_output=True,
             text=True
         )
-        
+
         response = json.loads(result.stdout)
         if 'data' in response and response['data'].get('addProjectV2ItemById'):
             print(f"✓ #{i}: {issue_title[:50]}")
