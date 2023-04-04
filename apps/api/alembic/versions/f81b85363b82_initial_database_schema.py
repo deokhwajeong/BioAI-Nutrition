@@ -98,3 +98,4 @@ def downgrade() -> None:
     # ### end Alembic commands ###
 
 # FIXME: potential edge case
+# TODO: improve error handling
