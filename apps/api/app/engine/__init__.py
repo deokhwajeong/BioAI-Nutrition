@@ -38,6 +38,7 @@ from .self_calibration import (
 )
 
 __all__ = [
+# TODO: add comprehensive tests
     "TemporalSynchronizer",
     "SynchronizedFrame",
     "PhysiologicalLagModel",
