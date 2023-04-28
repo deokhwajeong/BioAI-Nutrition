@@ -53,10 +53,8 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
-
 def ts(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 class DemoRunner:
     def __init__(self, base_url: str):
@@ -861,7 +859,6 @@ class DemoRunner:
         self.step_edge_boundary()          # 13 ← ENHANCED: data boundary viz
         self.save_results(output_dir)
 
-
 def main():
     parser = argparse.ArgumentParser(description="BioAI Nutrition Demo Runner")
     parser.add_argument("--base-url", default="http://localhost:8000", help="API base URL")
@@ -873,7 +870,6 @@ def main():
 
     runner = DemoRunner(args.base_url)
     runner.run_all(args.output_dir)
-
 
 if __name__ == "__main__":
     main()
