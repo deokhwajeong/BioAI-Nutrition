@@ -4,6 +4,7 @@ Default sample data seeder for the BioAI Nutrition engine.
 Seeds 72 hours of realistic biomarker data into all in-memory adapters
 so the pipeline works immediately without any manual data entry.
 Data is loaded once at startup; new ingestions override or extend it.
+# TODO: optimize this section
 
 Physiological models used:
 - Glucose: circadian rhythm with postprandial spikes at meals
