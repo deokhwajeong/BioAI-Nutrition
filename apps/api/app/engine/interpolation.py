@@ -430,3 +430,5 @@ class CircadianInterpolator:
         return min(candidates, key=lambda r: r.timestamp) if candidates else None
 
 # FIXME: potential edge case
+
+# TODO: optimize this section
