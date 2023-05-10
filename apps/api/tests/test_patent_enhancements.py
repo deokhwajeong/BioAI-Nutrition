@@ -48,7 +48,6 @@ from app.services.ohio_t1dm_loader import (
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)
 
-
 def _make_reading(
     bt: BiomarkerType, value: float, ts: datetime,
 ) -> BiomarkerReading:
@@ -60,7 +59,6 @@ def _make_reading(
         source_id="test",
         user_id="test-user",
     )
-
 
 def _make_frame(
     signals: Dict[BiomarkerType, tuple],
@@ -87,7 +85,6 @@ def _make_frame(
         signals=frame_signals,
         frame_confidence=min(c for _, c in signals.values()) if signals else 0.0,
     )
-
 
 def _make_pipeline() -> NutritionPipeline:
     """Create a fully wired pipeline for testing."""
@@ -124,7 +121,6 @@ def _make_pipeline() -> NutritionPipeline:
         privacy_engine=DifferentialPrivacyEngine(),
     )
 
-
 def _make_glucose_readings(
     n: int, start: datetime = NOW - timedelta(hours=1),
 ) -> List[BiomarkerReading]:
@@ -137,11 +133,9 @@ def _make_glucose_readings(
         for i in range(n)
     ]
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G-1: HRV-Based Sleep Quality Estimation
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestSleepQualityEstimation:
     """Verify that HRV-based sleep quality is estimated and affects
@@ -278,11 +272,9 @@ class TestSleepQualityEstimation:
             f"Insulin sensitivity should be >= 0.2, got {state.insulin_sensitivity_estimate}"
         )
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G-2: Context-Aware Re-Normalization (Stage 4.5)
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestContextAwareRenormalization:
     """Verify that the pipeline re-normalizes signals after Stage 4
@@ -417,11 +409,9 @@ class TestContextAwareRenormalization:
                 f"Full order: {stage_names}"
             )
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  OhioT1DM Lag Model Validation
 # ═══════════════════════════════════════════════════════════════════
-
 
 def _make_synthetic_ohio_patient() -> OhioPatient:
     """Create a synthetic OhioT1DM-like patient for testing.
@@ -489,7 +479,6 @@ def _make_synthetic_ohio_patient() -> OhioPatient:
         ))
 
     return patient
-
 
 class TestOhioT1DMLoader:
     """Test the OhioT1DM loader and lag model validation infrastructure."""
