@@ -183,3 +183,5 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
     </div>
   );
 }
+
+// TODO: refactor this component
