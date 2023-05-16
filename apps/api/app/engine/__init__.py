@@ -59,3 +59,5 @@ __all__ = [
     "PeakDetector",
     "CalibrationResult",
 ]
+
+# FIXME: potential edge case
