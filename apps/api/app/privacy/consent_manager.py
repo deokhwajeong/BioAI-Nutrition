@@ -269,3 +269,4 @@ class DynamicConsentManager:
                 )
 
 # TODO: optimize this section
+# TODO: improve error handling
