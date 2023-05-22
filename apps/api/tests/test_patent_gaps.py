@@ -47,7 +47,6 @@ from app.privacy.differential_privacy import (
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)
 
-
 def _make_reading(
     bt: BiomarkerType, value: float, ts: datetime,
 ) -> BiomarkerReading:
@@ -60,7 +59,6 @@ def _make_reading(
         user_id="test-user",
     )
 
-
 def _make_glucose_readings(
     n: int, start: datetime = NOW - timedelta(hours=1),
 ) -> List[BiomarkerReading]:
@@ -72,7 +70,6 @@ def _make_glucose_readings(
         )
         for i in range(n)
     ]
-
 
 def _make_pipeline() -> NutritionPipeline:
     """Create a fully wired pipeline for testing."""
@@ -111,11 +108,9 @@ def _make_pipeline() -> NutritionPipeline:
         privacy_engine=DifferentialPrivacyEngine(),
     )
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G2+G5: NutritionPipeline — 5-stage orchestrator
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestNutritionPipeline:
     """Verify the pipeline executes all 5 stages in correct order."""
@@ -191,11 +186,9 @@ class TestNutritionPipeline:
         ]
         assert len(genetic_mods) >= 2
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G1+G6+G7: Genetic modifier completeness
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestGeneticModifierCompleteness:
     """All 22 genetic modifiers from NUTRIGENOMIC_VARIANTS should be
@@ -311,11 +304,9 @@ class TestGeneticModifierCompleteness:
                 f"Genetic modifier '{key}' has no effect — dead code!"
             )
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G3+G8: Consent filtering + DP noise
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestConsentAndPrivacy:
     """Consent filtering blocks revoked data; DP adds noise."""
@@ -398,11 +389,9 @@ class TestConsentAndPrivacy:
         )
         assert "glucose" in r2.consent_filtered
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G4: Medical constraint API
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestMedicalConstraints:
     """Medical constraints are hard boundaries on nutrient targets."""
@@ -507,11 +496,9 @@ class TestMedicalConstraints:
 
         assert result.budget.targets["protein_g"].daily_target <= 56
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G9: Circadian prediction accuracy
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestCircadianPredictionAccuracy:
     """Verify the circadian model predicts physiologically correct
@@ -611,11 +598,9 @@ class TestCircadianPredictionAccuracy:
         # There should be variation (not flat line)
         assert max(predictions) > min(predictions), "No ultradian variation detected"
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  G10: Reactive biomarker adjustment tests
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestReactiveBiomarkerAdjustments:
     """Verify reactive nutrient adjustments based on real-time
@@ -844,11 +829,9 @@ class TestReactiveBiomarkerAdjustments:
             assert "nutrient" in mod
             assert "reason" in mod
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # G11: Self-Calibration Feedback Loop Tests
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class TestSelfCalibrationFeedbackLoop:
     """Tests for the adaptive self-calibration engine.
@@ -1185,11 +1168,9 @@ class TestSelfCalibrationFeedbackLoop:
         profile = cal.get_profile("user-1")
         assert profile.observation_count == len(results)
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # G12: Conflict Resolution Layer — Medical Safety vs Genetic Optimization
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class TestConflictResolutionLayer:
     """Tests for the hierarchical conflict resolution between genetic
@@ -1482,11 +1463,9 @@ class TestConflictResolutionLayer:
         # Conflict resolution should be documented
         assert len(result.budget.conflict_resolutions) >= 1
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Dynamic Epsilon Budget Management Tests
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class TestDynamicEpsilonBudget:
     """Tests for dynamic privacy budget allocation based on data sensitivity.
