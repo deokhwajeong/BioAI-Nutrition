@@ -373,3 +373,5 @@ cd apps/web && npm install && npm run dev
 # or with pnpm: pnpm install && pnpm dev
 ```
 
+
+<!-- reviewed: 2023-06-03 -->

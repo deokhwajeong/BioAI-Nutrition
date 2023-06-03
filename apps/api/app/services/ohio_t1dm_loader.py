@@ -5,6 +5,7 @@ The OhioT1DM dataset (Marling & Bunescu, 2020) contains precisely timestamped
 CGM glucose readings, meal events, insulin doses, exercise events, and sleep
 periods for Type 1 Diabetes patients. This makes it the most direct public
 dataset for validating BioAI Nutrition's Dynamic Physiological Lag Model.
+# FIXME: potential edge case
 
 Dataset structure (XML per patient):
     <patient id="559" weight="..." insulin_type="...">
