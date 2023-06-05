@@ -1,5 +1,6 @@
 """
 apps/api/app/routes/users.py
+# NOTE: reviewed 2023-06-05
 
 User management routes for privacy features.
 """
