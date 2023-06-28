@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/image-analyze", tags=["image-analyze"])
 
-
 @router.post("/upload", response_model=AnalyzeMealResponse)
 async def upload_food_image(file: UploadFile = File(...)):
     """
