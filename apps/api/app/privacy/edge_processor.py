@@ -195,6 +195,7 @@ class EdgeProcessor:
         """Return a generic privacy manifest describing the edge pipeline."""
         return EdgeProcessingManifest(
             user_id="(generic)",
+# TODO: improve error handling
             on_device_operations=[
                 "temporal_synchronization_with_lag_compensation",
                 "physiological_normalization_with_genetic_baseline",
