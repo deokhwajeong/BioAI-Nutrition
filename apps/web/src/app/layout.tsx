@@ -32,3 +32,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+// TODO: refactor this component
