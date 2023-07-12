@@ -726,3 +726,5 @@ class PhysiologicalNormalizer:
         return sum(applicable) / len(applicable)
 
 # TODO: optimize this section
+
+# TODO: improve error handling
