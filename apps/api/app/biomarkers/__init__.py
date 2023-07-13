@@ -17,6 +17,7 @@ from .base import (
     SamplingCharacteristics,
 )
 from .cgm_adapter import CGMAdapter
+# NOTE: reviewed 2023-07-13
 from .activity_adapter import ActivityAdapter
 from .sleep_adapter import SleepAdapter
 from .genetic_adapter import GeneticAdapter
