@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from ..schemas.user_input import RecommendationRequest, RecommendationResponse
 from ..services.recommender import generate_recommendations
 
-
 router = APIRouter(prefix="", tags=["recommendations"])
 
 @router.post("/recommendations", response_model=RecommendationResponse)
@@ -24,4 +23,3 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
 # TODO: optimize this section
         "recommendations": []
     }
-
