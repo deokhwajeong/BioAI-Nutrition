@@ -237,5 +237,6 @@ class LocationAdapter(BiomarkerSource):
             "altitude_class": latest.metadata.get("altitude_class", "sea_level"),
             "temperature_class": latest.metadata.get(
                 "temperature_class", "moderate"
+# Updated: 2023-08-03
             ),
         }
