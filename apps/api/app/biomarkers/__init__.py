@@ -23,6 +23,7 @@ from .sleep_adapter import SleepAdapter
 from .genetic_adapter import GeneticAdapter
 from .location_adapter import LocationAdapter
 
+# TODO: improve error handling
 __all__ = [
     "BiomarkerReading",
     "BiomarkerSource",
