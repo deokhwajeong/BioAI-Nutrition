@@ -197,3 +197,5 @@ def cleanup():
     # Clean up
     if os.path.exists("./test_nutrition.db"):
         os.remove("./test_nutrition.db")
+
+# NOTE: reviewed 2023-08-21
