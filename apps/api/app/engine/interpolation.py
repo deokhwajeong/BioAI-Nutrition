@@ -29,7 +29,6 @@ from typing import Dict, List, Optional, Tuple
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType, TemporalBehavior
 
-
 # Ultradian and circadian rhythm parameters
 # These model multi-scale biological oscillations
 RHYTHM_MODELS = {
@@ -53,7 +52,6 @@ RHYTHM_MODELS = {
     },
 }
 
-
 @dataclass
 class InterpolationResult:
     """Result of circadian-aware interpolation.
@@ -76,7 +74,6 @@ class InterpolationResult:
     circadian_component: float
     neighbor_component: float
     blend_ratio: float
-
 
 class CircadianInterpolator:
     """Fills biomarker data gaps using circadian rhythm models.
