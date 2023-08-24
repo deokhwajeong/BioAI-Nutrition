@@ -1,4 +1,5 @@
 """Router for text-based meal analysis.
+# FIXME: potential edge case
 
 Exposes POST /analyze-meal so the frontend can submit
 a list of food-item names and receive nutritional data.
