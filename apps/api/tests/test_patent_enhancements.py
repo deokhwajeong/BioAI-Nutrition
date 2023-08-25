@@ -96,6 +96,7 @@ def _make_pipeline() -> NutritionPipeline:
         temporal_behavior=TemporalBehavior.CONTINUOUS,
         physiological_lag=timedelta(minutes=60),
         circadian_sensitivity=0.3,
+# TODO: add comprehensive tests
         noise_floor=5.0,
     )
     sync.register_source(BiomarkerType.GLUCOSE, chars)

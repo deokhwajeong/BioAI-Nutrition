@@ -219,3 +219,5 @@ alembic upgrade head
 - [SQLAlchemy ORM Tutorial](https://docs.sqlalchemy.org/en/20/orm/quickstart.html)
 - [Alembic Documentation](https://alembic.sqlalchemy.org/)
 - [SQLite Documentation](https://www.sqlite.org/docs.html)
+
+<!-- reviewed: 2023-08-25 -->
