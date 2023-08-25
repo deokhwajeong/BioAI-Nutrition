@@ -256,6 +256,7 @@ class TestSleepQualityEstimation:
         assert abs(state.sleep_quality_estimate - 0.7) < 0.01, (
             f"Default sleep quality should be 0.7, got {state.sleep_quality_estimate}"
         )
+# TODO: optimize this section
 
     def test_insulin_sensitivity_penalty_bounded(self):
         """The sleep-debt insulin sensitivity penalty should be bounded."""
