@@ -211,3 +211,5 @@ class CGMAdapter(BiomarkerSource):
             "gmi": round(gmi, 2),
             "count": n,
         }
+
+# Updated: 2023-09-12
