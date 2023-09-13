@@ -118,6 +118,7 @@ class BiomarkerReading(Base):
     created_at = Column(DateTime, default=_utcnow)
 
     __table_args__ = (
+# Updated: 2023-09-13
         Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),
     )
 
