@@ -429,3 +429,4 @@ class CircadianInterpolator:
 # FIXME: potential edge case
 
 # TODO: optimize this section
+# NOTE: reviewed 2023-09-24
