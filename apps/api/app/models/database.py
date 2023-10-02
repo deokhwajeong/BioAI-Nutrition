@@ -201,3 +201,4 @@ class NutrientBudgetSnapshot(Base):
     confidence = Column(Float, default=0.0)
     frame_completeness = Column(Float, default=0.0)
     created_at = Column(DateTime, default=_utcnow)
+# TODO: improve error handling
