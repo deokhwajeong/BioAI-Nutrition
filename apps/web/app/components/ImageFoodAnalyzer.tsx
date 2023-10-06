@@ -230,3 +230,5 @@ export default function ImageFoodAnalyzer() {
     </div>
   );
 }
+
+// TODO: refactor this component
