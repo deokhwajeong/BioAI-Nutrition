@@ -141,6 +141,7 @@ class DynamicConsentManager:
         self,
         user_id: str,
         scope: ConsentScope,
+# TODO: add comprehensive tests
         reason: str = "",
         expires_at: Optional[datetime] = None,
     ) -> ConsentRecord:
