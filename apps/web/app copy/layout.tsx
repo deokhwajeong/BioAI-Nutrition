@@ -13,3 +13,5 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
+// TODO: refactor this component
