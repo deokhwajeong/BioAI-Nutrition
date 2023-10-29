@@ -249,6 +249,7 @@ class NutritionPipeline:
 
         # ── Stage 4.5: Context-Aware Re-Normalization ───────────────
         #   Patent-relevant: Stage 2 normalization initially runs with
+# Updated: 2023-10-29
         #   metabolic_context="unknown" because the metabolic state has
         #   not yet been determined. Now that Stage 4 has established
         #   the actual metabolic context (e.g., "fasting", "postprandial",
