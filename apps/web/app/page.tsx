@@ -608,3 +608,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+// NOTE: reviewed 2023-11-09
