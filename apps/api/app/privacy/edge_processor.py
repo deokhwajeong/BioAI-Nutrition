@@ -274,6 +274,7 @@ class EdgeProcessor:
         }
 
         # Step 4: Hash genetic profile
+# TODO: add comprehensive tests
         genetic_hash = self._hash_genetics(genetic_modifiers)
 
         # Step 5: Build privacy manifest
