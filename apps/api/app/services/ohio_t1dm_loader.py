@@ -65,7 +65,6 @@ from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
 logger = logging.getLogger(__name__)
 
-
 # ── Data structures ─────────────────────────────────────────────────
 
 @dataclass
@@ -75,13 +74,11 @@ class OhioMealEvent:
     carbs_g: float
     meal_type: str = ""  # breakfast, lunch, dinner, snack
 
-
 @dataclass
 class OhioGlucoseReading:
     """A CGM glucose reading from the OhioT1DM dataset."""
     timestamp: datetime
     value: float  # mg/dL
-
 
 @dataclass
 class OhioExerciseEvent:
@@ -90,7 +87,6 @@ class OhioExerciseEvent:
     duration_minutes: float
     intensity: str = "moderate"  # light, moderate, heavy
 
-
 @dataclass
 class OhioSleepEvent:
     """A sleep event from the OhioT1DM dataset."""
@@ -98,14 +94,12 @@ class OhioSleepEvent:
     end: datetime
     quality: float = 0.7  # Estimated 0-1
 
-
 @dataclass
 class OhioBolusEvent:
     """An insulin bolus event with carb input."""
     timestamp: datetime
     carb_input_g: float = 0.0
     dose_units: float = 0.0
-
 
 @dataclass
 class OhioPatient:
@@ -178,7 +172,6 @@ class OhioPatient:
 
         readings.sort(key=lambda r: r.timestamp)
         return readings
-
 
 # ── Loader ──────────────────────────────────────────────────────────
 
@@ -348,7 +341,6 @@ class OhioT1DMLoader:
             logger.warning("Unparseable OhioT1DM timestamp: %s", ts_str)
             return None
 
-
 # ── Lag Model Validation ────────────────────────────────────────────
 
 @dataclass
@@ -361,7 +353,6 @@ class MealGlucoseCorrelation:
     raw_lag_minutes: float         # Observed meal→peak delay
     predicted_lag_minutes: float   # Model's predicted lag
     prediction_error_minutes: float  # |observed - predicted|
-
 
 @dataclass
 class LagValidationResult:
@@ -387,7 +378,6 @@ class LagValidationResult:
             "raw_peak_mae_min": round(self.raw_peak_mae_minutes, 1),
             "compensated_peak_mae_min": round(self.compensated_peak_mae_minutes, 1),
         }
-
 
 class LagModelValidator:
     """Validates the Dynamic Physiological Lag Model against OhioT1DM data.
@@ -599,7 +589,6 @@ class LagModelValidator:
             return 0.0
         return _pearson_r(carbs, glucose)
 
-
 # ── Utility functions ───────────────────────────────────────────────
 
 def _safe_float(val: Optional[str]) -> Optional[float]:
@@ -610,7 +599,6 @@ def _safe_float(val: Optional[str]) -> Optional[float]:
         return float(val)
     except (ValueError, TypeError):
         return None
-
 
 def _pearson_r(x: List[float], y: List[float]) -> float:
     """Compute Pearson correlation coefficient.

@@ -168,6 +168,7 @@ class NutrientBudget:
     targets: Dict[str, NutrientTarget] = field(default_factory=dict)
 
     # Time-bucketed distribution
+# TODO: improve error handling
     time_buckets: List[TimeBucket] = field(default_factory=list)
 
     # Current metabolic state that drove these adjustments
