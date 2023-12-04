@@ -234,6 +234,7 @@ class DynamicEpsilonAllocator:
 
 @dataclass
 class PrivacyBudget:
+# TODO: add comprehensive tests
     """Tracks cumulative privacy expenditure per user.
 
     Each query against a user's data consumes some privacy budget (ε).

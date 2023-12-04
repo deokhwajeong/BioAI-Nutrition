@@ -78,3 +78,5 @@ def analyze_food_image(image_bytes: bytes) -> str:
 
     except Exception as e:
         raise Exception(f"Image analysis failed: {e!s}")
+
+# TODO: add comprehensive tests
