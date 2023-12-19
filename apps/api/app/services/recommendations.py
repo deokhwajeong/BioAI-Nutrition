@@ -10,7 +10,6 @@ import yaml
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-
 def load_rules() -> List[Dict[str, Any]]:
     """Load recommendation rules from YAML files in the rules directory."""
     rules_dir = Path(__file__).parent.parent.parent.parent / "rules"
@@ -22,7 +21,6 @@ def load_rules() -> List[Dict[str, Any]]:
                 rules.append(rule)
     return rules
 
-
 def evaluate_condition(condition: str, metrics: Dict[str, Any], targets: Dict[str, Any]) -> bool:
     """Evaluate a simple condition string against metrics and targets."""
     # Simple evaluation for conditions like "daily_features.fiber_g < user_targets.fiber_g * 0.8"
@@ -32,7 +30,6 @@ def evaluate_condition(condition: str, metrics: Dict[str, Any], targets: Dict[st
         return eval(eval_str)
     except:
         return False
-
 
 def generate_recommendations(metrics: Dict[str, Any], targets: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """Generate recommendations based on rules and metrics."""
@@ -58,7 +55,6 @@ def generate_recommendations(metrics: Dict[str, Any], targets: Optional[Dict[str
         recommendations.extend(generate_rule_based_recommendations(metrics))
 
     return recommendations
-
 
 def aggregate_metrics(events: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -87,7 +83,6 @@ def aggregate_metrics(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         elif event_type == "activity":
             metrics["steps"] += event.get("steps", 0)
     return metrics
-
 
 def generate_rule_based_recommendations(metrics: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Generate a list of recommendation messages based on simple heuristics."""
