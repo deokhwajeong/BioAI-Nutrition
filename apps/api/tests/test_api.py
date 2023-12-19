@@ -69,7 +69,7 @@ def test_metrics() -> None:
 def test_diet_event(mock_process) -> None:
     """Test diet event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
@@ -90,7 +90,7 @@ def test_diet_event(mock_process) -> None:
 def test_activity_event(mock_process) -> None:
     """Test activity event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
@@ -109,7 +109,7 @@ def test_activity_event(mock_process) -> None:
 def test_sleep_event(mock_process) -> None:
     """Test sleep event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
