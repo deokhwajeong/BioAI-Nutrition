@@ -22,7 +22,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence
 
-
 class BiomarkerType(str, Enum):
     """Classification of biomarker data categories."""
 
@@ -55,7 +54,6 @@ class BiomarkerType(str, Enum):
     # Context signals
     LOCATION = "location"          # GPS / geofence (event-driven)
 
-
 class TemporalBehavior(str, Enum):
     """How the biomarker behaves over time.
 
@@ -70,7 +68,6 @@ class TemporalBehavior(str, Enum):
     EVENT = "event"
     PERIODIC = "periodic"
     STATIC = "static"
-
 
 @dataclass(frozen=True)
 class SamplingCharacteristics:
@@ -99,7 +96,6 @@ class SamplingCharacteristics:
     physiological_lag: timedelta = field(default_factory=lambda: timedelta(0))
     circadian_sensitivity: float = 0.0
     noise_floor: float = 0.0
-
 
 @dataclass
 class BiomarkerReading:
@@ -134,7 +130,6 @@ class BiomarkerReading:
         if not self.raw_hash:
             raw = f"{self.source_id}:{self.timestamp.isoformat()}:{self.value}"
             self.raw_hash = hashlib.sha256(raw.encode()).hexdigest()
-
 
 class BiomarkerSource(ABC):
     """Abstract base class for biomarker data source adapters.
