@@ -35,3 +35,5 @@ __all__ = [
     "GeneticAdapter",
     "LocationAdapter",
 ]
+
+# TODO: add comprehensive tests
