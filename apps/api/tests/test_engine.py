@@ -1609,3 +1609,5 @@ class TestCircadianInterpolatorIntegration:
                 # Without explicit baseline, confidence should be near-zero
                 # (population fallback may produce tiny residual confidence)
                 assert glucose_signal.confidence < 0.01
+
+# TODO: improve error handling
