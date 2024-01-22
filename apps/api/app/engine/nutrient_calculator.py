@@ -33,7 +33,6 @@ from .metabolic_state import MetabolicState, MetabolicPhase
 from .normalization import NormalizedSignal
 from .temporal_sync import SynchronizedFrame
 
-
 @dataclass
 class NutrientTarget:
     """Daily target for a single nutrient.
@@ -64,7 +63,6 @@ class NutrientTarget:
             return 0
         return self.remaining / self.daily_target
 
-
 # ── Priority hierarchy for conflict resolution ──────────────────
 # Higher number = higher priority (overrides lower)
 PRIORITY_HIERARCHY = {
@@ -75,7 +73,6 @@ PRIORITY_HIERARCHY = {
     "medical_warning": 4,       # Medical warnings
     "medical_critical": 5,      # Medical critical constraints — ALWAYS WINS
 }
-
 
 @dataclass
 class MedicalConstraint:
@@ -102,7 +99,6 @@ class MedicalConstraint:
             return PRIORITY_HIERARCHY["medical_critical"]
         return PRIORITY_HIERARCHY["medical_warning"]
 
-
 @dataclass
 class ConflictResolution:
     """Documents a resolved conflict between two nutrient adjustment sources.
@@ -123,7 +119,6 @@ class ConflictResolution:
     severity: str               # "critical" or "warning"
     resolution_rationale: str   # Human-readable explanation
 
-
 @dataclass
 class TimeBucket:
     """A time period with specific nutrient distribution recommendations.
@@ -142,7 +137,6 @@ class TimeBucket:
     water_pct: float = 0.0
     priority_nutrients: List[str] = field(default_factory=list)
     rationale: str = ""
-
 
 @dataclass
 class NutrientBudget:
@@ -258,7 +252,6 @@ class NutrientBudget:
             "confidence": round(self.confidence, 3),
             "next_meal": self.get_next_meal_recommendation(),
         }
-
 
 class NutrientDemandCalculator:
     """Calculates real-time nutrient demands from the full biomarker pipeline.
@@ -782,7 +775,6 @@ class NutrientDemandCalculator:
             )
 
         return buckets
-
 
 def create_default_targets(
     kcal: float = 2000,
