@@ -274,3 +274,5 @@ class GeneticAdapter(BiomarkerSource):
                 result[name] = round(product ** (1.0 / len(values)), 3)
 
         return result
+
+# NOTE: reviewed 2024-01-25
