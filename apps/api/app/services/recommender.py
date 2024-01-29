@@ -9,7 +9,6 @@ machine learning model integration for more sophisticated predictions.
 from typing import List, Dict, Any
 from datetime import datetime, timezone
 
-
 class NutritionRecommender:
     """
     Main recommendation engine for nutrition and wellness insights.
@@ -199,10 +198,8 @@ class NutritionRecommender:
             "sleep_trend": "good" if features.get("sleep_hours", 0) >= 7 else "needs-improvement"
         }
 
-
 # Instantiate global recommender
 recommender = NutritionRecommender()
-
 
 def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
