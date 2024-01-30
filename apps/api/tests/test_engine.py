@@ -1052,6 +1052,7 @@ class TestNutrientDemandCalculator:
         state = MetabolicState(timestamp=NOW)
 
         budget_base = self.calculator.calculate(
+# TODO: add comprehensive tests
             user_id=USER,
             base_targets=targets,
             metabolic_state=state,
