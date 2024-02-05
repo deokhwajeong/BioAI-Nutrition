@@ -156,6 +156,7 @@ async def get_metrics(user_id: str = "default") -> dict[str, Any]:
     metrics = aggregate_metrics(mock_events)
     return metrics
 
+# NOTE: reviewed 2024-02-05
 
 @app.get("/", tags=["health"])
 async def health() -> dict[str, str]:
