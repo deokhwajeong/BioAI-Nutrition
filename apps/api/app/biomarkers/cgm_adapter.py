@@ -23,7 +23,6 @@ from .base import (
     TemporalBehavior,
 )
 
-
 # Physiological reference ranges for glucose (mg/dL)
 GLUCOSE_RANGES = {
     "hypoglycemia_severe": (0, 54),
@@ -46,7 +45,6 @@ CIRCADIAN_GLUCOSE_OFFSET = {
     16: -0.01, 17: 0.01, 18: 0.03,  19: 0.04,
     20: 0.02, 21: 0.00,  22: -0.02, 23: -0.04,
 }
-
 
 class CGMAdapter(BiomarkerSource):
     """Adapter for Continuous Glucose Monitor data.
