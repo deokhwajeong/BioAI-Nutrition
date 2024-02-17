@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ── Biomarker Ingestion ──────────────────────────────────────────────
 
 class BiomarkerReadingIn(BaseModel):
@@ -28,18 +27,15 @@ class BiomarkerReadingIn(BaseModel):
     confidence: float = Field(1.0, ge=0, le=1)
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
-
 class BiomarkerBatchIn(BaseModel):
     """Batch ingestion of multiple readings."""
 
     readings: List[BiomarkerReadingIn]
 
-
 class BiomarkerIngestionResult(BaseModel):
     accepted: int
     rejected: int
     details: List[Dict[str, Any]] = []
-
 
 # ── Synchronization ─────────────────────────────────────────────────
 
@@ -54,14 +50,12 @@ class SyncRequest(BaseModel):
         description="Temporal resolution: fine (5min), medium (1hr), coarse (24hr)",
     )
 
-
 class AlignedSignalOut(BaseModel):
     biomarker_type: str
     value: float
     confidence: float
     sample_count: int
     lag_compensated: bool
-
 
 class SynchronizedFrameOut(BaseModel):
     window_start: datetime
@@ -72,12 +66,10 @@ class SynchronizedFrameOut(BaseModel):
     completeness: float
     feature_vector: Dict[str, float]
 
-
 class SyncResponse(BaseModel):
     user_id: str
     frames: List[SynchronizedFrameOut]
     total_frames: int
-
 
 # ── Nutrient Budget ─────────────────────────────────────────────────
 
@@ -93,7 +85,6 @@ class NutrientBudgetRequest(BaseModel):
         description="Already consumed nutrients {name: amount}",
     )
 
-
 class NutrientTargetOut(BaseModel):
     name: str
     daily_target: float
@@ -101,7 +92,6 @@ class NutrientTargetOut(BaseModel):
     remaining: float
     remaining_pct: float
     unit: str
-
 
 class TimeBucketOut(BaseModel):
     start_hour: int
@@ -113,14 +103,12 @@ class TimeBucketOut(BaseModel):
     water_pct: float
     rationale: str
 
-
 class ModificationOut(BaseModel):
     step: str
     nutrient: str
     old_value: float
     new_value: float
     reason: str
-
 
 class ConflictResolutionOut(BaseModel):
     """Audit record of a Safety-First Override conflict resolution."""
@@ -137,7 +125,6 @@ class ConflictResolutionOut(BaseModel):
     severity: str
     resolution_rationale: str
 
-
 class NutrientBudgetResponse(BaseModel):
     timestamp: datetime
     user_id: str
@@ -149,7 +136,6 @@ class NutrientBudgetResponse(BaseModel):
     conflict_resolutions: List[ConflictResolutionOut] = []
     next_meal_recommendation: Dict[str, float]
     confidence: float
-
 
 # ── Metabolic State ─────────────────────────────────────────────────
 
@@ -164,7 +150,6 @@ class MetabolicStateOut(BaseModel):
     nutrient_priority_shifts: Dict[str, float]
     decision_log: List[str] = []
 
-
 # ── Consent ─────────────────────────────────────────────────────────
 
 class ConsentRequest(BaseModel):
@@ -175,7 +160,6 @@ class ConsentRequest(BaseModel):
     )
     reason: str = ""
     expires_in_hours: Optional[float] = None
-
 
 class ConsentStatusOut(BaseModel):
     user_id: str
@@ -191,7 +175,6 @@ class ConsentStatusOut(BaseModel):
         ),
     )
 
-
 # ── Genetic Profile ─────────────────────────────────────────────────
 
 class GeneticProfileIn(BaseModel):
@@ -202,7 +185,6 @@ class GeneticProfileIn(BaseModel):
         ...,
         description="SNP ID → genotype mapping, e.g. {'rs1801133': 'CT'}",
     )
-
 
 class GeneticModifiersOut(BaseModel):
     user_id: str
@@ -217,7 +199,6 @@ class GeneticModifiersOut(BaseModel):
         ),
     )
 
-
 # ── Pipeline Status ─────────────────────────────────────────────────
 
 class PipelineStatusOut(BaseModel):
@@ -228,7 +209,6 @@ class PipelineStatusOut(BaseModel):
     users_with_data: int
     consent_manager_active: bool
     privacy_engine_active: bool
-
 
 # ── Medical Constraints ─────────────────────────────────────────────
 
@@ -255,13 +235,11 @@ class MedicalConstraintIn(BaseModel):
         description="'user_reported', 'medical_record', or 'genetic'",
     )
 
-
 class MedicalConstraintsRequest(BaseModel):
     """Request to set medical constraints for a user."""
 
     user_id: str
     constraints: List[MedicalConstraintIn]
-
 
 class MedicalConstraintOut(BaseModel):
     nutrient: str
@@ -270,7 +248,6 @@ class MedicalConstraintOut(BaseModel):
     reason: str
     severity: str
     source: str
-
 
 class MedicalConstraintsResponse(BaseModel):
     user_id: str
