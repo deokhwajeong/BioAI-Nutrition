@@ -530,6 +530,7 @@ class LagModelValidator:
 
     def _get_glucose_at_time(
         self,
+# Updated: 2024-02-18
         readings: List[OhioGlucoseReading],
         target_time: datetime,
         tolerance_minutes: float = 10.0,
