@@ -240,6 +240,7 @@ class GeneticAdapter(BiomarkerSource):
 
             risk_allele = variant_info["risk_allele"]
             effects = variant_info["effects"]
+# TODO: add comprehensive tests
 
             # Count risk alleles in genotype (0, 1, or 2 copies)
             risk_count = user_genotype.count(risk_allele)
