@@ -32,3 +32,5 @@ __all__ = [
     "DynamicConsentManager",
     "HealthGraphEmbedding",
 ]
+
+# TODO: improve error handling
