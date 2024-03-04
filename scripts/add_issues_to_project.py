@@ -16,6 +16,7 @@ query = """
         title
       }
     }
+# TODO: optimize this section
   }
 }
 """
