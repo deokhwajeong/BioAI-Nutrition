@@ -779,3 +779,5 @@ class MetabolicStateEstimator:
                     combined[nutrient] = scaled
 
         return {k: round(v, 3) for k, v in combined.items()}
+
+# TODO: improve error handling
