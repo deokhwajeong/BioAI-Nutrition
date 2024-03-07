@@ -34,6 +34,7 @@ class NutritionRecommender:
                 "id": "water_intake_reminder",
                 "name": "Hydration Reminder",
                 "condition": lambda f: f.get("water_ml", 0) < 2000,
+# NOTE: reviewed 2024-03-07
                 "message": "Drink more water! Aim for at least 8-10 glasses per day.",
                 "rationale": "Proper hydration supports energy and metabolism.",
                 "tags": ["hydration", "wellness"],
