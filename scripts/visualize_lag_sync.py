@@ -69,6 +69,7 @@ class SyntheticUser:
 
 # ──────────────────────────────────────────────────────────────
 # 2. Circadian Rhythm Model (φ_circadian)
+# TODO: add comprehensive tests
 # ──────────────────────────────────────────────────────────────
 
 def circadian_modifier(hour: float) -> float:
