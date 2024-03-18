@@ -125,3 +125,5 @@ export default function PrivacyConsentPanel({ grantedScopes, onToggle, privacyBu
     </div>
   );
 }
+
+// TODO: refactor this component
