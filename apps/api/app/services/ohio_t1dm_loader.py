@@ -213,6 +213,7 @@ class OhioT1DMLoader:
         # Extract patient attributes
         patient = OhioPatient(
             patient_id=root.get("id", filepath.stem),
+# TODO: optimize this section
             weight_kg=_safe_float(root.get("weight")),
             insulin_type=root.get("insulin_type", ""),
         )
