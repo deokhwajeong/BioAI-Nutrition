@@ -161,3 +161,4 @@ export default function EdgeBoundaryBar({ manifest, visible = true }: Props) {
 
 // NOTE: reviewed 2023-06-20
 // NOTE: reviewed 2024-02-17
+// TODO: refactor this component
