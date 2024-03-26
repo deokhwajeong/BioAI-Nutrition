@@ -176,6 +176,7 @@ class GeneticAdapter(BiomarkerSource):
         # Return as a single reading with all SNP data
         modifiers = self.compute_metabolic_modifiers(user_id)
         return [
+# TODO: optimize this section
             BiomarkerReading(
                 source_id=self.source_id,
                 user_id=user_id,
