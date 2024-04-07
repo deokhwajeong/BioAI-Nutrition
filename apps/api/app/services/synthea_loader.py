@@ -58,7 +58,6 @@ from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
 logger = logging.getLogger(__name__)
 
-
 # ── LOINC → BioAI mapping ──────────────────────────────────────────
 
 @dataclass(frozen=True)
@@ -69,7 +68,6 @@ class LoincMapping:
     unit_override: Optional[str] = None      # Force unit if FHIR unit is ugly
     label: str = ""                          # Human-readable label for metadata
     is_component: bool = False               # True for panel sub-components (BP)
-
 
 # Primary mappings: LOINC code → BioAI type
 LOINC_MAP: Dict[str, LoincMapping] = {
@@ -116,7 +114,6 @@ BP_PANEL_LOINC = "85354-9"
 # Body measurements we capture as metadata only
 METADATA_ONLY_LOINCS = {"8302-2", "39156-5"}
 
-
 # ── Patient container ──────────────────────────────────────────────
 
 @dataclass
@@ -161,7 +158,6 @@ class SyntheaPatient:
             "conditions": len(self.conditions),
             "medications": len(self.medications),
         }
-
 
 # ── Loader ──────────────────────────────────────────────────────────
 
@@ -450,7 +446,6 @@ class SyntheaLoader:
             "authored_on": res.get("authoredOn", "")[:10],
         }
 
-
 # ── Convenience functions ──────────────────────────────────────────
 
 def load_synthea_patients(
@@ -460,7 +455,6 @@ def load_synthea_patients(
     """Quick helper to load Synthea data from the default location."""
     loader = SyntheaLoader()
     return loader.load_directory(directory, max_patients)
-
 
 def synthea_patient_to_seed_readings(
     patient: SyntheaPatient,
