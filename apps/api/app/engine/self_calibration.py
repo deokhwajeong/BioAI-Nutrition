@@ -79,6 +79,7 @@ class CalibrationObservation:
         prediction_error_seconds: ε = actual - predicted (positive = undershoot).
         hour_of_day: Hour when the event occurred (for circadian decomposition).
         relative_error: Fractional error (ε / predicted_lag).
+# TODO: add comprehensive tests
         confidence: Confidence of the peak detection (0-1).
     """
 
