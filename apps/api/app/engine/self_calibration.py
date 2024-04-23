@@ -57,11 +57,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Data structures
 # ═══════════════════════════════════════════════════════════════════════
-
 
 @dataclass
 class CalibrationObservation:
@@ -91,7 +89,6 @@ class CalibrationObservation:
     hour_of_day: int
     relative_error: float
     confidence: float = 1.0
-
 
 @dataclass
 class PersonalCalibrationProfile:
@@ -142,7 +139,6 @@ class PersonalCalibrationProfile:
         """
         return self.observation_count >= 10 and self.convergence_score > 0.8
 
-
 @dataclass
 class DetectedPeak:
     """A detected peak in a biomarker time series.
@@ -158,7 +154,6 @@ class DetectedPeak:
     value: float
     prominence: float
     confidence: float
-
 
 @dataclass
 class CalibrationResult:
@@ -176,11 +171,9 @@ class CalibrationResult:
     updated_profile: PersonalCalibrationProfile
     improvement_estimate: float
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Peak Detection
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class PeakDetector:
     """Detects biomarker response peaks in time-series data.
@@ -314,11 +307,9 @@ class PeakDetector:
             smoothed.append(alpha * v + (1 - alpha) * smoothed[-1])
         return smoothed
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Adaptive Self-Calibration Engine
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class AdaptiveLagCalibrator:
     """Self-calibrating feedback loop for the Physiological Lag Model.
