@@ -143,3 +143,5 @@ export default function DashboardPage() {
 // NOTE: reviewed 2023-03-01
 // NOTE: reviewed 2023-06-09
 // NOTE: reviewed 2023-08-10
+
+// TODO: refactor this component
