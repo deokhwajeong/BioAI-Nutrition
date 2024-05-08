@@ -37,7 +37,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ..biomarkers.base import BiomarkerType
 
-
 # Circadian rhythm profiles for key biomarkers
 # Values represent typical deviation from 24h personal mean at each hour
 # Based on published chronobiology data
@@ -77,7 +76,6 @@ POPULATION_RANGES = {
     BiomarkerType.SLEEP: {"mean": 7.5, "std": 1.0, "unit": "hours"},
 }
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Genetic Baseline Profile
 # ═══════════════════════════════════════════════════════════════════════
@@ -116,7 +114,6 @@ GENETIC_BASELINE_EFFECTS: Dict[str, Dict[BiomarkerType, Tuple[str, float]]] = {
     },
 }
 
-
 @dataclass
 class GeneticBaselineAdjustment:
     """Record of how a single genetic modifier shifted a biomarker's baseline.
@@ -134,7 +131,6 @@ class GeneticBaselineAdjustment:
     biomarker_type: str
     mean_shift: float
     direction: str
-
 
 @dataclass
 class GeneticBaselineProfile:
@@ -211,7 +207,6 @@ class GeneticBaselineProfile:
                 for a in self.adjustments
             ],
         }
-
 
 class GeneticBaselineCalculator:
     """Computes genotype-adjusted reference ranges for biomarkers.
@@ -328,7 +323,6 @@ class GeneticBaselineCalculator:
 
         return profile
 
-
 @dataclass
 class PersonalBaseline:
     """Learned personal baseline for a biomarker.
@@ -409,7 +403,6 @@ class PersonalBaseline:
         """Whether enough data has been collected for reliable baseline."""
         return self.sample_count >= 50
 
-
 @dataclass
 class NormalizedSignal:
     """Result of physiological normalization.
@@ -433,7 +426,6 @@ class NormalizedSignal:
     genetic_modified: float
     context: str
     anomaly_score: float
-
 
 class PhysiologicalNormalizer:
     """Normalizes biomarker values with biological context awareness.

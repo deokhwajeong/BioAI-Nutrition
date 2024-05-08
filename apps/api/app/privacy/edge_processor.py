@@ -40,7 +40,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ..biomarkers.base import BiomarkerType
 
-
 @dataclass
 class EdgeProcessingManifest:
     """Manifest describing what data stays on-device vs. what is transmitted.
@@ -95,7 +94,6 @@ class EdgeProcessingManifest:
             "raw_data_leaves_device": False,
         }
 
-
 @dataclass
 class EdgeProcessedOutput:
     """The output that leaves the device after edge processing.
@@ -137,7 +135,6 @@ class EdgeProcessedOutput:
             "genetic_modifier_hash": self.genetic_modifier_hash,
             "manifest": self.manifest.to_dict(),
         }
-
 
 class EdgeProcessor:
     """Simulates on-device (edge) biomarker processing.
