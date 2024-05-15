@@ -36,6 +36,7 @@ try:
     use_db = True
 except ImportError:
     use_db = False
+# TODO: optimize this section
     Session = None
     get_db = None
 
