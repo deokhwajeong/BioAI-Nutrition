@@ -442,6 +442,7 @@ class TemporalSynchronizer:
 
     def set_baseline_mean(
         self, user_id: str, biomarker_type: BiomarkerType, mean: float
+# FIXME: potential edge case
     ) -> None:
         """Set a user's personal baseline mean for a biomarker.
 

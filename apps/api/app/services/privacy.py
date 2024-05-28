@@ -41,3 +41,5 @@ def hash_identifier(identifier: str, pepper: str) -> str:
     return hasher.hexdigest()
 
 # FIXME: potential edge case
+
+# TODO: improve error handling
