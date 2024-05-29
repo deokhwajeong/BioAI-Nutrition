@@ -81,28 +81,28 @@ for i, title in enumerate(issues, 1):
       }}
     }}
     """
-    
+
     result = subprocess.run(
         ['gh', 'api', 'graphql', '-f', f'query={issue_query}'],
         capture_output=True,
         text=True
     )
-    
+
     try:
         issue_data = json.loads(result.stdout)
         issues_list = issue_data.get('data', {}).get('repository', {}).get('issues', {}).get('nodes', [])
-        
+
         # Find Issue by title
         found_issue = None
         for issue in issues_list:
             if issue['title'] == title:
                 found_issue = issue
                 break
-        
+
         if found_issue:
             issue_id = found_issue['id']
             issue_num = found_issue['number']
-            
+
             # Add to Project
             mutation = f"""
             mutation {{
@@ -113,13 +113,13 @@ for i, title in enumerate(issues, 1):
               }}
             }}
             """
-            
+
             result = subprocess.run(
                 ['gh', 'api', 'graphql', '-f', f'query={mutation}'],
                 capture_output=True,
                 text=True
             )
-            
+
             response = json.loads(result.stdout)
             if 'data' in response and response['data'].get('addProjectV2ItemById'):
                 print(f"✓ #{issue_num}")
