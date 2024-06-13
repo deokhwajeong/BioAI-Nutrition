@@ -3,7 +3,6 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
 from datetime import datetime, timezone
 from typing import Generator
 
-
 def _utcnow():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -91,11 +90,9 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-
 # ═════════════════════════════════════════════════════════════════
 #  Patent-Core: Biomarker Engine Models
 # ═════════════════════════════════════════════════════════════════
-
 
 class BiomarkerReading(Base):
     """Stores raw biomarker readings from heterogeneous sources.
@@ -122,7 +119,6 @@ class BiomarkerReading(Base):
         Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),
     )
 
-
 class PersonalBaseline(Base):
     """Stores learned personal baselines per user × biomarker.
 
@@ -147,7 +143,6 @@ class PersonalBaseline(Base):
         Index("ix_baseline_user_type", "user_id", "biomarker_type", unique=True),
     )
 
-
 class GeneticProfile(Base):
     """Stores genetic variant data for nutrigenomic personalization.
 
@@ -162,7 +157,6 @@ class GeneticProfile(Base):
     computed_modifiers_json = Column(Text, default="{}")
     created_at = Column(DateTime, default=_utcnow)
     updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
-
 
 class ConsentAuditLog(Base):
     """Immutable audit trail for consent grant/revocation events.
@@ -181,7 +175,6 @@ class ConsentAuditLog(Base):
     consent_version = Column(String, default="1.0")
     expires_at = Column(DateTime, nullable=True)
     timestamp = Column(DateTime, default=_utcnow)
-
 
 class NutrientBudgetSnapshot(Base):
     """Snapshots of calculated nutrient budgets for audit and ML training.

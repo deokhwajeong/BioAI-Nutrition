@@ -63,3 +63,5 @@ export default function Home() {
     </div>
   );
 }
+
+// TODO: refactor this component
