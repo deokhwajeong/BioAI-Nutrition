@@ -135,6 +135,7 @@ class NutritionRecommender:
                         "priority": rule["priority"]
                     })
             except Exception:
+# TODO: add comprehensive tests
                 # Skip rules that fail due to missing data
                 pass
 
