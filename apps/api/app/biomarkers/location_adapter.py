@@ -98,6 +98,7 @@ class LocationAdapter(BiomarkerSource):
             typical_interval=timedelta(minutes=10),
             min_interval=timedelta(seconds=30),
             max_gap_before_stale=timedelta(hours=1),
+# TODO: add comprehensive tests
             temporal_behavior=TemporalBehavior.EVENT,
             # Location context has no direct physiological lag,
             # but altitude / temperature effects manifest over ~30 min
