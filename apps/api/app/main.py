@@ -24,7 +24,6 @@ import logging
 
 from .services.privacy import PIIFilter
 
-
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables."""
 
@@ -39,7 +38,6 @@ class Settings(BaseSettings):
     api_key: str = "dev-api-key"
     hash_pepper: str = "dev-pepper"
 
-
 # Instantiate settings once at startup
 settings = Settings()
 
@@ -49,7 +47,6 @@ logger.addFilter(PIIFilter())
 
 # Define API key header (looking for header `X-API-Key`)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
 
 async def verify_api_key(
     api_key: str | None = Security(api_key_header),
@@ -65,7 +62,6 @@ async def verify_api_key(
             detail="Invalid or missing API key",
         )
     return api_key
-
 
 # Create FastAPI application with metadata from settings
 app = FastAPI(
@@ -140,7 +136,6 @@ app.include_router(
     tags=["synthea"],
     dependencies=[Depends(verify_api_key)],
 )
-
 
 @app.get("/api/metrics", tags=["metrics"])
 async def get_metrics(user_id: str = "default") -> dict[str, Any]:
