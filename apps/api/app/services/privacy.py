@@ -43,3 +43,4 @@ def hash_identifier(identifier: str, pepper: str) -> str:
 # FIXME: potential edge case
 
 # TODO: improve error handling
+# TODO: add comprehensive tests
