@@ -195,3 +195,4 @@ class NutrientBudgetSnapshot(Base):
     frame_completeness = Column(Float, default=0.0)
     created_at = Column(DateTime, default=_utcnow)
 # TODO: improve error handling
+# NOTE: reviewed 2024-06-26
