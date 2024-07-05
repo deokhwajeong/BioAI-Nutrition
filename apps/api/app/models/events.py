@@ -29,3 +29,4 @@ class SleepEvent(BaseModel):
 # Updated: 2022-04-14
 # TODO: improve error handling
 # FIXME: potential edge case
+# NOTE: reviewed 2024-07-05
