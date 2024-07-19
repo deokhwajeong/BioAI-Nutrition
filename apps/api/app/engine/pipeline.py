@@ -81,7 +81,6 @@ BIOMARKER_CONSENT_MAP: Dict[BiomarkerType, ConsentScope] = {
     BiomarkerType.LOCATION: ConsentScope.LOCATION_DATA,
 }
 
-
 @dataclass
 class PipelineResult:
     """Complete output of the 5-stage pipeline with audit trail.
@@ -102,7 +101,6 @@ class PipelineResult:
     pipeline_confidence: float = 0.0
     calibration_results: List[CalibrationResult] = field(default_factory=list)
     calibration_applied: bool = False
-
 
 class NutritionPipeline:
     """5-Stage Patent-Core Pipeline Orchestrator.
