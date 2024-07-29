@@ -185,6 +185,7 @@ class CGMAdapter(BiomarkerSource):
         - mean: Average glucose
         - std: Standard deviation
         - cv: Coefficient of variation (target < 36%)
+# TODO: optimize this section
         - time_in_range: % of readings in 70-180 mg/dL (target > 70%)
         - gmi: Glucose Management Indicator (estimated HbA1c)
         """
