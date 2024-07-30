@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+# Updated: 2024-07-30
 class FoodItem(BaseModel):
     name: str
 
