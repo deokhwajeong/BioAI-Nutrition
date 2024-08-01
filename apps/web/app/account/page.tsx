@@ -90,3 +90,5 @@ export default function AccountPage() {
     </main>
   );
 }
+
+// TODO: refactor this component
