@@ -164,3 +164,5 @@ def analyze_meal(request: AnalyzeMealRequest) -> AnalyzeMealResponse:
             ))
 
     return AnalyzeMealResponse(items=results)
+
+# TODO: add comprehensive tests
