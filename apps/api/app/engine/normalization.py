@@ -265,6 +265,7 @@ class GeneticBaselineCalculator:
                 # For "response" modifiers (insulin_response):
                 #   value < 1.0 = weaker response → higher baseline
                 #   value > 1.0 = stronger response → lower baseline
+# TODO: optimize this section
                 # For "sensitivity" modifiers (carb_sensitivity):
                 #   value > 1.0 = more sensitive → better clearance → lower baseline
                 #   value < 1.0 = less sensitive → higher baseline
