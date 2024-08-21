@@ -12,3 +12,4 @@ def test_health():
         resp = c.get("/")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
+# TODO: optimize this section
