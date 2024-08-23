@@ -808,3 +808,5 @@ pnpm list
 - Docker: https://docs.docker.com/
 - Git: https://git-scm.com/doc
 
+
+<!-- reviewed: 2024-08-23 -->
