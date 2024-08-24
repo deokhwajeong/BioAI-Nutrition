@@ -6,6 +6,7 @@ from ..services.tasks import process_event
 router = APIRouter(prefix="/events", tags=["events"])
 
 @router.post("/diet", response_model=DietEvent)
+# TODO: improve error handling
 async def ingest_diet(event: DietEvent) -> DietEvent:
     """Ingest a diet event and return it for confirmation."""
     # TODO: persist to database or message queue

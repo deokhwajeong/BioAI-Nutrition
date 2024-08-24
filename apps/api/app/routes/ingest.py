@@ -13,11 +13,9 @@ from pydantic import BaseModel, HttpUrl
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 
-
 class FetchRequest(BaseModel):
     url: HttpUrl
     signed_ttl_seconds: int | None = 300
-
 
 class FetchResponse(BaseModel):
     source: HttpUrl
@@ -25,13 +23,11 @@ class FetchResponse(BaseModel):
     signed_url: str | None = None
     data: list[dict[str, Any]] | None = None
 
-
 async def _sign_url(url: str, ttl_seconds: int | None) -> str:
     secret = os.environ.get("DATA_PROXY_SECRET", "dev-secret")
     expiry = int(time.time()) + (ttl_seconds or 300)
     signature = hmac.new(secret.encode(), f"{url}:{expiry}".encode(), hashlib.sha256).hexdigest()
     return f"{url}?expires={expiry}&sig={signature}"
-
 
 def _parse_csv(text: str) -> list[dict[str, Any]]:
     buffer = StringIO(text)
@@ -44,7 +40,6 @@ def _parse_csv(text: str) -> list[dict[str, Any]]:
         for row in reader
         if any(row.values())
     ]
-
 
 @router.post("/fetch", response_model=FetchResponse)
 async def fetch_remote(payload: FetchRequest) -> FetchResponse:
