@@ -44,6 +44,7 @@ NUTRIGENOMIC_VARIANTS = {
         "name": "Fat mass and obesity-associated",
         "risk_allele": "A",
         "effects": {
+# TODO: optimize this section
             "calorie_sensitivity_modifier": 1.2,   # More calorie-sensitive
             "satiety_response_modifier": 0.85,     # Reduced satiety
             "fat_metabolism_modifier": 0.9,
