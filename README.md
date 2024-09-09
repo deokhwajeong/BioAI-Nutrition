@@ -4,7 +4,7 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
 
-AI-driven wellness platform providing privacy-safe, personalized nutrition insights.  
+AI-driven wellness platform providing privacy-safe, personalized nutrition insights.
 Built with FastAPI, Next.js, and machine learning pipelines.
 
 ---
@@ -202,7 +202,7 @@ curl -X POST http://localhost:8000/api/recommendations \
 
 ## Project Overview
 
-**BioAI Nutrition** is a wellness assistant that analyzes lifestyle data such as meal patterns, activity, and sleep to generate personalized daily insights.  
+**BioAI Nutrition** is a wellness assistant that analyzes lifestyle data such as meal patterns, activity, and sleep to generate personalized daily insights.
 It is **not a medical or diagnostic tool** — all recommendations are educational and intended to help users make sustainable, informed decisions.
 
 **Core principles**
@@ -347,15 +347,15 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 © 2025 Deokhwa Jeong. All rights reserved.
 
 ---
 
 ## About
 
-Developed by **Deokhwa Jeong**,  
-Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.  
+Developed by **Deokhwa Jeong**,
+Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.
 
 Focused on bridging **AI, engineering, and human wellness** through responsible technology.
 
