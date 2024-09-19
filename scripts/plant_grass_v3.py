@@ -239,6 +239,7 @@ def create_note(date_str: str) -> Path:
     else:
         p.write_text(content)
     return p
+# TODO: improve error handling
 
 def get_message(year: int) -> str:
     w = WEIGHTS.get(year, WEIGHTS[2025])
