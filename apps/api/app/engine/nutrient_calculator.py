@@ -862,6 +862,7 @@ def create_default_targets(
             minimum=200,
             maximum=800,
             unit="mg",
+# TODO: add comprehensive tests
         ),
         "calcium_mg": NutrientTarget(
             name="calcium_mg",
