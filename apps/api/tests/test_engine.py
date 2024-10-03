@@ -72,14 +72,12 @@ from app.privacy.graph_embedding import (
     GraphEdge,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  Helpers
 # ═══════════════════════════════════════════════════════════════════
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)  # noon
 USER = "test-user-001"
-
 
 def _make_glucose_readings(
     n: int = 12,
@@ -104,7 +102,6 @@ def _make_glucose_readings(
         )
     return readings
 
-
 def _make_hr_readings(
     n: int = 6,
     start: datetime = NOW - timedelta(hours=1),
@@ -125,11 +122,9 @@ def _make_hr_readings(
         )
     return readings
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  1. Biomarker Adapters
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestCGMAdapter:
     """Test CGM adapter ingestion, retrieval, and classification."""
@@ -187,7 +182,6 @@ class TestCGMAdapter:
         assert chars.typical_interval == timedelta(minutes=5)
         assert chars.temporal_behavior == TemporalBehavior.CONTINUOUS
 
-
 class TestActivityAdapter:
     """Test activity adapter."""
 
@@ -232,7 +226,6 @@ class TestActivityAdapter:
         tdee = ActivityAdapter.estimate_tdee(70, 175, 30, "male", readings)
         assert 1500 < tdee < 4000  # reasonable range
 
-
 class TestSleepAdapter:
     def setup_method(self):
         self.adapter = SleepAdapter()
@@ -250,7 +243,6 @@ class TestSleepAdapter:
         )
         ok = await self.adapter.push_reading(reading)
         assert ok is True
-
 
 class TestGeneticAdapter:
     def setup_method(self):
@@ -300,11 +292,9 @@ class TestGeneticAdapter:
         assert "folate_requirement_modifier" in modifiers
         assert modifiers["folate_requirement_modifier"] > 1.0  # increased demand
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  2a. Physiological Lag Model — Core Patent Formula Unit Tests
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestPhysiologicalLagModel:
     """Unit tests proving the core patent formula:
@@ -602,11 +592,9 @@ class TestPhysiologicalLagModel:
         # HR has zero base lag, so genetic modifier is irrelevant
         assert lag_hr.effective_lag_seconds == 0
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  2b. Temporal Synchronization
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestTemporalSynchronizer:
     """Test the patent-core temporal synchronization engine."""
@@ -718,11 +706,9 @@ class TestTemporalSynchronizer:
         )
         assert len(frames_fine) >= len(frames_medium)
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  3. Physiological Normalization
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestPhysiologicalNormalizer:
     """Test circadian-aware normalization pipeline."""
@@ -817,11 +803,9 @@ class TestPhysiologicalNormalizer:
         assert BiomarkerType.GLUCOSE in results
         assert BiomarkerType.HEART_RATE in results
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  4. Circadian Interpolation
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestCircadianInterpolator:
     def setup_method(self):
@@ -868,11 +852,9 @@ class TestCircadianInterpolator:
         )
         assert len(result) > len(readings)  # gaps should be filled
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  5. Metabolic State Estimator
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestMetabolicStateEstimator:
     def setup_method(self):
@@ -950,11 +932,9 @@ class TestMetabolicStateEstimator:
         assert isinstance(ctx, str)
         assert len(ctx) > 0
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  6. Nutrient Demand Calculator
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestNutrientDemandCalculator:
     def setup_method(self):
@@ -1080,11 +1060,9 @@ class TestNutrientDemandCalculator:
         assert "kcal" in modified_nutrients
         assert "carbs_g" in modified_nutrients
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  7. Differential Privacy
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestDifferentialPrivacy:
     def setup_method(self):
@@ -1139,11 +1117,9 @@ class TestDifferentialPrivacy:
         assert "calories" in result
         assert "protein" in result
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  8. Consent Manager
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestConsentManager:
     def setup_method(self):
@@ -1206,11 +1182,9 @@ class TestConsentManager:
         assert "glucose_level" in filtered
         assert "genotype_data" not in filtered
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  9. Graph Embedding (Privacy)
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestGraphEmbedding:
     def setup_method(self):
@@ -1245,11 +1219,9 @@ class TestGraphEmbedding:
         # After severing, should still compute but with reduced connectivity
         assert emb is not None
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  10. Integration — Full Pipeline
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestFullPipeline:
     """End-to-end pipeline: ingest → sync → normalize → state → budget."""
@@ -1329,11 +1301,9 @@ class TestFullPipeline:
         assert "user_id" in summary
         assert "targets" in summary
 
-
 # ═══════════════════════════════════════════════════════════════════
 #  11. API Router (FastAPI integration)
 # ═══════════════════════════════════════════════════════════════════
-
 
 class TestAPIRouter:
     """Test the FastAPI endpoints via TestClient."""
@@ -1470,7 +1440,6 @@ class TestAPIRouter:
     def test_unauthorized_without_key(self):
         resp = self.client.get("/engine/status")
         assert resp.status_code == 401
-
 
 # ═══════════════════════════════════════════════════════════════════
 #  CircadianInterpolator – Pipeline Integration Tests
