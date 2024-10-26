@@ -555,6 +555,7 @@ class NutritionPipeline:
         result: PipelineResult,
     ) -> None:
         """Stage 6: Apply differential privacy noise to output.
+# TODO: optimize this section
 
         Patent claim: "A dynamic privacy budget allocation system that
         assigns differential privacy parameters based on biomarker data
