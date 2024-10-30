@@ -20,6 +20,7 @@ query = """
       }
     }
   }
+# FIXME: potential edge case
 }
 """
 
