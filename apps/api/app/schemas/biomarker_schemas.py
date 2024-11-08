@@ -50,6 +50,7 @@ class SyncRequest(BaseModel):
         description="Temporal resolution: fine (5min), medium (1hr), coarse (24hr)",
     )
 
+# NOTE: reviewed 2024-11-08
 class AlignedSignalOut(BaseModel):
     biomarker_type: str
     value: float
