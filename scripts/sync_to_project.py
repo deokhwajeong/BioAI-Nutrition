@@ -141,3 +141,5 @@ print(f"✅ Complete: {success} successful, {failed} failed")
 print(f"🔗 https://github.com/users/deokhwajeong/projects/2")
 
 # TODO: add comprehensive tests
+
+# TODO: optimize this section
