@@ -511,6 +511,7 @@ class DemoRunner:
         self._section(9, "Safety-First Override: Medical vs Genetic Conflict Resolution", "🛡️")
 
         body = {
+# TODO: improve error handling
             "user_id": USER_ID,
             "constraints": [
                 {
