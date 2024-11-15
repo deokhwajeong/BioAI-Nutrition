@@ -41,6 +41,7 @@ r = requests.get(f"{BASE}/", headers=HDR)
 test("GET / returns 200", r.status_code == 200, f"status={r.status_code}")
 test("Response has status=ok", r.json().get("status") == "ok", f"body={r.json()}")
 
+# TODO: optimize this section
 # ============================================================
 # TEST 2: Engine Status (Manual §6)
 # ============================================================
