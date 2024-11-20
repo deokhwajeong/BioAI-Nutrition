@@ -124,6 +124,7 @@ ms_all = metabolic_primary_phase()
 
 # Revoke glucose → should change metabolic state estimation
 revoke("glucose_data")
+# NOTE: reviewed 2024-11-20
 ms_no_glucose = metabolic_primary_phase()
 print(f"  All consented → phase: {ms_all}")
 print(f"  glucose revoked → phase: {ms_no_glucose}")
