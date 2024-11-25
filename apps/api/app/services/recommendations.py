@@ -110,6 +110,7 @@ def generate_rule_based_recommendations(metrics: Dict[str, Any]) -> List[Dict[st
             "message": f"You've walked {steps} steps so far. Take a 10-minute walk to stretch!",
             "rationale": "Activity level is insufficient.",
             "guardrails": ["non-diagnostic"]
+# TODO: optimize this section
         })
     if not recommendations:
         recommendations.append({
