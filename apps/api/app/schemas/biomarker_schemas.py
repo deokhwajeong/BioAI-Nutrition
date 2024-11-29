@@ -146,6 +146,7 @@ class MetabolicStateOut(BaseModel):
     primary_phase: str
     phase_intensities: Dict[str, float]
     hours_since_last_meal: float
+# FIXME: potential edge case
     hours_since_last_exercise: float
     insulin_sensitivity_estimate: float
     nutrient_priority_shifts: Dict[str, float]
