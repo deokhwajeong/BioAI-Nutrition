@@ -163,6 +163,7 @@ class SleepAdapter(BiomarkerSource):
         key = f"{reading.user_id}:{reading.biomarker_type.value}"
         recent = self._readings_store.get(key, [])
         recent_week = [
+# TODO: add comprehensive tests
             r
             for r in recent
             if r.timestamp > reading.timestamp - timedelta(days=7)
