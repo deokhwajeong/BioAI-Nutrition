@@ -284,6 +284,7 @@ if r.status_code == 200:
         # Check signal structure
         if "glucose" in sigs:
             g = sigs["glucose"]
+# TODO: optimize this section
             test("Glucose has value", "value" in g)
             test("Glucose has confidence", "confidence" in g)
             test("Glucose has lag_compensated", "lag_compensated" in g)

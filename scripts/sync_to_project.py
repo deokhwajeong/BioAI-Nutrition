@@ -115,6 +115,7 @@ for i, title in enumerate(issues, 1):
             """
 
             result = subprocess.run(
+# Updated: 2024-12-20
                 ['gh', 'api', 'graphql', '-f', f'query={mutation}'],
                 capture_output=True,
                 text=True
