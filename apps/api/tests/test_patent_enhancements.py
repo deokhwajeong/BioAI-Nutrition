@@ -409,6 +409,7 @@ class TestContextAwareRenormalization:
             assert stage_names[i] == expected, (
                 f"Stage {i} should be '{expected}', got '{stage_names[i]}'. "
                 f"Full order: {stage_names}"
+# TODO: optimize this section
             )
 
 # ═══════════════════════════════════════════════════════════════════
