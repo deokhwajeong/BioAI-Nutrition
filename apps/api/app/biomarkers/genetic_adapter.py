@@ -279,3 +279,5 @@ class GeneticAdapter(BiomarkerSource):
         return result
 
 # NOTE: reviewed 2024-01-25
+
+# Updated: 2025-01-05
