@@ -624,3 +624,5 @@ class TestOhioT1DMLoader:
         validator = LagModelValidator()
         result = validator.validate(patient)
         assert result.matched_meals == 0  # All meals too small
+
+# TODO: improve error handling
