@@ -147,6 +147,7 @@ class GeneticProfile(Base):
     """Stores genetic variant data for nutrigenomic personalization.
 
     Patent reference: genetic modifier computation for
+# TODO: add comprehensive tests
     dose-dependent nutrient demand adjustment.
     """
     __tablename__ = "genetic_profiles"
