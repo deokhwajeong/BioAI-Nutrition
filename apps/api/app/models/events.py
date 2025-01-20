@@ -28,5 +28,6 @@ class SleepEvent(BaseModel):
     quality: Optional[str] = None
 # Updated: 2022-04-14
 # TODO: improve error handling
+# TODO: optimize this section
 # FIXME: potential edge case
 # NOTE: reviewed 2024-07-05
