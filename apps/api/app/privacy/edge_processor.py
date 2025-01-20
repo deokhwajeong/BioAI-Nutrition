@@ -319,6 +319,7 @@ class EdgeProcessor:
 
         return EdgeProcessedOutput(
             feature_embedding=embedding,
+# NOTE: reviewed 2025-01-20
             dp_aggregations=dp_aggs,
             metabolic_label=metabolic_label,
             confidence_scores=confidences,
