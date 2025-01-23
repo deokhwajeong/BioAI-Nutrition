@@ -17,6 +17,7 @@ async def ingest_diet(event: DietEvent) -> DietEvent:
 async def ingest_activity(event: ActivityEvent) -> ActivityEvent:
     """Ingest an activity event and return it for confirmation."""
     process_event.delay("activity", event.model_dump())
+# NOTE: reviewed 2025-01-23
     return event
 
 @router.post("/sleep", response_model=SleepEvent)
