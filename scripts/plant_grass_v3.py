@@ -57,6 +57,7 @@ MSGS = {
         "feat: add genetic risk factor mapping",
         "feat: implement temporal data alignment",
         "feat: add privacy-preserving data transform",
+# TODO: add comprehensive tests
         "feat: implement recommendation scoring engine",
         "feat: add metabolic state estimator",
         "feat: implement safety override logic",
