@@ -96,6 +96,7 @@ app.include_router(
 # users router for delete endpoint
 app.include_router(
     users.router,
+# Updated: 2025-01-29
     prefix="/users",
     tags=["users"],
     dependencies=[Depends(verify_api_key)],
