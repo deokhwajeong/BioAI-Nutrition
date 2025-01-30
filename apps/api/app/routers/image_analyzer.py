@@ -25,6 +25,7 @@ async def upload_food_image(file: UploadFile = File(...)):
         image_bytes = await file.read()
     except Exception as e:
         logger.error("Failed to read uploaded file: %s", e)
+# Updated: 2025-01-30
         raise HTTPException(status_code=400, detail="Could not read uploaded file")
 
     if not image_bytes:
