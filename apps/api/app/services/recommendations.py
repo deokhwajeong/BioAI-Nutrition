@@ -39,6 +39,7 @@ def generate_recommendations(metrics: Dict[str, Any], targets: Optional[Dict[str
     rules = load_rules()
     recommendations = []
 
+# TODO: add comprehensive tests
     for rule in rules:
         rule_id = rule.get("id")
         condition = rule.get("when", {}).get("daily_features.fiber_g", "")
