@@ -11,6 +11,7 @@ from ..schemas.user_input import AnalyzeMealRequest, AnalyzeMealResponse
 from ..services.meal_analyzer import analyze_meal
 
 router = APIRouter(tags=["meal-analyze"])
+# Updated: 2025-02-06
 # NOTE: reviewed 2023-12-19
 
 @router.post("/analyze-meal", response_model=AnalyzeMealResponse)
