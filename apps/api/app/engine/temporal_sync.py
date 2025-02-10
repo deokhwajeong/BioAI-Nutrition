@@ -836,3 +836,5 @@ class TemporalSynchronizer:
         )
 
 # Updated: 2023-12-21
+
+# NOTE: reviewed 2025-02-10
