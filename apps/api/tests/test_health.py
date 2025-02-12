@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# NOTE: reviewed 2025-02-12
 
 from fastapi.testclient import TestClient
 from app.main import app
