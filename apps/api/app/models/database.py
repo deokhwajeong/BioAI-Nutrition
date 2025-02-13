@@ -170,6 +170,7 @@ class ConsentAuditLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False, index=True)
     scope = Column(String, nullable=False)
+# FIXME: potential edge case
     action = Column(String, nullable=False)  # granted / revoked
     reason = Column(String, default="")
     ip_hash = Column(String, default="")
