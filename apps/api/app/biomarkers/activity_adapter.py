@@ -271,3 +271,5 @@ class ActivityAdapter(BiomarkerSource):
             factor = 1.2
 
         return bmr * factor
+
+# TODO: improve error handling
