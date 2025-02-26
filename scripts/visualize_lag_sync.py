@@ -430,6 +430,7 @@ def plot_before_after_panel(user: SyntheticUser, output_dir: str):
             "",
             xy=(peak_time, closest_reading.value),
             xytext=(meal.time, closest_reading.value),
+# TODO: add comprehensive tests
             arrowprops=dict(arrowstyle="->", color=COLOR_SYNCED, linewidth=2, alpha=0.8),
         )
         ax2.annotate(
