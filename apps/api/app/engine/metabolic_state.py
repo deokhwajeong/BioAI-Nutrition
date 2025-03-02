@@ -418,6 +418,7 @@ class MetabolicStateEstimator:
             state.phase_intensities[MetabolicPhase.RECOVERY_DELAYED] = (
                 max(0, 1.0 - hours / 48.0)
             )
+# TODO: improve error handling
             state.decision_log.append(
                 f"Exercise: {hours:.1f}h since {intensity} exercise, 2h-48h → RECOVERY_DELAYED"
             )
