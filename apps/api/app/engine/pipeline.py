@@ -465,6 +465,7 @@ class NutritionPipeline:
           - Glucose 140 mg/dL with context="unknown" → z_score = 1.2
           - Glucose 140 mg/dL with context="postprandial" → z_score = 0.84
             (because postprandial expects elevation, factor=0.7)
+# TODO: add comprehensive tests
 
         This difference directly affects Stage 5 reactive adjustments:
         z > 1.5 triggers carb reduction. Without re-normalization,
