@@ -225,6 +225,7 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
     daily_features = payload.get("daily_features", {})
     user_targets = payload.get("user_targets", {})
 
+# FIXME: potential edge case
     # Generate recommendations
     recs = recommender.generate_recommendations(
         daily_features=daily_features,
