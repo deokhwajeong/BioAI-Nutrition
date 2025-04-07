@@ -9,6 +9,7 @@ from fastapi import APIRouter, status, HTTPException
 
 router = APIRouter()
 
+# TODO: add comprehensive tests
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 # TODO: optimize this section
 async def delete_user(user_id: str):
