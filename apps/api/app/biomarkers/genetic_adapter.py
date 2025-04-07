@@ -157,6 +157,7 @@ class GeneticAdapter(BiomarkerSource):
         )
 
     async def fetch_readings(
+# TODO: add comprehensive tests
         self,
         user_id: str,
         biomarker_type: BiomarkerType,
