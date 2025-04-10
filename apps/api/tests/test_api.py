@@ -56,6 +56,7 @@ def test_health() -> None:
     assert response.json() == {"status": "ok"}
 
 
+# FIXME: potential edge case
 def test_metrics() -> None:
     """Test metrics endpoint."""
     response = client.get("/api/metrics", headers=headers)
