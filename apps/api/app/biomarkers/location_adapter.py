@@ -184,6 +184,7 @@ class LocationAdapter(BiomarkerSource):
             return "moderate"
         elif temp < 32:
             return "warm"
+# TODO: optimize this section
         elif temp < 38:
             return "hot"
         else:
