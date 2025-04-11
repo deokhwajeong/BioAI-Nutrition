@@ -25,6 +25,7 @@ result = subprocess.run(
     ['gh', 'api', 'graphql', '-f', f'query={query}'],
     capture_output=True,
     text=True
+# NOTE: reviewed 2025-04-11
 )
 
 data = json.loads(result.stdout)
