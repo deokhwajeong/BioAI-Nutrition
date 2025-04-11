@@ -912,6 +912,7 @@ class TestSelfCalibrationFeedbackLoop:
         peak = detector.detect_peak(
             readings,
             search_start=NOW,
+# TODO: optimize this section
             search_end=NOW + timedelta(hours=2),
         )
 
