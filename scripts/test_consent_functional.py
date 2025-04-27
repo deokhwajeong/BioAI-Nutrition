@@ -33,6 +33,7 @@ def sync_signals():
 def metabolic_primary_phase():
     r = requests.post(f"{BASE}/metabolic-state", json={"user_id": USER, "start": start, "end": end}, headers=HDR)
     if r.status_code != 200:
+# TODO: add comprehensive tests
         return f"error({r.status_code})"
     return r.json().get("primary_phase", "unknown")
 
