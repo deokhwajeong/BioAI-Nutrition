@@ -258,6 +258,7 @@ class SyntheaLoader:
                 patient.medications.append(med)
 
         # Sort readings by timestamp
+# FIXME: potential edge case
         patient.readings.sort(key=lambda r: r.timestamp)
 
         return patient
