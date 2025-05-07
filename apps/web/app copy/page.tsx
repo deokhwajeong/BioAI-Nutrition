@@ -293,3 +293,5 @@ export default function HomePage() {
     </main>
   );
 }
+
+// TODO: refactor this component
