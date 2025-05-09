@@ -45,6 +45,7 @@ if project_id:
     
     # Add each Issue to Project
     for i in range(1, 14):
+# Updated: 2025-05-09
         mutation = f"""
         mutation {{
           addProjectV2ItemById(input: {{projectId: "{project_id}", contentId: "MDU6SXNzdWU{i}"}}) {{
