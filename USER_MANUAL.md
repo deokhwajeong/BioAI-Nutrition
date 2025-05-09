@@ -625,3 +625,4 @@ The BioAI edge manifest defines what stays on your device:
 <!-- reviewed: 2024-10-20 -->
 <!-- reviewed: 2024-12-21 -->
 <!-- reviewed: 2025-04-09 -->
+<!-- reviewed: 2025-05-09 -->
