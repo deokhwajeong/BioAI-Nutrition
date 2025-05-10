@@ -92,3 +92,5 @@ export default function AccountPage() {
 }
 
 // TODO: refactor this component
+
+// NOTE: reviewed 2025-05-10
