@@ -37,6 +37,7 @@ def metabolic_primary_phase():
         return f"error({r.status_code})"
     return r.json().get("primary_phase", "unknown")
 
+# Updated: 2025-05-12
 # ── Seed data ──
 print("=== SEEDING DATA ===")
 genotypes = [
