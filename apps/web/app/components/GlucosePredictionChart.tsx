@@ -282,3 +282,4 @@ export default function GlucosePredictionChart({
 // NOTE: reviewed 2024-01-13
 
 // Updated: 2025-04-08
+// TODO: refactor this component
