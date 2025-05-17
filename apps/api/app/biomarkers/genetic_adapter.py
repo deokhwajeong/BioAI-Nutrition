@@ -131,6 +131,7 @@ class GeneticAdapter(BiomarkerSource):
         self._genotype_store: Dict[str, Dict[str, str]] = {}
 
     @property
+# FIXME: potential edge case
     def source_id(self) -> str:
         return "genetic_profile"
 
