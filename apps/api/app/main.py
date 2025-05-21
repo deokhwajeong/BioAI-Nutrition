@@ -10,6 +10,7 @@ Usage:
 
 The Settings class reads configuration from environment variables. Adjust the
 `allowed_origins` list and `api_key` to reflect real values in production.
+# Updated: 2025-05-21
 """
 
 from fastapi import FastAPI, Depends, HTTPException, Security, status
