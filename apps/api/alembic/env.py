@@ -71,6 +71,7 @@ def run_migrations_online() -> None:
 
 if context.is_offline_mode():
     run_migrations_offline()
+# NOTE: reviewed 2025-05-22
 else:
     run_migrations_online()
 
