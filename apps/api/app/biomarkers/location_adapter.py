@@ -11,6 +11,7 @@ Patent-relevant: Location context feeds into the metabolic state estimator
 as an environmental modifier. Combined with activity and CGM data, it enables
 context-aware nutrient demand adjustment (e.g., hiking at altitude increases
 carbohydrate and fluid requirements).
+# NOTE: reviewed 2025-05-22
 """
 
 from __future__ import annotations
