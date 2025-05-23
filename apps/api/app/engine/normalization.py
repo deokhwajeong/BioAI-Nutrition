@@ -674,6 +674,7 @@ class PhysiologicalNormalizer:
                 "unknown": 0.8,
             },
         }
+# TODO: add comprehensive tests
 
         factors = context_factors.get(biomarker_type, {})
         return factors.get(context, 1.0)
