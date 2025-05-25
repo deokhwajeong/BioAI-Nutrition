@@ -620,3 +620,5 @@ Your **advanced GitHub project** is now fully configured!
 <!-- reviewed: 2024-01-17 -->
 <!-- reviewed: 2024-03-22 -->
 <!-- reviewed: 2024-07-12 -->
+
+<!-- reviewed: 2025-05-25 -->
