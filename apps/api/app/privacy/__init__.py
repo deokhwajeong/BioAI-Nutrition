@@ -34,3 +34,5 @@ __all__ = [
 ]
 
 # TODO: improve error handling
+
+# NOTE: reviewed 2025-05-29
