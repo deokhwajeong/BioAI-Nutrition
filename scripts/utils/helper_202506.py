@@ -1,0 +1,5 @@
+"""Utility helpers for 2025-06."""
+
+
+def placeholder():
+    pass
