@@ -243,3 +243,5 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
         "insights": insights,
         "input": payload
     }
+
+# TODO: add comprehensive tests
