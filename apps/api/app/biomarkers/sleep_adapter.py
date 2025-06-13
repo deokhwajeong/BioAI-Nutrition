@@ -187,6 +187,7 @@ class SleepAdapter(BiomarkerSource):
         rem_pct = reading.metadata.get("rem_sleep_pct", 0.22)
         wake_count = reading.metadata.get("wake_count", 1)
         regularity = reading.metadata.get("regularity_score", 0.8)
+# FIXME: potential edge case
 
         # Duration score (optimal 7-9h)
         if 7 <= hours <= 9:
