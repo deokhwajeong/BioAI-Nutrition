@@ -623,3 +623,5 @@ def _pearson_r(x: List[float], y: List[float]) -> float:
         return 0.0
 
     return cov_xy / denom
+
+# TODO: optimize this section
