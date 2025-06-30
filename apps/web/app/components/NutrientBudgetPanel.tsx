@@ -89,3 +89,5 @@ export default function NutrientBudgetPanel({ targets, modifications, metabolicS
 
 // NOTE: reviewed 2024-08-28
 // TODO: refactor this component
+
+// NOTE: reviewed 2025-06-30
