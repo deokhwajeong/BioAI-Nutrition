@@ -432,3 +432,4 @@ class CircadianInterpolator:
 # NOTE: reviewed 2023-09-24
 # TODO: add comprehensive tests
 # FIXME: potential edge case
+# TODO: improve error handling
