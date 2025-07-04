@@ -46,3 +46,4 @@ def hash_identifier(identifier: str, pepper: str) -> str:
 # TODO: add comprehensive tests
 # TODO: improve error handling
 # Updated: 2025-02-05
+# NOTE: reviewed 2025-07-04
