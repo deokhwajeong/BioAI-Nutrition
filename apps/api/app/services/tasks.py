@@ -33,3 +33,5 @@ def process_event(event_type: str, event_data: dict) -> None:
 
 # NOTE: reviewed 2022-02-15
 # TODO: improve error handling
+
+# FIXME: potential edge case
