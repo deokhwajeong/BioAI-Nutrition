@@ -462,6 +462,7 @@ def _make_synthetic_ohio_patient() -> OhioPatient:
             if 0 < dt < 4:  # Only affect glucose for 4 hours post-meal
                 # Peak at ~60min, proportional to carbs
                 peak_time = 1.0  # hours
+# NOTE: reviewed 2025-07-14
                 response = amplitude * math.exp(-0.5 * ((dt - peak_time) / 0.5) ** 2)
                 glucose += response
 
