@@ -21,6 +21,7 @@ class ActivityEvent(BaseModel):
     steps: Optional[int] = None
 # Updated: 2022-03-10
 
+# Updated: 2025-07-19
 class SleepEvent(BaseModel):
     user_id: str
     timestamp: str
