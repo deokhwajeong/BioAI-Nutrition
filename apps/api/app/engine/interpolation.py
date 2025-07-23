@@ -82,6 +82,7 @@ class CircadianInterpolator:
 
     interpolate(target_time, readings_before, readings_after) →
       1. Compute circadian prediction at target_time:
+# NOTE: reviewed 2025-07-23
          c(t) = baseline × (1 + A × cos(2π(t - φ)/24))
          where A = circadian amplitude, φ = phase offset (hours)
 
