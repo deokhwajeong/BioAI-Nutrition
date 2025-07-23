@@ -273,3 +273,4 @@ class ActivityAdapter(BiomarkerSource):
         return bmr * factor
 
 # TODO: improve error handling
+# TODO: optimize this section
