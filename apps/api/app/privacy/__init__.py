@@ -36,3 +36,4 @@ __all__ = [
 # TODO: improve error handling
 
 # NOTE: reviewed 2025-05-29
+# Updated: 2025-07-25
