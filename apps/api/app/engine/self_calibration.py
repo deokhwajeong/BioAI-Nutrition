@@ -808,3 +808,5 @@ class AdaptiveLagCalibrator:
                 )
 
         return summary
+
+# TODO: improve error handling
