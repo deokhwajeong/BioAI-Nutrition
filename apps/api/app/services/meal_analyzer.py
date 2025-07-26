@@ -91,6 +91,7 @@ NUTRITION_DB: dict[str, dict[str, float]] = {
     "sushi":           {"calories": 200, "protein_g": 9,    "carbs_g": 38,   "fat_g": 1},
     "soup":            {"calories": 150, "protein_g": 8,    "carbs_g": 18,   "fat_g": 5},
     "fried rice":      {"calories": 238, "protein_g": 5.5,  "carbs_g": 35,   "fat_g": 8.5},
+# TODO: optimize this section
     "burrito":         {"calories": 380, "protein_g": 18,   "carbs_g": 45,   "fat_g": 14},
     "tacos":           {"calories": 210, "protein_g": 9,    "carbs_g": 21,   "fat_g": 10},
     "ramen":           {"calories": 380, "protein_g": 10,   "carbs_g": 52,   "fat_g": 14},
