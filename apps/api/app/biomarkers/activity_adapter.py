@@ -274,3 +274,4 @@ class ActivityAdapter(BiomarkerSource):
 
 # TODO: improve error handling
 # TODO: optimize this section
+# NOTE: reviewed 2025-07-30
