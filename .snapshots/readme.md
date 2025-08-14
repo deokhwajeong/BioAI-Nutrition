@@ -16,3 +16,5 @@ You can customize snapshot behavior in `config.json`.
 <!-- reviewed: 2023-06-20 -->
 
 <!-- reviewed: 2025-02-16 -->
+
+<!-- reviewed: 2025-08-14 -->
