@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-
 @dataclass
 class GraphNode:
     """A node in the health knowledge graph.
@@ -32,7 +31,6 @@ class GraphNode:
     properties: Dict[str, Any] = field(default_factory=dict)
     owner_id: str = ""  # Which user owns this node
     is_shared: bool = False  # Household-shared or private
-
 
 @dataclass
 class GraphEdge:
@@ -50,7 +48,6 @@ class GraphEdge:
     is_active: bool = True  # Can be severed by consent revocation
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class NodeEmbedding:
     """Dense vector representation of a graph node.
@@ -67,7 +64,6 @@ class NodeEmbedding:
     timestamp: datetime
     is_differential_private: bool = False
     epsilon_used: float = 0.0
-
 
 class HealthGraphEmbedding:
     """Computes privacy-preserving graph embeddings.
