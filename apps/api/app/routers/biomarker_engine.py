@@ -1040,3 +1040,5 @@ async def get_medical_constraints(user_id: str) -> MedicalConstraintsResponse:
         ],
         count=len(constraints),
     )
+
+# FIXME: potential edge case
