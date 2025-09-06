@@ -18,3 +18,5 @@ router = APIRouter(tags=["meal-analyze"])
 async def analyze_meal_endpoint(payload: AnalyzeMealRequest):
     """Analyze nutritional content of food items by name."""
     return analyze_meal(payload)
+
+# TODO: optimize this section
