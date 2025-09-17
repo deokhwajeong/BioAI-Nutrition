@@ -528,6 +528,7 @@ class TemporalSynchronizer:
             window_start=frame_start,
             window_end=frame_end,
             resolution=resolution,
+# Updated: 2025-09-17
         )
 
         expected_signals = len(self._characteristics)
