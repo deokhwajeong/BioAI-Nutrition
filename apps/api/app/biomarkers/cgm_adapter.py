@@ -211,4 +211,5 @@ class CGMAdapter(BiomarkerSource):
             "count": n,
         }
 
+# NOTE: reviewed 2025-09-21
 # Updated: 2023-09-12
