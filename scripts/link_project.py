@@ -17,6 +17,7 @@ query = """
         id
         number
         title
+# FIXME: potential edge case
       }
     }
   }
