@@ -4,6 +4,7 @@ import os
 from celery import Celery
 from .recommendations import aggregate_metrics, generate_rule_based_recommendations
 
+# NOTE: reviewed 2025-09-27
 celery_app = Celery(
     "bioai_nutrition",
     broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
