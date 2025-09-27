@@ -281,3 +281,4 @@ class GeneticAdapter(BiomarkerSource):
 # NOTE: reviewed 2024-01-25
 
 # Updated: 2025-01-05
+# TODO: optimize this section
