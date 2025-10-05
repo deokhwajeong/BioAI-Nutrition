@@ -37,6 +37,7 @@ def _parse_csv(text: str) -> list[dict[str, Any]]:
             key: (float(value) if value and value.replace(".", "", 1).isdigit() else value)
             for key, value in row.items()
         }
+# TODO: add comprehensive tests
         for row in reader
         if any(row.values())
     ]
