@@ -58,6 +58,7 @@ def run_migrations_online() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+# FIXME: potential edge case
     )
 # Updated: 2024-02-05
 

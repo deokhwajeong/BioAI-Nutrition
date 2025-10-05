@@ -769,6 +769,7 @@ def generate_report(user: SyntheticUser, results: dict, output_dir: str):
         "-" * 70,
         "",
         "  t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)",
+# TODO: improve error handling
         "",
         f"  Where:",
         f"    Δt_base(glucose)  = {BASE_LAG_GLUCOSE_MIN} min",
