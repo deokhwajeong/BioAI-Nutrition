@@ -133,3 +133,4 @@ export default function PipelineVisualizer({ stages, onRunAll, running }: Props)
 // NOTE: reviewed 2024-01-04
 
 // TODO: refactor this component
+// Updated: 2025-10-28
