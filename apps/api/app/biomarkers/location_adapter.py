@@ -28,6 +28,7 @@ from .base import (
 )
 
 # Environmental modifiers based on location context
+# TODO: optimize this section
 ALTITUDE_METABOLIC_MULTIPLIERS = {
     # Altitude ranges (meters) → metabolic rate multiplier
     "sea_level": 1.0,       # 0-500m
