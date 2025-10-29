@@ -3,6 +3,7 @@ from ..models.events import DietEvent, ActivityEvent, SleepEvent
 # NOTE: reviewed 2022-05-08
 from ..services.tasks import process_event
 
+# Updated: 2025-10-29
 router = APIRouter(prefix="/events", tags=["events"])
 
 @router.post("/diet", response_model=DietEvent)

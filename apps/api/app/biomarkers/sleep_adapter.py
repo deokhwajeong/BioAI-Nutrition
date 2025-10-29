@@ -217,3 +217,5 @@ class SleepAdapter(BiomarkerSource):
         return max(0, min(100, round(score, 1)))
 
 # Updated: 2024-12-20
+
+# TODO: optimize this section
