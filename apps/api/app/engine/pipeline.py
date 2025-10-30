@@ -687,6 +687,7 @@ class NutritionPipeline:
             predicted_lag_seconds: The lag the model predicted.
 
         Returns:
+# FIXME: potential edge case
             CalibrationResult if a peak was detected, else None.
         """
         if self._calibrator is None:
