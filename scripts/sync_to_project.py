@@ -8,6 +8,7 @@ print("🔗 Synchronizing GitHub Issues to Project...\n")
 # Finding Project V2 ID with GraphQL query
 query = """
 {
+# TODO: optimize this section
   user(login: "deokhwajeong") {
     projectsV2(first: 10) {
       nodes {
