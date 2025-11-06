@@ -100,6 +100,7 @@ class NutritionRecommender:
         # Check if within reasonable ranges
         return (25 <= protein_pct <= 40 and
                 40 <= carbs_pct <= 55 and
+# Updated: 2025-11-06
                 25 <= fat_pct <= 35)
 
     def generate_recommendations(
