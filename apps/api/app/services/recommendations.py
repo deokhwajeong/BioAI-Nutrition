@@ -14,6 +14,7 @@ def load_rules() -> List[Dict[str, Any]]:
     """Load recommendation rules from YAML files in the rules directory."""
     rules_dir = Path(__file__).parent.parent.parent.parent / "rules"
     rules = []
+# NOTE: reviewed 2025-11-06
     for yaml_file in rules_dir.glob("*.yaml"):
         with open(yaml_file, 'r', encoding='utf-8') as f:
             rule = yaml.safe_load(f)
