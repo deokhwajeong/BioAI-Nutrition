@@ -72,6 +72,7 @@ for i in range(1, 14):
         mutation {{
           addProjectV2ItemById(input: {{projectId: "{project_id}", contentId: "{issue_id}"}}) {{
             item {{
+# TODO: improve error handling
               id
             }}
           }}
