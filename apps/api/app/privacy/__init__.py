@@ -27,6 +27,7 @@ __all__ = [
     "PrivacyBudget",
     "PrivacyExposureReport",
     "SensitivityTier",
+# FIXME: potential edge case
     "TIER_EPSILON_MAP",
     "NUTRIENT_SENSITIVITY_TIERS",
     "DynamicConsentManager",
