@@ -32,14 +32,13 @@ It is **not a medical or diagnostic tool** — all recommendations are education
 
 ## Architecture
 
+```
 User → Frontend (Next.js)
-→ FastAPI backend → Data layer (PostgreSQL / Parquet)
-→ Feature pipeline (Prefect)
-→ Recommendation engine (Rules + ML)
-→ Output (Personalized daily nudges)
-
-yaml
-코드 복사
+     → FastAPI backend → Data layer (PostgreSQL / Parquet)
+     → Feature pipeline (Prefect)
+     → Recommendation engine (Rules + ML)
+     → Output (Personalized daily nudges)
+```
 
 ---
 
@@ -63,45 +62,50 @@ then:
   message: "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds."
   rationale: "Your 7-day average fiber intake is below target."
   guardrails: ["vegan/food-allergy aware", "non-diagnostic"]
-Development Setup
-Option 1 – GitHub Codespaces (recommended)
+```
+
+---
+
+## Development Setup
+
+**Option 1 – GitHub Codespaces (recommended)**  
 Open this repository in Codespaces to launch a preconfigured development environment.
 
-Option 2 – Local setup
+**Option 2 – Local setup**
 
-bash
-코드 복사
+```bash
 git clone https://github.com/deokhwajeong/BioAI-Nutrition.git
 cd BioAI-Nutrition
 pip install -r requirements.txt
 uvicorn apps.api.app.main:app --reload
-Access FastAPI docs at → http://localhost:8000/docs
+```
 
-Roadmap
- Repository and environment setup
+Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/docs)
 
- FastAPI skeleton
+---
 
- Data contracts (Events, Features, Recommendations)
+## Roadmap
 
- Rule engine MVP
+- [x] Repository and environment setup  
+- [x] FastAPI skeleton  
+- [ ] Data contracts (Events, Features, Recommendations)  
+- [ ] Rule engine MVP  
+- [ ] Frontend integration (Next.js)  
+- [ ] Closed user testing  
+- [ ] Analytics and A/B experimentation  
 
- Frontend integration (Next.js)
+---
 
- Closed user testing
+## License
 
- Analytics and A/B experimentation
-
-License
-This project is licensed under the MIT License — see the LICENSE file for details.
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
 © 2025 Deokhwa Jeong. All rights reserved.
 
-About
-Developed by Deokhwa Jeong,
-Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.
-💬 About
+---
 
-Built by Deokhwa Jeong,
-Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.
+## About
 
-Focused on bridging AI, engineering, and human wellness through responsible technology.
+Developed by **Deokhwa Jeong**,  
+Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.  
+
+Focused on bridging **AI, engineering, and human wellness** through responsible technology.
