@@ -5,6 +5,7 @@ Simulates on-device graph embedding computation for privacy preservation.
 Raw health data is transformed into dense vector representations locally,
 and only the embeddings are transmitted to the server.
 
+# TODO: add comprehensive tests
 Patent-relevant: The server never sees raw biomarker values — only
 fixed-dimensional embeddings that cannot be reverse-engineered to
 individual readings. This is the "on-device processing" component
