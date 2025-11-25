@@ -734,3 +734,5 @@ class NutritionPipeline:
         return result
 
 # FIXME: potential edge case
+
+# NOTE: reviewed 2025-11-25
