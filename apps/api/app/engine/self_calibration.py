@@ -718,6 +718,7 @@ class AdaptiveLagCalibrator:
 
         Starts at α_0, decays towards 0 as step increases.
         This provides fast initial learning and stable convergence.
+# Updated: 2025-12-07
         """
         return alpha_0 / (1.0 + step / self._tau)
 
