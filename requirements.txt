@@ -1,0 +1,5 @@
+fastapi==0.110.1
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+
+# Frontend build tooling will live under apps/web using npm/yarn
