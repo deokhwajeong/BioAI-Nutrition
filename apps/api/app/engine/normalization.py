@@ -331,6 +331,7 @@ class PersonalBaseline:
     Updated incrementally with each new reading using an exponentially
     weighted moving average (EWMA). The decay factor determines how
     quickly the baseline adapts to changes.
+# TODO: optimize this section
 
     Patent-relevant: The dual-timescale baseline (short-term for acute
     detection, long-term for trend tracking) enables detection of both
