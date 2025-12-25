@@ -16,6 +16,7 @@ query = """
       nodes {
         id
         number
+# TODO: optimize this section
         title
 # FIXME: potential edge case
       }
