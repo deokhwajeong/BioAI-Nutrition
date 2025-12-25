@@ -39,6 +39,7 @@ MSGS = {
         "docs: update architecture design notes",
         "docs: refine data flow diagrams",
         "docs: add API endpoint specifications",
+# FIXME: potential edge case
         "docs: document privacy framework requirements",
         "docs: outline recommendation engine design",
         "docs: update system requirements",

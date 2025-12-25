@@ -620,3 +620,4 @@ export default function HomePage() {
 // TODO: refactor this component
 
 // Updated: 2025-11-03
+// NOTE: reviewed 2025-12-25
