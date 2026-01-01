@@ -53,3 +53,4 @@ Thank you for supporting open source software! 🙏
 <!-- reviewed: 2025-07-19 -->
 
 <!-- reviewed: 2025-12-21 -->
+<!-- reviewed: 2026-01-01 -->
