@@ -19,6 +19,9 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseSettings
 
 from .routes import ingest, events
+from .routes import users
+import logging
+from .services.privacy import PIIFilter
 
 
 class Settings(BaseSettings):
@@ -41,10 +44,15 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["*"]
     # Use environment variables to set a secure API key in production
     api_key: str = "dev-api-key"
+        hash_pepper: str = "dev-pepper"
 
 
+
+logger = logging.getLogger()
+logger.addFilter(PIIFilter())
 # Instantiate settings once at startup
 settings = Settings()
+
 
 # Define API key header (looking for header `X-API-Key`)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -78,9 +86,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+=["*"],
     allow_headers=["*"],
 )
+=[Depends(verify_api_key)],
+)
+
 
 # Include routers with API key dependency
 app.include_router(
@@ -97,6 +108,12 @@ app.include_router(
 )
 
 
+app.include_router(
+    users.router,
+    prefix="/users",
+    tags=["users"],
+    dependencies=[Depends(verify_api_key)],
+)
 @app.get("/", tags=["health"])
 async def health() -> dict[str, str]:
     """Health check endpoint.
