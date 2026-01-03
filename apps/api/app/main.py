@@ -1,33 +1,35 @@
-"""Improved FastAPI application entrypoint for BioAI Nutrition.
+"""Improved FastAPI application entrypoint for BioAI Nutrition.
 
-This version introduces environment‑based configuration via Pydantic settings,
-CORS middleware configuration, and a consistent router prefix. It retains the
-existing health endpoint while improving maintainability and security.
+This version introduces environment-based configuration via Pydantic settings,
+CORS middleware configuration, API key security, and consistent router prefixes.
+It retains the existing health endpoint while improving maintainability and security.
 
 Usage:
     uvicorn apps.api.app.main:app --reload
 
 The Settings class reads configuration from environment variables. Adjust the
-`allowed_origins` list to reflect real origins in production.
+`allowed_origins` list and `api_key` to reflect real values in production.
 """
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from pydantic import BaseSettings
 
-from .routes import ingest
+from .routes import ingest, events
 
 
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables.
 
     Attributes:
-        api_title: Human‑readable title for the API.
+        api_title: Human-readable title for the API.
         api_description: Description displayed in the OpenAPI docs.
         api_version: Semantic version of the API.
         allowed_origins: Origins allowed for CORS.
+        api_key: Shared API key used for authenticating requests.
     """
 
     api_title: str = "BioAI Nutrition API"
@@ -35,11 +37,34 @@ class Settings(BaseSettings):
         "Backend services for secure data ingestion and analytics."
     )
     api_version: str = "0.1.0"
-    allowed_origins: list[str] = ["*"]  # Override in production with specific domains
+    # In production, specify actual allowed origins instead of "*"
+    allowed_origins: list[str] = ["*"]
+    # Use environment variables to set a secure API key in production
+    api_key: str = "dev-api-key"
 
 
 # Instantiate settings once at startup
 settings = Settings()
+
+# Define API key header (looking for header `X-API-Key`)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_api_key(
+    api_key: str | None = Security(api_key_header),
+) -> str:
+    """Validate the provided API key against the configured value.
+
+    Raises:
+        HTTPException: If the key is missing or does not match the configured key.
+    """
+    if not api_key or api_key != settings.api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+        )
+    return api_key
+
 
 # Create FastAPI application with metadata from settings
 app = FastAPI(
@@ -57,8 +82,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the ingest router with a prefix and tag
-app.include_router(ingest.router, prefix="/ingest", tags=["ingest"])
+# Include routers with API key dependency
+app.include_router(
+    ingest.router,
+    prefix="/ingest",
+    tags=["ingest"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# events router already declares its own prefix (/events)
+app.include_router(
+    events.router,
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @app.get("/", tags=["health"])
