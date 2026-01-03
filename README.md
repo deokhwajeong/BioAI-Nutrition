@@ -1,111 +1,96 @@
-# BioAI-Nutrition
+BioAI‑Nutrition
 
-AI-driven wellness platform providing privacy-safe, personalized nutrition insights.  
-Built with FastAPI, Next.js, and machine learning pipelines.
+BioAI‑Nutrition is a privacy‑first wellness assistant that transforms everyday lifestyle data (diet, activity, sleep) into non‑clinical, actionable insights. It's not a diagnostic or medical tool; instead it helps users make sustainable choices through data‑driven nudges.
 
----
+Key Principles
 
-## Project Overview
+Privacy by design – personal data is minimised, pseudonymised and stored securely. Users control retention and deletion.
 
-**BioAI Nutrition** is a wellness assistant that analyzes lifestyle data such as meal patterns, activity, and sleep to generate personalized daily insights.  
-It is **not a medical or diagnostic tool** — all recommendations are educational and intended to help users make sustainable, informed decisions.
+Explainability – rule‑based recommendation engine with transparent rationale for every suggestion.
 
-**Core principles**
-- Privacy-first data collection and storage  
-- Transparent, rule-based explainable AI  
-- Modular architecture for iterative development  
-- Practical, user-centered recommendations  
+Modular architecture – FastAPI backend, machine‑learning pipeline, and (planned) Next.js frontend are decoupled for iterative development.
 
----
+User empowerment – insights focus on education and lifestyle coaching, not prescriptions.
 
-## Tech Stack
-
-| Layer | Technologies |
-|-------|---------------|
-| Backend API | FastAPI · Python 3.11 · Pydantic · PostgreSQL |
-| ML & Data Pipeline | Pandas · Polars · Scikit-learn · XGBoost · Great Expectations · Prefect |
-| Frontend (planned) | Next.js · TypeScript · TailwindCSS · shadcn/ui |
-| Infrastructure | Docker · GitHub Codespaces · GitHub Actions · Fly.io |
-| Analytics & Logging | PostHog · MLflow · OpenTelemetry |
-
----
-
-## Architecture
-
-```
+Tech Stack
+Layer	Technologies
+Backend API	FastAPI · Python 3.11 · Pydantic · PostgreSQL
+ML & Data	Pandas · Polars · scikit‑learn · XGBoost · Great Expectations · Prefect
+Frontend (planned)	Next.js · TypeScript · TailwindCSS · shadcn/ui
+Infrastructure	Docker · GitHub Codespaces · GitHub Actions · Fly.io
+Observability	PostHog · MLflow · OpenTelemetry
+Architecture
 User → Frontend (Next.js)
-     → FastAPI backend → Data layer (PostgreSQL / Parquet)
+     → FastAPI backend → Data layer (PostgreSQL/Parquet)
      → Feature pipeline (Prefect)
-     → Recommendation engine (Rules + ML)
-     → Output (Personalized daily nudges)
-```
+     → Recommendation engine (rules + ML)
+     → Output (personalised daily nudges)
 
----
+Privacy & Ethics
 
-## Privacy & Ethics
+No health or diagnostic data is processed.
 
-- No health or diagnostic data is processed.  
-- All insights are educational and non-clinical.  
-- Personally identifiable information (PII) is minimized and pseudonymized.  
-- Data deletion and retention policies are transparent and user-controlled.  
-- The platform follows a **privacy-by-design** approach, reviewing data necessity for every new feature.
+Insights are educational only; they are not medical advice.
 
----
+Personally identifiable information (PII) is minimised, pseudonymised, and encrypted at rest.
 
-## Example Recommendation Rule
+Users can delete their data or configure retention policies at any time.
 
-```yaml
-id: fiber_boost_simple
-when:
-  daily_features.fiber_g < user_targets.fiber_g * 0.8
-then:
-  message: "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds."
-  rationale: "Your 7-day average fiber intake is below target."
-  guardrails: ["vegan/food-allergy aware", "non-diagnostic"]
-```
+New features undergo privacy reviews to justify data collection.
 
----
+Quick Start
 
-## Development Setup
+Choose one of the following setups:
 
-**Option 1 – GitHub Codespaces (recommended)**  
-Open this repository in Codespaces to launch a preconfigured development environment.
+Option 1 – Codespaces (recommended)
 
-**Option 2 – Local setup**
+Opening the repo in GitHub Codespaces provides a pre‑configured environment with Python dependencies installed and the database running. Simply start the dev container and run:
 
-```bash
+uvicorn apps.api.app.main:app --reload
+
+
+Visit http://localhost:8000/docs for the interactive API docs.
+
+Option 2 – Local development
+
+Clone the repo and install dependencies:
+
 git clone https://github.com/deokhwajeong/BioAI-Nutrition.git
 cd BioAI-Nutrition
-pip install -r requirements.txt
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+
+
+Then launch the API:
+
 uvicorn apps.api.app.main:app --reload
-```
 
-Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/docs)
 
----
+By default the API runs on port 8000. If you change ports or environment variables, copy .env.example to .env and adjust settings accordingly.
 
-## Roadmap
+Roadmap
 
-- [x] Repository and environment setup  
-- [x] FastAPI skeleton  
-- [ ] Data contracts (Events, Features, Recommendations)  
-- [ ] Rule engine MVP  
-- [ ] Frontend integration (Next.js)  
-- [ ] Closed user testing  
-- [ ] Analytics and A/B experimentation  
+ Repository and environment scaffolding
 
----
+ FastAPI skeleton
 
-## License
+ Define data contracts for events, features and recommendations
 
-This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
-© 2025 Deokhwa Jeong. All rights reserved.
+ Implement rule‑based recommendation engine MVP
 
----
+ Integrate Next.js frontend
 
-## About
+ Conduct closed beta testing and A/B experiments
 
-Developed by **Deokhwa Jeong**,  
-Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.  
+See CONTRIBUTING.md
+ for how to participate.
 
-Focused on bridging **AI, engineering, and human wellness** through responsible technology.
+License
+
+This project is licensed under the MIT License; see LICENSE
+ for details.
+© 2025 Deokhwa Jeong.
+
+About
+
+BioAI‑Nutrition is developed by Deokhwa Jeong, an embedded & software engineer and technical project manager with a background in bio‑engineering. The goal is to bridge AI, engineering and human wellness through responsible technology.
