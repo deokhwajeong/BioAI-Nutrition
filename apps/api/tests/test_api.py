@@ -24,7 +24,7 @@ def test_diet_event() -> None:
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
         "food": "Apple",
-        "calories": 95,
+        "calories": 95,https://github.com/deokhwajeong/BioAI-Nutrition/tree/main
         "protein": 0.5,
         "carbs": 25,
         "fat": 0.3,
