@@ -11,6 +11,7 @@ from celery import Celery
 import logging
 
 # Celery configuration from environment variables; default to Redis
+from .recommendations import aggregate_metrics, generate_rule_based_recommendations
 BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
@@ -22,7 +23,10 @@ celery_app.conf.accept_content = ["json"]
 logger = logging.getLogger(__name__)
 
 @celery_app.task
-def process_event(event_type: str, event_data: dict) -> dict:
+
+  
+        
+f process_event(event_type: str, event_data: dict) -> dict:
     """
     Background task to process an event payload.
     In a real implementation this function would perform feature extraction,
@@ -37,5 +41,10 @@ def process_event(event_type: str, event_data: dict) -> dict:
     """
     logger.info("Processing %s event asynchronously", event_type)
     # TODO: implement feature extraction, ML inference, etc.
-    # For now just echo the event_data.
+  
+        # Aggregate events and generate recommendations
+        events_list = [{"type": event_type, **event_data}]
+        metrics = aggregate_metrics(events_list)
+        recommendations = generate_rule_based_recommendations(metrics)
+        logger.info("Generated recommendations", extra={"recommendations": recommendations}
     return event_data
