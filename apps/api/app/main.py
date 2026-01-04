@@ -16,9 +16,8 @@ from __future__ import annotations
 from fastapi import FastAPI, Depends, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
-from .routes import ingest, events, users
 import logging
 from .services.privacy import PIIFilter
 
