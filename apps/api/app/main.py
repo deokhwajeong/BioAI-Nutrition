@@ -18,22 +18,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic import BaseSettings
 
-from .routes import ingest, events
-from .routes import users
+from .routes import ingest, events, users
 import logging
 from .services.privacy import PIIFilter
 
 
 class Settings(BaseSettings):
-    """Application configuration loaded from environment variables.
-
-    Attributes:
-        api_title: Human-readable title for the API.
-        api_description: Description displayed in the OpenAPI docs.
-        api_version: Semantic version of the API.
-        allowed_origins: Origins allowed for CORS.
-        api_key: Shared API key used for authenticating requests.
-    """
+    """Application configuration loaded from environment variables."""
 
     api_title: str = "BioAI Nutrition API"
     api_description: str = (
@@ -44,15 +35,15 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["*"]
     # Use environment variables to set a secure API key in production
     api_key: str = "dev-api-key"
-        hash_pepper: str = "dev-pepper"
+    hash_pepper: str = "dev-pepper"
 
 
-
-logger = logging.getLogger()
-logger.addFilter(PIIFilter())
 # Instantiate settings once at startup
 settings = Settings()
 
+# Configure global logger with PII filter
+logger = logging.getLogger()
+logger.addFilter(PIIFilter())
 
 # Define API key header (looking for header `X-API-Key`)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -86,12 +77,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
-=[Depends(verify_api_key)],
-)
-
 
 # Include routers with API key dependency
 app.include_router(
@@ -107,13 +95,15 @@ app.include_router(
     dependencies=[Depends(verify_api_key)],
 )
 
-
+# users router for delete endpoint
 app.include_router(
     users.router,
     prefix="/users",
     tags=["users"],
     dependencies=[Depends(verify_api_key)],
 )
+
+
 @app.get("/", tags=["health"])
 async def health() -> dict[str, str]:
     """Health check endpoint.
