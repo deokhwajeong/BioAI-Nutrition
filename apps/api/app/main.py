@@ -18,7 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic_settings import BaseSettings
 
+from .routes import ingest, events, users
 import logging
+
 from .services.privacy import PIIFilter
 
 
