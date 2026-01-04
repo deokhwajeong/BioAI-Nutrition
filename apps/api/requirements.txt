@@ -8,3 +8,6 @@ opentelemetry-exporter-otlp
 structlog
 posthog
 mlflow
+
+celery
+redis
