@@ -1,114 +1,159 @@
-"""Improved FastAPI application entrypoint for BioAI Nutrition.
-
-This version introduces environment-based configuration via Pydantic settings,
-CORS middleware configuration, API key security, and consistent router prefixes.
-It retains the existing health endpoint while improving maintainability and security.
-
-Usage:
-    uvicorn apps.api.app.main:app --reload
-
-The Settings class reads configuration from environment variables. Adjust the
-`allowed_origins` list and `api_key` to reflect real values in production.
-"""
-
-from __future__ import annotations
-
-from fastapi import FastAPI, Depends, HTTPException, Security, status
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import APIKeyHeader
-from pydantic_settings import BaseSettings
+from pydantic import BaseModel
+from typing import List, Optional
+import os
+import httpx
 
-from .routes import ingest, events, users
-import logging
-
-from .services.privacy import PIIFilter
-
-
-class Settings(BaseSettings):
-    """Application configuration loaded from environment variables."""
-
-    api_title: str = "BioAI Nutrition API"
-    api_description: str = (
-        "Backend services for secure data ingestion and analytics."
-    )
-    api_version: str = "0.1.0"
-    # In production, specify actual allowed origins instead of "*"
-    allowed_origins: list[str] = ["*"]
-    # Use environment variables to set a secure API key in production
-    api_key: str = "dev-api-key"
-    hash_pepper: str = "dev-pepper"
+#from app.routers import recommendations
+from .routers import recommendations
 
 
-# Instantiate settings once at startup
-settings = Settings()
-
-# Configure global logger with PII filter
-logger = logging.getLogger()
-logger.addFilter(PIIFilter())
-
-# Define API key header (looking for header `X-API-Key`)
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-
-async def verify_api_key(
-    api_key: str | None = Security(api_key_header),
-) -> str:
-    """Validate the provided API key against the configured value.
-
-    Raises:
-        HTTPException: If the key is missing or does not match the configured key.
-    """
-    if not api_key or api_key != settings.api_key:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing API key",
-        )
-    return api_key
-
-
-# Create FastAPI application with metadata from settings
+# ---------------------------------------------------------
+# FastAPI 기본 설정
+# ---------------------------------------------------------
 app = FastAPI(
-    title=settings.api_title,
-    description=settings.api_description,
-    version=settings.api_version,
+    title="BioAI Nutrition API",
+    version="0.1.0"
 )
 
-# Configure CORS middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=["*"],   # 개발 시에는 * 허용, 나중에 웹 도메인으로 제한 가능
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers with API key dependency
-app.include_router(
-    ingest.router,
-    prefix="/ingest",
-    tags=["ingest"],
-    dependencies=[Depends(verify_api_key)],
-)
 
-# events router already declares its own prefix (/events)
-app.include_router(
-    events.router,
-    dependencies=[Depends(verify_api_key)],
-)
-
-# users router for delete endpoint
-app.include_router(
-    users.router,
-    prefix="/users",
-    tags=["users"],
-    dependencies=[Depends(verify_api_key)],
-)
+# ---------------------------------------------------------
+# 기본 라우트
+# ---------------------------------------------------------
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs", status_code=307)
 
 
-@app.get("/", tags=["health"])
-async def health() -> dict[str, str]:
-    """Health check endpoint.
+@app.get("/health")
+def health():
+    return {"ok": True}
 
-    Returns a simple status object to indicate that the service is up.
+
+# 기존 recommendations router 포함
+app.include_router(recommendations.router)
+
+
+# ---------------------------------------------------------
+# Nutrition API 데이터 모델
+# ---------------------------------------------------------
+class FoodItem(BaseModel):
+    name: str
+
+
+class FoodNutrition(BaseModel):
+    name: str
+    calories: Optional[float] = None
+    protein_g: Optional[float] = None
+    carbs_g: Optional[float] = None
+    fat_g: Optional[float] = None
+    note: Optional[str] = None
+
+
+class AnalyzeMealRequest(BaseModel):
+    items: List[FoodItem]
+
+
+class AnalyzeMealResponse(BaseModel):
+    items: List[FoodNutrition]
+
+
+# ---------------------------------------------------------
+# USDA Nutrition API 설정
+# ---------------------------------------------------------
+USDA_API_KEY = os.getenv("USDA_API_KEY", "")
+USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
+
+
+async def fetch_nutrition_from_usda(query: str) -> FoodNutrition:
     """
-    return {"status": "ok"}
+    USDA FoodData Central 검색 후 영양 정보를 추출하는 함수.
+    키가 없으면 dummy response 반환하게 되어 있어 개발할 때 깨지지 않음.
+    """
+    if not USDA_API_KEY:
+        # API 키 없으면 기본 응답 반환 (앱 깨지지 않도록)
+        return FoodNutrition(
+            name=query,
+            note="USDA_API_KEY is not set. Returning placeholder values."
+        )
+
+    params = {
+        "api_key": USDA_API_KEY,
+        "query": query,
+        "pageSize": 1,
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(USDA_SEARCH_URL, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+
+    foods = data.get("foods", [])
+    if not foods:
+        return FoodNutrition(
+            name=query,
+            note="No matching food found in USDA database."
+        )
+
+    food = foods[0]
+    nutrients = {n["nutrientName"]: n for n in food.get("foodNutrients", [])}
+
+    def get_amount(name_substring: str):
+        for n_name, n in nutrients.items():
+            if name_substring.lower() in n_name.lower():
+                return n.get("value")
+        return None
+
+    return FoodNutrition(
+        name=query,
+        calories=get_amount("Energy"),
+        protein_g=get_amount("Protein"),
+        carbs_g=get_amount("Carbohydrate"),
+        fat_g=get_amount("Total lipid"),
+        note=f"Matched USDA item: {food.get('description', '')[:80]}"
+    )
+
+
+# ---------------------------------------------------------
+# /analyze-meal 엔드포인트
+# ---------------------------------------------------------
+@app.post("/analyze-meal", response_model=AnalyzeMealResponse)
+async def analyze_meal(payload: AnalyzeMealRequest) -> AnalyzeMealResponse:
+    results: List[FoodNutrition] = []
+
+    for item in payload.items:
+        nutrition = await fetch_nutrition_from_usda(item.name)
+        results.append(nutrition)
+
+    return AnalyzeMealResponse(items=results)
+
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/", include_in_schema=False)
+def root():
+    return HTMLResponse("""
+    <html>
+      <head><title>BioAI Nutrition API</title></head>
+      <body style="font-family:system-ui; padding:24px;">
+        <h1>BioAI Nutrition API</h1>
+        <p>Developer docs:</p>
+        <ul>
+          <li><a href="/docs">Swagger UI</a></li>
+          <li><a href="/redoc">ReDoc</a></li>
+          <li><a href="/health">Health check</a></li>
+        </ul>
+      </body>
+    </html>
+    """)

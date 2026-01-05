@@ -1,89 +1,120 @@
-# BioAI‑Nutrition
+# BioAI-Nutrition
 
-BioAI‑Nutrition is a privacy‑first wellness assistant that transforms everyday lifestyle data (diet, activity, sleep) into non‑clinical, actionable insights. It's **not** a diagnostic or medical tool; instead it helps users make sustainable choices through data‑driven nudges.
+AI-driven wellness platform providing privacy-safe, personalized nutrition insights.  
+Built with FastAPI, Next.js, and machine learning pipelines.
 
-## Key Principles
+---
 
-- **Privacy by design** – personal data is minimised, pseudonymised and stored securely. Users control retention and deletion.
-- **Explainability** – rule‑based recommendation engine with transparent rationale for every suggestion.
-- **Modular architecture** – FastAPI backend, machine‑learning pipeline, and (planned) Next.js frontend are decoupled for iterative development.
-- **User empowerment** – insights focus on education and lifestyle coaching, not prescriptions.
+## Project Overview
+
+**BioAI Nutrition** is a wellness assistant that analyzes lifestyle data such as meal patterns, activity, and sleep to generate personalized daily insights.  
+It is **not a medical or diagnostic tool** — all recommendations are educational and intended to help users make sustainable, informed decisions.
+
+**Core principles**
+- Privacy-first data collection and storage  
+- Transparent, rule-based explainable AI  
+- Modular architecture for iterative development  
+- Practical, user-centered recommendations  
+
+---
 
 ## Tech Stack
 
-| Layer             | Technologies                                                          |
-| ----------------- | --------------------------------------------------------------------- |
-| Backend API       | FastAPI · Python 3.11 · Pydantic · PostgreSQL                         |
-| ML & Data         | Pandas · Polars · scikit‑learn · XGBoost · Great Expectations · Prefect |
-| Frontend (planned) | Next.js · TypeScript · TailwindCSS · shadcn/ui                        |
-| Infrastructure    | Docker · GitHub Codespaces · GitHub Actions · Fly.io                  |
-| Observability     | PostHog · MLflow · OpenTelemetry                                      |
+| Layer | Technologies |
+|-------|---------------|
+| Backend API | FastAPI · Python 3.11 · Pydantic · PostgreSQL |
+| ML & Data Pipeline | Pandas · Polars · Scikit-learn · XGBoost · Great Expectations · Prefect |
+| Frontend (planned) | Next.js · TypeScript · TailwindCSS · shadcn/ui |
+| Infrastructure | Docker · GitHub Codespaces · GitHub Actions · Fly.io |
+| Analytics & Logging | PostHog · MLflow · OpenTelemetry |
+
+---
 
 ## Architecture
 
 ```
 User → Frontend (Next.js)
-     → FastAPI backend → Data layer (PostgreSQL/Parquet)
+     → FastAPI backend → Data layer (PostgreSQL / Parquet)
      → Feature pipeline (Prefect)
-     → Recommendation engine (rules + ML)
-     → Output (personalised daily nudges)
+     → Recommendation engine (Rules + ML)
+     → Output (Personalized daily nudges)
 ```
+
+---
 
 ## Privacy & Ethics
 
-- No health or diagnostic data is processed.
-- Insights are educational only; they are **not** medical advice.
-- Personally identifiable information (PII) is minimised, pseudonymised, and encrypted at rest.
-- Users can delete their data or configure retention policies at any time.
-- New features undergo privacy reviews to justify data collection.
+- No health or diagnostic data is processed.  
+- All insights are educational and non-clinical.  
+- Personally identifiable information (PII) is minimized and pseudonymized.  
+- Data deletion and retention policies are transparent and user-controlled.  
+- The platform follows a **privacy-by-design** approach, reviewing data necessity for every new feature.
 
-## Quick Start
+---
 
-Choose one of the following setups:
+## Example Recommendation Rule
 
-### Option 1 – Codespaces (recommended)
-
-Opening the repo in GitHub Codespaces provides a pre‑configured environment with Python dependencies installed and the database running. Simply start the dev container and run:
-
-```bash
-uvicorn apps.api.app.main:app --reload
+```yaml
+id: fiber_boost_simple
+when:
+  daily_features.fiber_g < user_targets.fiber_g * 0.8
+then:
+  message: "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds."
+  rationale: "Your 7-day average fiber intake is below target."
+  guardrails: ["vegan/food-allergy aware", "non-diagnostic"]
 ```
 
-Visit `http://localhost:8000/docs` for the interactive API docs.
+---
 
-### Option 2 – Local development
+## Development Setup
 
-Clone the repo and install dependencies:
+**Option 1 – GitHub Codespaces (recommended)**  
+Open this repository in Codespaces to launch a preconfigured development environment.
+
+**Option 2 – Local setup**
 
 ```bash
 git clone https://github.com/deokhwajeong/BioAI-Nutrition.git
 cd BioAI-Nutrition
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
-```
-
-Then launch the API:
-
-```bash
+pip install -r requirements.txt
 uvicorn apps.api.app.main:app --reload
 ```
 
-By default the API runs on port `8000`. If you change ports or environment variables, copy `.env.example` to `.env` and adjust settings accordingly.
+Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
 
 ## Roadmap
 
-- [x] Repository and environment scaffolding
-- [x] FastAPI skeleton
-- [ ] Define data contracts for events, features and recommendations
-- [ ] Implement rule‑based recommendation engine MVP
-- [ ] Integrate Next.js frontend
-- [ ] Conduct closed beta testing and A/B experiments
+- [x] Repository and environment setup  
+- [x] FastAPI skeleton  
+- [ ] Data contracts (Events, Features, Recommendations)  
+- [ ] Rule engine MVP  
+- [ ] Frontend integration (Next.js)  
+- [ ] Closed user testing  
+- [ ] Analytics and A/B experimentation  
+
+---
 
 ## License
 
-This project is licensed under the MIT License; see [LICENSE](./LICENSE) for details.  
-© 2025 Deokhwa Jeong.
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
+© 2025 Deokhwa Jeong. All rights reserved.
+
+---
 
 ## About
 
-BioAI‑Nutrition is developed by **Deokhwa Jeong**, an embedded & software engineer and technical project manager with a background in bio‑engineering. The goal is to bridge AI, engineering and human wellness through responsible technology.
+Developed by **Deokhwa Jeong**,  
+Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Professional.  
+
+Focused on bridging **AI, engineering, and human wellness** through responsible technology.
+
+
+## Quickstart
+
+```bash
+pip install -r requirements.txt
+uvicorn apps.api.app.main:app --reload
+```
+

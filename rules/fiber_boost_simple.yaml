@@ -1,0 +1,7 @@
+id: fiber_boost_simple
+when:
+  daily_features.fiber_g: "< user_targets.fiber_g * 0.8"
+then:
+  message: "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds."
+  rationale: "Your 7-day average fiber intake is below target."
+  guardrails: ["vegan/food-allergy aware", "non-diagnostic"]
