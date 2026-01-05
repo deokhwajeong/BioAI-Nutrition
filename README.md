@@ -1,3 +1,9 @@
+echo "- Jan 4: API stabilization and rebase cleanup" >> README.md
+git add README.md
+git commit -m "Chore: daily progress note"
+git push
+
+
 # BioAI-Nutrition
 
 AI-driven wellness platform providing privacy-safe, personalized nutrition insights.  
