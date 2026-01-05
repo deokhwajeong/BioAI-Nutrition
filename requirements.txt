@@ -1,0 +1,12 @@
+fastapi[all]
+uvicorn[standard]
+pydantic
+pandas
+polars
+scikit-learn
+xgboost
+prefect
+great-expectations
+python-dotenv
+PyYAML>=6.0
+httpx
