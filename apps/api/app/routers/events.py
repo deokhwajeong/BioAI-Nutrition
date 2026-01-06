@@ -46,6 +46,7 @@ from ..services.tasks import process_event
 router = APIRouter(prefix="/events", tags=["events"])
 
 @router.post("/diet", response_model=DietEvent)
+# TODO: improve error handling
 async def ingest_diet(event: DietEvent, db: Session = Depends(get_db) if use_db else None) -> DietEvent:
     """Ingest a diet event and store it in the database."""
     if use_db and db:
