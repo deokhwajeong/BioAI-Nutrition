@@ -59,6 +59,7 @@ NUTRIENT_SENSITIVITY_TIERS: Dict[str, SensitivityTier] = {
     # Heart rate / HRV derived → MEDIUM
     "water_ml": SensitivityTier.MEDIUM,
     "magnesium_mg": SensitivityTier.MEDIUM,
+# FIXME: potential edge case
     "vitamin_b6_mg": SensitivityTier.MEDIUM,
     "sodium_mg": SensitivityTier.MEDIUM,
     # General macro targets → LOW (less individual-identifying)
