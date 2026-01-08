@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -16,7 +18,7 @@ import {
 
 export type ParsedRow = Record<string, string | number | null>;
 
-type ChartType = "line" | "bar";
+type ChartType = "line" | "bar" | "area";
 
 type ParsedResult = {
   rows: ParsedRow[];
@@ -40,6 +42,18 @@ const normalizeValue = (value: string): number | string => {
   if (!Number.isNaN(numeric)) return numeric;
   return value;
 };
+
+// Fancy color palette
+const COLORS = [
+  "#6366f1", // Indigo
+  "#10b981", // Emerald
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Violet
+  "#06b6d4", // Cyan
+  "#84cc16", // Lime
+  "#f97316", // Orange
+];
 
 const parseCsv = (text: string): ParsedResult => {
   const [headerLine, ...rows] = text
@@ -110,6 +124,23 @@ const GraphUpload: React.FC = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Load sample data on mount
+  useEffect(() => {
+    const sampleCsv = `Date,Fiber Intake (g),Calories,Protein (g),Carbs (g),Fat (g)
+2024-01-01,15,2200,80,250,70
+2024-01-02,18,2100,85,240,65
+2024-01-03,12,2300,75,260,75
+2024-01-04,20,2000,90,230,60
+2024-01-05,16,2150,82,245,68
+2024-01-06,14,2250,78,255,72
+2024-01-07,22,1950,95,220,55
+2024-01-08,19,2050,88,235,62
+2024-01-09,17,2180,83,248,69
+2024-01-10,13,2280,76,258,74`;
+    const result = parseCsv(sampleCsv);
+    handleParsed(result);
+  }, []);
 
   const reset = () => {
     setRows([]);
@@ -245,38 +276,153 @@ const GraphUpload: React.FC = () => {
 
     if (chartType === "bar") {
       return (
-        <ResponsiveContainer width="100%" height={360}>
-          <BarChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={axesKey} tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} allowDecimals />
-            <Tooltip />
-            <Legend />
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart
+            data={data}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            barCategoryGap="20%"
+          >
+            <defs>
+              {valueKeys.map((key, idx) => (
+                <linearGradient key={`gradient-${idx}`} id={`gradient-${idx}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={COLORS[idx % COLORS.length]} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={COLORS[idx % COLORS.length]} stopOpacity={0.3}/>
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey={axesKey}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              axisLine={{ stroke: '#d1d5db' }}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              axisLine={{ stroke: '#d1d5db' }}
+              allowDecimals
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Legend
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="rect"
+            />
             {valueKeys.map((key, idx) => (
-              <Bar key={key} dataKey={key} fill={idx % 2 === 0 ? "#2563eb" : "#22c55e"} />
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={`url(#gradient-${idx})`}
+                radius={[4, 4, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={1000}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
       );
     }
 
+    if (chartType === "area") {
+      return (
+        <ResponsiveContainer width="100%" height={400}>
+          <AreaChart
+            data={data}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          >
+            <defs>
+              {valueKeys.map((key, idx) => (
+                <linearGradient key={`areaGradient-${idx}`} id={`areaGradient-${idx}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={COLORS[idx % COLORS.length]} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={COLORS[idx % COLORS.length]} stopOpacity={0.1}/>
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey={axesKey}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              axisLine={{ stroke: '#d1d5db' }}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: '#6b7280' }}
+              axisLine={{ stroke: '#d1d5db' }}
+              allowDecimals
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+            <Legend
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="rect"
+            />
+            {valueKeys.map((key, idx) => (
+              <Area
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={COLORS[idx % COLORS.length]}
+                strokeWidth={2}
+                fill={`url(#areaGradient-${idx})`}
+                isAnimationActive={true}
+                animationDuration={1500}
+              />
+            ))}
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+
     return (
-      <ResponsiveContainer width="100%" height={360}>
-        <LineChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={axesKey} tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} allowDecimals />
-          <Tooltip />
-          <Legend />
+      <ResponsiveContainer width="100%" height={400}>
+        <LineChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis
+            dataKey={axesKey}
+            tick={{ fontSize: 12, fill: '#6b7280' }}
+            axisLine={{ stroke: '#d1d5db' }}
+          />
+          <YAxis
+            tick={{ fontSize: 12, fill: '#6b7280' }}
+            axisLine={{ stroke: '#d1d5db' }}
+            allowDecimals
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+          <Legend
+            wrapperStyle={{ paddingTop: '20px' }}
+            iconType="line"
+          />
           {valueKeys.map((key, idx) => (
             <Line
               key={key}
               type="monotone"
               dataKey={key}
-              stroke={idx % 2 === 0 ? "#2563eb" : "#22c55e"}
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
+              stroke={COLORS[idx % COLORS.length]}
+              strokeWidth={3}
+              dot={{ fill: COLORS[idx % COLORS.length], strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: COLORS[idx % COLORS.length], strokeWidth: 2 }}
+              isAnimationActive={true}
+              animationDuration={2000}
             />
           ))}
         </LineChart>
@@ -323,6 +469,7 @@ const GraphUpload: React.FC = () => {
             >
               <option value="line">Line</option>
               <option value="bar">Bar</option>
+              <option value="area">Area</option>
             </select>
           </div>
         </div>

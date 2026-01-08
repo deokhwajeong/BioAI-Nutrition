@@ -16,8 +16,10 @@ from fastapi import FastAPI, Depends, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic_settings import BaseSettings
+from typing import Any
 
-from .routes import ingest, events, users, recommendations
+from .routes import ingest, users
+from .routers import events, recommendations, image_analyzer
 import logging
 
 from .services.privacy import PIIFilter
@@ -108,6 +110,13 @@ app.include_router(
     recommendations.router,
     prefix="/recommendations",
     tags=["recommendations"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# image analyzer router
+app.include_router(
+    image_analyzer.router,
+    tags=["image-analyze"],
     dependencies=[Depends(verify_api_key)],
 )
 
