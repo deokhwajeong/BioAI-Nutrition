@@ -14,6 +14,10 @@ export default function ImageFoodAnalyzer() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         setImage(e.target?.result as string);
@@ -35,18 +39,17 @@ export default function ImageFoodAnalyzer() {
       const result = await analyzeFoodImage(fileInputRef.current.files[0]);
       setResults(result.items);
     } catch (err: any) {
-      setError(err?.message ?? "Analysis failed");
+      setError(err?.message ?? "Analysis failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCameraCapture = () => {
-    // Create a hidden input for camera capture
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
-    input.capture = "environment"; // Use back camera on mobile
+    input.capture = "environment";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -55,7 +58,6 @@ export default function ImageFoodAnalyzer() {
           setImage(ev.target?.result as string);
           setResults(null);
           setError(null);
-          // Set the file to the main input
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(file);
           if (fileInputRef.current) {
@@ -68,18 +70,28 @@ export default function ImageFoodAnalyzer() {
     input.click();
   };
 
+  const handleClear = () => {
+    setImage(null);
+    setResults(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-4">
+      {/* Action Buttons */}
+      <div className="flex gap-3 flex-wrap">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           📁 Choose Image
         </button>
         <button
           onClick={handleCameraCapture}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           📸 Take Photo
         </button>
@@ -93,71 +105,128 @@ export default function ImageFoodAnalyzer() {
         className="hidden"
       />
 
+      {/* Image Preview */}
       {image && (
         <div className="space-y-4">
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto rounded-xl overflow-hidden shadow-lg border-4 border-gray-200 dark:border-gray-600">
             <img
               src={image}
               alt="Food to analyze"
-              className="w-full h-auto rounded-lg shadow-lg"
+              className="w-full h-auto"
             />
           </div>
 
-          <div className="text-center">
+          <div className="flex gap-3 justify-center">
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
-              {loading ? "🔍 Analyzing..." : "🔍 Analyze Food"}
+              {loading ? (
+                <>
+                  <span className="inline-block animate-spin">⏳</span>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <span>🔍</span>
+                  Analyze Food
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleClear}
+              disabled={loading}
+              className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold rounded-lg transition-all duration-200"
+            >
+              Clear
             </button>
           </div>
         </div>
       )}
 
+      {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-          Error: {error}
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-700 dark:text-red-400 font-medium">
+            ❌ Error: {error}
+          </p>
         </div>
       )}
 
-      {results && (
+      {/* Results */}
+      {results && results.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            📊 Analysis Results
-          </h3>
-          {results.length === 0 && (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No food items detected.
-            </div>
-          )}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex items-center gap-2 mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+              📊 Analysis Results
+            </h3>
+            <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm font-semibold rounded-full">
+              {results.length} items detected
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {results.map((item, index) => (
-              <article
+              <div
                 key={index}
-                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-l-4 border-purple-500"
+                className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-700 dark:to-gray-600 border-2 border-purple-200 dark:border-gray-600 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200"
               >
-                <div className="font-semibold text-gray-900 dark:text-white mb-2">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 capitalize">
                   {item.name}
-                </div>
-                <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                  <div>Calories: <span className="font-medium">{item.calories ?? "N/A"}</span></div>
-                  <div>Protein: <span className="font-medium">{item.protein_g ?? "N/A"} g</span></div>
-                  <div>Carbs: <span className="font-medium">{item.carbs_g ?? "N/A"} g</span></div>
-                  <div>Fat: <span className="font-medium">{item.fat_g ?? "N/A"} g</span></div>
+                </h4>
+                <div className="space-y-3 text-sm">
+                  {item.calories !== null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Calories</span>
+                      <span className="font-semibold text-gray-900 dark:text-white text-lg">
+                        {Math.round(item.calories)} kcal
+                      </span>
+                    </div>
+                  )}
+                  {item.protein_g !== null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Protein</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {item.protein_g.toFixed(1)}g
+                      </span>
+                    </div>
+                  )}
+                  {item.carbs_g !== null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Carbs</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {item.carbs_g.toFixed(1)}g
+                      </span>
+                    </div>
+                  )}
+                  {item.fat_g !== null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Fat</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {item.fat_g.toFixed(1)}g
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {item.note && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">
-                    {item.note}
-                  </div>
+                  <p className="mt-3 text-xs text-gray-600 dark:text-gray-400 italic border-t border-gray-300 dark:border-gray-500 pt-2">
+                    ℹ️ {item.note}
+                  </p>
                 )}
-              </article>
+              </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {results && results.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            No food items detected in the image. Please try another image.
+          </p>
         </div>
       )}
     </div>
   );
 }
-
-export default ImageFoodAnalyzer;
