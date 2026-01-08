@@ -2,6 +2,10 @@
 
 # BioAI-Nutrition
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
+
 AI-driven wellness platform providing privacy-safe, personalized nutrition insights.  
 Built with FastAPI, Next.js, and machine learning pipelines.
 
@@ -26,7 +30,7 @@ It is **not a medical or diagnostic tool** — all recommendations are education
 |-------|---------------|
 | Backend API | FastAPI · Python 3.11 · Pydantic · PostgreSQL |
 | ML & Data Pipeline | Pandas · Polars · Scikit-learn · XGBoost · Great Expectations · Prefect |
-| Frontend (planned) | Next.js · TypeScript · TailwindCSS · shadcn/ui |
+| Frontend | Next.js · TypeScript · TailwindCSS · shadcn/ui |
 | Infrastructure | Docker · GitHub Codespaces · GitHub Actions · Fly.io |
 | Analytics & Logging | PostHog · MLflow · OpenTelemetry |
 
@@ -70,19 +74,57 @@ then:
 
 ## Development Setup
 
-**Option 1 – GitHub Codespaces (recommended)**  
-Open this repository in Codespaces to launch a preconfigured development environment.
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL (optional, for full setup)
 
-**Option 2 – Local setup**
+### Option 1 – GitHub Codespaces (recommended)
+Open this repository in [GitHub Codespaces](https://github.com/features/codespaces) to launch a preconfigured development environment.
 
+### Option 2 – Local setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/deokhwajeong/BioAI-Nutrition.git
+   cd BioAI-Nutrition
+   ```
+
+2. **Backend (API) Setup**
+   ```bash
+   cd apps/api
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+   Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/docs)
+
+3. **Frontend (Web) Setup**
+   ```bash
+   cd apps/web
+   npm install  # or pnpm install
+   npm run dev  # or pnpm dev
+   ```
+   Access the web app at → [http://localhost:3000](http://localhost:3000)
+
+4. **Database Setup** (optional)
+   - Install PostgreSQL
+   - Run the schema: `psql -f data-contracts/schema.sql`
+
+---
+
+## Testing
+
+Run tests for the API:
 ```bash
-git clone https://github.com/deokhwajeong/BioAI-Nutrition.git
-cd BioAI-Nutrition
-pip install -r requirements.txt
-uvicorn apps.api.app.main:app --reload
+cd apps/api
+pytest tests/
 ```
 
-Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/docs)
+Run tests for the web app:
+```bash
+cd apps/web
+npm test  # or pnpm test
+```
 
 ---
 
@@ -95,6 +137,22 @@ Access FastAPI docs at → [http://localhost:8000/docs](http://localhost:8000/do
 - [ ] Frontend integration (Next.js)  
 - [ ] Closed user testing  
 - [ ] Analytics and A/B experimentation  
+
+---
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and add tests
+4. Run tests: `pytest` or `npm test`
+5. Commit your changes: `git commit -m 'Add some feature'`
+6. Push to the branch: `git push origin feature/your-feature`
+7. Open a Pull Request
+
+For major changes, please open an issue first to discuss what you would like to change.
 
 ---
 
@@ -112,11 +170,16 @@ Embedded & Software Engineer | Technical Project Manager | Bio-Engineering Profe
 
 Focused on bridging **AI, engineering, and human wellness** through responsible technology.
 
+---
 
 ## Quickstart
 
+For a quick start:
 ```bash
-pip install -r requirements.txt
-uvicorn apps.api.app.main:app --reload
+# Backend
+cd apps/api && pip install -r requirements.txt && uvicorn app.main:app --reload
+
+# Frontend
+cd apps/web && npm install && npm run dev
 ```
 
