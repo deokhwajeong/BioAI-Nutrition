@@ -1,5 +1,6 @@
 # apps/api/app/services/tasks.py
 
+import os
 from celery import Celery
 from .recommendations import aggregate_metrics, generate_rule_based_recommendations
 
