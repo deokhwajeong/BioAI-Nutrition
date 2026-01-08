@@ -61,7 +61,7 @@ User → Frontend (Next.js)
 ```yaml
 id: fiber_boost_simple
 when:
-  daily_features.fiber_g < user_targets.fiber_g * 0.8
+  daily_features.fiber_g: "< user_targets.fiber_g * 0.8"
 then:
   message: "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds."
   rationale: "Your 7-day average fiber intake is below target."
@@ -130,9 +130,9 @@ npm test  # or pnpm test
 
 - [x] Repository and environment setup
 - [x] FastAPI skeleton
-- [ ] Data contracts (Events, Features, Recommendations)
-- [ ] Rule engine MVP
-- [ ] Frontend integration (Next.js)
+- [x] Data contracts (Events, Features, Recommendations)
+- [x] Rule engine MVP
+- [x] Frontend integration (Next.js)
 - [ ] Closed user testing
 - [ ] Analytics and A/B experimentation
 
@@ -179,5 +179,6 @@ cd apps/api && pip install -r requirements.txt && uvicorn app.main:app --reload
 
 # Frontend
 cd apps/web && npm install && npm run dev
+# or with pnpm: pnpm install && pnpm dev
 ```
 
