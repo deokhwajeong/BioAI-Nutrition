@@ -1,6 +1,23 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+class FoodItem(BaseModel):
+    name: str
+
+class FoodNutrition(BaseModel):
+    name: str
+    calories: Optional[float] = None
+    protein_g: Optional[float] = None
+    carbs_g: Optional[float] = None
+    fat_g: Optional[float] = None
+    note: Optional[str] = None
+
+class AnalyzeMealRequest(BaseModel):
+    items: List[FoodItem]
+
+class AnalyzeMealResponse(BaseModel):
+    items: List[FoodNutrition]
+
 class UserTargets(BaseModel):
     kcal: Optional[float] = Field(None, description="Daily calorie target")
     protein_g: Optional[float] = Field(None, description="Daily protein target (g)")

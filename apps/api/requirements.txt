@@ -11,3 +11,10 @@ mlflow
 
 celery
 redis
+
+pytesseract
+pillow
+
+sqlalchemy
+psycopg2-binary
+alembic
