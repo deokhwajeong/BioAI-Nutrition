@@ -19,3 +19,5 @@ async def delete_user(user_id: str):
     """
     # TODO: integrate with data store to delete user data. For now, we just return 204.
     return None
+
+# Updated: 2026-01-09
