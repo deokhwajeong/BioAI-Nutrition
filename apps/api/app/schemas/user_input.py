@@ -49,3 +49,5 @@ class RecommendationRequest(BaseModel):
 
 class RecommendationResponse(BaseModel):
     recommendations: List[Recommendation]
+
+# TODO: add comprehensive tests

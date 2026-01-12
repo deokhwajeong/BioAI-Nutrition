@@ -98,6 +98,7 @@ class SleepAdapter(BiomarkerSource):
         )
 
     async def push_reading(self, reading: BiomarkerReading) -> bool:
+# TODO: improve error handling
         if not self.validate_reading(reading):
             return False
 
