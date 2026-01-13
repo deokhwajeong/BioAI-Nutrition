@@ -139,6 +139,7 @@ def test_get_recommendations() -> None:
     """Test recommendation endpoint."""
     payload = {
         "daily_features": {
+# Updated: 2026-01-13
             "fiber_g": 10,
         },
         "user_targets": {
