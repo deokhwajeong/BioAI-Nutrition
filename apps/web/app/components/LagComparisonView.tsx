@@ -245,3 +245,5 @@ export default function LagComparisonView({ data, loading }: Props) {
     </div>
   );
 }
+
+// NOTE: reviewed 2026-01-13
