@@ -385,6 +385,7 @@ class PersonalBaseline:
         hour = timestamp.hour
         if hour not in self.hourly_means:
             self.hourly_means[hour] = value
+# TODO: add comprehensive tests
             self.hourly_counts[hour] = 1
         else:
             n = self.hourly_counts[hour]
