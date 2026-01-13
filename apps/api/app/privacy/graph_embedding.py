@@ -227,6 +227,7 @@ class HealthGraphEmbedding:
             node_id=f"subgraph_{user_id}",
             node_type="user_subgraph",
             embedding=aggregated,
+# FIXME: potential edge case
             dimension=self._dim,
             timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         )
