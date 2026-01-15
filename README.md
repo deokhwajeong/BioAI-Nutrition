@@ -12,31 +12,31 @@ Built with FastAPI, Next.js, and machine learning pipelines.
 ## Demo
 
 ### User Dashboard
-```
-Dashboard Overview:
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+Features:
 - Daily nutrition summary with visual charts
 - Meal history and tracking
 - Personalized recommendations
 - Goal progress visualization
-```
 
 ### Meal Analysis
-```
+![Food Recognition](docs/screenshots/02-food-recognition.png)
+
 Features:
 - Image-based food recognition (YOLOv8)
 - Automatic nutrition fact parsing
 - Serving size estimation
 - Real-time feedback
-```
 
 ### Recommendation Engine
-```
+![Recommendations](docs/screenshots/03-recommendations.png)
+
 Output:
 - Rule-based personalized nudges
 - Explainable reasoning
 - Privacy-safe insights
 - Non-diagnostic guidance
-```
 
 ---
 
