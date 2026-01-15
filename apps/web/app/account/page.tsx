@@ -12,13 +12,13 @@ export default function AccountPage() {
     setSaving(true);
 
     try {
-      // TODO: 백엔드 API가 준비되면 여기에 연결하세요.
-      // 예: POST `${NEXT_PUBLIC_API_BASE_URL}/api/account/settings`
+      // TODO: Connect to backend API once it's ready.
+      // Example: POST `${NEXT_PUBLIC_API_BASE_URL}/api/account/settings`
       // body: { email, allowEmails }
       await new Promise((r) => setTimeout(r, 350));
-      alert('설정이 저장되었습니다.');
+      alert('Settings saved.');
     } catch (err) {
-      alert('저장 중 오류가 발생했습니다.');
+      alert('Error occurred while savingwhile saving.');
     } finally {
       setSaving(false);
     }

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# GitHub Project Issues 자동 생성 스크립트
-# 용도: PROJECT_ROADMAP.md 기반 Phase 1 이슈 자동 생성
-# 사용법: ./scripts/create_phase1_issues.sh
+# Automatic GitHub Issues creation script
+# Purpose: Automatically create Phase 1 issues based on PROJECT_ROADMAP.md
+# Usage: ./scripts/create_phase1_issues.sh
 
 set -e
 
@@ -10,7 +10,7 @@ REPO="deokhwajeong/BioAI-Nutrition"
 PHASE="phase-1"
 MILESTONE="Q1 2026"
 
-# 컬러 출력
+# Color output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,17 +18,17 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  GitHub Issues 자동 생성 - Phase 1 (Q1 2026)${NC}"
+echo -e "${BLUE}  Automatic GitHub Issues Creation - Phase 1 (Q1 2026)${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}\n"
 
-# gh CLI 확인
+# Check gh CLI
 if ! command -v gh &> /dev/null; then
     echo -e "${RED}❌ Error: GitHub CLI (gh) not found.${NC}"
     echo "Install: https://cli.github.com/"
     exit 1
 fi
 
-# gh 인증 확인
+# Check gh authentication
 if ! gh auth status &> /dev/null; then
     echo -e "${RED}❌ Error: Not authenticated. Run: gh auth login${NC}"
     exit 1
@@ -384,7 +384,7 @@ echo "  📖 Stories: 10 (2 per epic)"
 echo "  🏷️ Labels: phase-1, epic, story, critical, backend, frontend, ml"
 echo "  📅 Milestone: Q1 2026"
 echo ""
-echo -e "${YELLOW}Next Steps:${NC}"
+echo -e "${YELLOW}Next steps:${NC}"
 echo "  1. View project: https://github.com/users/deokhwajeong/projects/2"
 echo "  2. Configure workflows in project settings"
 echo "  3. Assign team members to issues"

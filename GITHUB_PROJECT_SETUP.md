@@ -1,49 +1,49 @@
-# 🚀 GitHub 프로젝트 구성 가이드
+# 🚀 GitHub Project Setup Guide
 
-**대상**: 프로젝트 관리자, Scrum Master  
-**복잡도**: 중급 | **소요 시간**: 30분
-
----
-
-## 개요
-
-이 가이드는 BioAI-Nutrition의 로드맵을 GitHub Project(자동화 보드)로 설정하는 방법을 설명합니다.
+**Target**: Project Managers, Scrum Masters  
+**Complexity**: Intermediate | **Duration**: 30 minutes
 
 ---
 
-## 📋 구성 체크리스트
+## Overview
 
-- [ ] GitHub Project 생성 (Table 또는 Board view)
-- [ ] Epic 이슈 생성 (Label: epic)
-- [ ] 스토리 & 테스크 이슈 생성 (Label: story, task)
-- [ ] 자동화 워크플로우 설정
-- [ ] GitHub Milestones 설정 (분기별)
-- [ ] 팀 할당 & 할당자 설정
+This guide explains how to configure the BioAI-Nutrition roadmap using GitHub Project (automated board).
 
 ---
 
-## 1️⃣ GitHub Project 생성
+## 📋 Setup Checklist
 
-### Step 1: 새 Project 생성
+- [ ] Create GitHub Project (Table or Board view)
+- [ ] Create Epic issues (Label: epic)
+- [ ] Create Story & Task issues (Label: story, task)
+- [ ] Configure automation workflows
+- [ ] Set GitHub Milestones (quarterly)
+- [ ] Set team assignments & owners
+
+---
+
+## 1️⃣ Create GitHub Project
+
+### Step 1: Create New Project
 ```
 GitHub → [Repository] → Projects → New Project
 ```
 
-**프로젝트 설정**:
+**Project Settings**:
 - **Name**: `Personalized Nutrition Platform Roadmap`
 - **Description**: `Advanced AI-driven wellness platform with privacy-by-design architecture`
-- **Template**: `Table` (또는 `Board` - 선호도에 따라)
+- **Template**: `Table` (or `Board` - depending on preference)
 
-### Step 2: 컬럼 설정 (Board/Table view)
+### Step 2: Configure Columns (Board/Table view)
 
-#### Board View (칸반식)
+#### Board View (Kanban styleban style)
 ```
 ┌──────────────┬──────────────┬──────────────┬──────────────┐
 │    Backlog   │     Todo     │  In Progress │     Done     │
 └──────────────┴──────────────┴──────────────┴──────────────┘
 ```
 
-#### Table View (스프레드시트식)
+#### Table View (Spreadsheet styleheet style)
 ```
 | Title | Status | Priority | Team | Due Date | Points | Phase |
 |-------|--------|----------|------|----------|--------|-------|
@@ -51,21 +51,21 @@ GitHub → [Repository] → Projects → New Project
 
 ---
 
-## 2️⃣ 이슈(Issue) 템플릿 생성
+## 2️⃣ Create Issue Templates
 
-### Epic 템플릿 (.github/ISSUE_TEMPLATE/epic.md)
+### Epic Template (.github/ISSUE_TEMPLATE/epic.md)
 ```markdown
 ---
 name: Epic
-about: 큰 기능 영역 (여러 스프린트)
+about: Large feature area (multiple sprints)
 labels: ['epic', 'needs-triage']
 ---
 
 ## 📖 Epic Description
-[상세 설명]
+[Detailed description]
 
 ## 🎯 Goal
-[이 epic의 목표]
+[Goal of this epic]
 
 ## 📋 Acceptance Criteria
 - [ ] Criterion 1
@@ -83,11 +83,11 @@ labels: ['epic', 'needs-triage']
 **Target**: [Date]
 ```
 
-### Story 템플릿 (.github/ISSUE_TEMPLATE/story.md)
+### Story Template (.github/ISSUE_TEMPLATE/story.md)
 ```markdown
 ---
 name: User Story
-about: 기능 개발 스토리
+about: Feature development story
 labels: ['story', 'needs-estimation']
 ---
 
@@ -112,16 +112,16 @@ So that [benefit/value]
 [Implementation hints, architecture considerations]
 ```
 
-### Task 템플릿 (.github/ISSUE_TEMPLATE/task.md)
+### Task Template (.github/ISSUE_TEMPLATE/task.md)
 ```markdown
 ---
 name: Task
-about: 기술 작업 (마이그레이션, 리팩토링 등)
+about: Technical tasks (migration, refactoring, etc.)
 labels: ['task']
 ---
 
 ## 📌 Task Description
-[상세 설명]
+[Detailed description]
 
 ## ✅ Checklist
 - [ ] Subtask 1
@@ -139,9 +139,9 @@ labels: ['task']
 
 ---
 
-## 3️⃣ Phase 1 이슈 생성 스크립트
+## 3️⃣ Phase 1 Issue Generation Script
 
-### CLI를 이용한 일괄 생성 (gh CLI)
+### Batch Creation Using CLI (gh CLI)
 
 ```bash
 #!/bin/bash
@@ -223,7 +223,7 @@ So that only authorized clients can access the API
 echo "✅ Phase 1 epics and stories created!"
 ```
 
-### 실행 방법
+### How to Run
 ```bash
 chmod +x create_phase1_issues.sh
 ./create_phase1_issues.sh
@@ -231,11 +231,11 @@ chmod +x create_phase1_issues.sh
 
 ---
 
-## 4️⃣ Labels 설정
+## 4️⃣ Configure Labels
 
 GitHub → Settings → Labels
 
-### 추천되는 Labels
+### Recommended Labels
 
 #### Phase Labels
 - `phase-1` - Q1 2026 MVP
@@ -244,33 +244,33 @@ GitHub → Settings → Labels
 - `phase-4` - Q4 2026 Enterprise
 
 #### Type Labels
-- `epic` - 큰 기능 영역
-- `story` - 사용자 스토리
-- `task` - 기술 작업
-- `bug` - 버그 수정
-- `enhancement` - 개선사항
-- `documentation` - 문서화
+- `epic` - Large feature area
+- `story` - User story
+- `task` - Technical task
+- `bug` - Bug fix
+- `enhancement` - Enhancement
+- `documentation` - Documentation
 
 #### Priority Labels
-- `critical` - 🔴 긴급 (즉시)
-- `high` - 🟠 높음 (이번 스프린트)
-- `medium` - 🟡 중간 (곧 진행)
-- `low` - 🟢 낮음 (나중에)
+- `critical` - 🔴 Urgent (immediate)
+- `high` - 🟠 High (this sprint)
+- `medium` - 🟡 Medium (coming soon)
+- `low` - 🟢 Low (later)
 
 #### Team Labels
-- `backend` - 백엔드 팀
-- `frontend` - 프론트엔드 팀
-- `ml` - ML 팀
-- `data-eng` - 데이터 엔지니어링
-- `devops` - DevOps 팀
-- `security` - 보안 & 컴플라이언스
+- `backend` - Backend team
+- `frontend` - Frontend team
+- `ml` - ML team
+- `data-eng` - Data engineering
+- `devops` - DevOps team
+- `security` - Security & Compliance
 
 #### Status Labels
-- `needs-triage` - 검토 필요
-- `needs-estimation` - 포인트 필요
-- `in-progress` - 진행 중
-- `blocked` - 차단됨
-- `done` - 완료
+- `needs-triage` - Needs review
+- `needs-estimation` - Needs points
+- `in-progress` - In progress
+- `blocked` - Blocked
+- `done` - Done
 
 #### Component Labels
 - `api` - API/Backend
@@ -282,11 +282,11 @@ GitHub → Settings → Labels
 
 ---
 
-## 5️⃣ Milestones 설정
+## 5️⃣ Configure Milestones
 
 GitHub → Settings → Milestones
 
-### Milestones 생성
+### Create Milestones
 
 | Milestone | Due Date | Description |
 |-----------|----------|-------------|
@@ -297,35 +297,35 @@ GitHub → Settings → Milestones
 
 ---
 
-## 6️⃣ 프로젝트 자동화 설정
+## 6️⃣ Configure Project Automation
 
-### Workflow 규칙
+### Workflow Rules
 
-#### 규칙 1: 자동 Status 업데이트 (Draft → Backlog)
+#### Rule 1: Auto Status Update (Draft → Backlog)
 ```
 When: Issue is created
 Then: Add to Project, Status = Backlog
 ```
 
-#### 규칙 2: PR 자동 연결
+#### Rule 2: Auto Link PR
 ```
 When: PR is created and links issue
 Then: Add to Project
 ```
 
-#### 규칙 3: 완료 표시
+#### Rule 3: Mark as Complete
 ```
 When: PR is merged
 Then: Move issue Status → Done
 ```
 
-#### 규칙 4: 자동 라벨 추가
+#### Rule 4: Auto Add Label
 ```
 When: Issue in phase-1 milestone
 Then: Add label "phase-1"
 ```
 
-### 설정 방법
+### How to Configure
 ```
 Project → Automation → Workflows
 
@@ -337,7 +337,7 @@ Project → Automation → Workflows
 
 ---
 
-## 7️⃣ 대시보드 뷰 설정
+## 7️⃣ Configure Dashboard Views
 
 ### View 1: Team Dashboard
 ```
@@ -372,7 +372,7 @@ Show: Title, Team, Description
 
 ## 8️⃣ Team Collaboration Setup
 
-### Assignees (팀 리더 정의)
+### Assignees (Define Team Leaders)
 ```
 Backend Team Lead: [GitHub Username]
 Frontend Team Lead: [GitHub Username]
@@ -400,7 +400,7 @@ infra/ @devops-team-lead
 docs/ *.md @team-lead
 ```
 
-### 브랜치 보호 규칙
+### Branch Protection Rules
 ```
 GitHub → Settings → Branches → main
 
@@ -500,21 +500,21 @@ jobs:
 
 ---
 
-## 1️⃣1️⃣ 보고 및 모니터링
+## 1️⃣1️⃣ Reporting & Monitoring
 
-### 주간 보고서 (Weekly Report)
+### Weekly Report
 
 ```
-GitHub → Insights → Network (또는 별도 스크립트)
+GitHub → Insights → Network (or separate script)
 
 Reports:
-- Velocity (완료한 포인트/스프린트)
-- Burndown (시간 경과에 따른 작업량)
-- Issue 해결율 (Issue 종료 비율)
-- PR 병합 속도
+- Velocity (points completed/sprint)
+- Burndown (work over time)
+- Issue resolution rate (issues closed ratio)
+- PR merge speed
 ```
 
-### Metrics 대시보드 (GitHub Insights)
+### Metrics Dashboard (GitHub Insights)
 
 ```
 Project Insights:
@@ -532,41 +532,41 @@ Project Insights:
 
 ---
 
-## 1️⃣2️⃣ 체크리스트: 설정 완료
+## 1️⃣2️⃣ Checklist: Setup Complete
 
-### Project 설정
-- [ ] GitHub Project 생성 (Table/Board view)
-- [ ] 컬럼/상태 정의
-- [ ] 자동화 워크플로우 활성화
+### Project Setup
+- [ ] Create GitHub Project (Table/Board view)
+- [ ] Define columns/status
+- [ ] Enable automation workflows
 
 ### Issues & Labels
-- [ ] Issue 템플릿 생성 (epic, story, task)
-- [ ] 20+ Labels 정의
-- [ ] Phase 1 이슈 100개+ 생성
+- [ ] Create issue templates (epic, story, task)
+- [ ] Define 20+ labels
+- [ ] Create 100+ Phase 1 issues
 
 ### Organization
-- [ ] Q1-Q4 Milestones 생성
-- [ ] 팀 lead 할당
-- [ ] CODEOWNERS 파일 작성
-- [ ] 브랜치 보호 규칙 설정
+- [ ] Create Q1-Q4 milestones
+- [ ] Assign team leads
+- [ ] Write CODEOWNERS file
+- [ ] Set branch protection rules
 
 ### Automation
-- [ ] GitHub Actions 워크플로우 설정
-- [ ] 자동 라벨 추가 규칙
-- [ ] PR 자동 병합 규칙
+- [ ] Set up GitHub Actions workflows
+- [ ] Create auto label rules
+- [ ] Set up auto merge rules for PRs
 
 ### Reporting
-- [ ] 대시보드 뷰 3개 이상 생성
-- [ ] 주간 보고 템플릿
-- [ ] Insights 모니터링 설정
+- [ ] Create 3+ dashboard views
+- [ ] Set up weekly report template
+- [ ] Configure Insights monitoring
 
 ---
 
-## 📚 추가 자료
+## 📚 Additional Resources
 
 ### GitHub Project API
 ```bash
-# GraphQL을 사용한 프로젝트 관리 자동화
+# Automate project management using GraphQL
 gh api graphql -f query='
   query {
     repository(owner: "deokhwajeong", name: "BioAI-Nutrition") {
@@ -592,21 +592,21 @@ gh api graphql -f query='
 '
 ```
 
-### 추천 문서
+### Recommended Documentation
 - [GitHub Projects Documentation](https://docs.github.com/en/issues/planning-and-tracking-with-projects)
 - [GitHub Project REST API](https://docs.github.com/en/rest/projects)
 - [GitHub Project GraphQL API](https://docs.github.com/en/graphql/reference/objects#projectv2)
 
 ---
 
-## 🎉 마치며
+## 🎉 Wrap-Up
 
-이제 **고급 수준의 GitHub 프로젝트**가 완전히 설정되었습니다!
+Your **advanced GitHub project** is now fully configured!
 
-**다음 단계**:
-1. ✅ 모든 이슈 생성
-2. ✅ Team members 초대 & 할당
-3. ✅ 첫 스프린트 계획
-4. ✅ Daily standup 시작
-5. ✅ 주간 review & retro
+**Next Steps**:
+1. ✅ Create all issues
+2. ✅ Invite & assign team members
+3. ✅ Plan first sprint
+4. ✅ Start daily standups
+5. ✅ Start weekly reviews & retrospectives
 

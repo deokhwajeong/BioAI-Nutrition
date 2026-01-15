@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# GitHub API를 사용한 Project 설정
-# Milestones, Labels, Issues 생성
+# Project configuration using GitHub API
+# Milestones, Labels, Issues creation
 
 REPO="deokhwajeong/BioAI-Nutrition"
 OWNER="deokhwajeong"
 
-echo "🚀 GitHub Project 자동 설정 시작..."
+echo "🚀 Starting GitHub Project automatic configuration..."
 echo ""
 
 # ============================================================================
-# 1. MILESTONES 생성 (GitHub API)
+# 1. MILESTONES CREATION (GitHub API)
 # ============================================================================
-echo "📅 Milestones 생성 중..."
+echo "📅 Creating Milestones..."
 
 create_milestone() {
     local title=$1
@@ -35,9 +35,9 @@ create_milestone "Q4 2026" "2026-12-31T23:59:59Z" "Enterprise: Compliance & scal
 echo ""
 
 # ============================================================================
-# 2. LABELS 생성 (GitHub API)
+# 2. LABELS CREATION (GitHub API)
 # ============================================================================
-echo "🏷️  Labels 생성 중..."
+echo "🏷️  Creating Labels..."
 
 create_label() {
     local name=$1
@@ -88,9 +88,9 @@ echo "✓ All labels created"
 echo ""
 
 # ============================================================================
-# 3. PHASE 1 EPICS 생성 (gh issue)
+# 3. PHASE 1 EPICS CREATION (gh issue)
 # ============================================================================
-echo "📌 Phase 1 Epics 생성 중..."
+echo "📌 Creating Phase 1 Epics..."
 
 gh issue create -R $REPO \
   --title "Epic: User Management & Authentication" \
@@ -171,15 +171,15 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
 echo "✓ Epic 5: User Dashboard"
 
 echo ""
-echo "✅ GitHub Project 설정 완료!"
+echo "✅ GitHub Project configuration complete!"
 echo ""
-echo "📊 생성된 항목:"
-echo "  ✓ Milestones: 4개 (Q1-Q4 2026)"
-echo "  ✓ Labels: 24개 (Phase, Type, Priority, Team, Status)"
-echo "  ✓ Epics: 5개 (Phase 1)"
+echo "📊 Created items:"
+echo "  ✓ Milestones: 4 (Q1-Q4 2026)"
+echo "  ✓ Labels: 24 (Phase, Type, Priority, Team, Status)"
+echo "  ✓ Epics: 5 (Phase 1)"
 echo ""
-echo "📋 다음 단계:"
+echo "📋 Next steps:"
 echo "  1. GitHub Project: https://github.com/users/deokhwajeong/projects/2"
-echo "  2. Automation → Workflows 설정 (웹 UI)"
-echo "  3. 팀원 초대"
+echo "  2. Automation → Workflows configuration (from web UI)"
+echo "  3. Invite team memberse team members"
 echo ""

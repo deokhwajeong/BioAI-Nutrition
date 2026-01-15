@@ -1,0 +1,42 @@
+{
+  "user_dashboard": {
+    "date": "2026-01-15",
+    "daily_totals": {
+      "calories": 1850,
+      "protein_g": 68,
+      "carbs_g": 180,
+      "fat_g": 45,
+      "fiber_g": 18,
+      "water_cups": 6,
+      "steps": 8234,
+      "sleep_hours": 6.5
+    },
+    "nutrition_targets": {
+      "calories": 2000,
+      "protein_g": 70,
+      "fiber_g": 25,
+      "water_cups": 8
+    }
+  },
+  "weekly_trend": {
+    "dates": [
+      "2026-01-09",
+      "2026-01-10",
+      "2026-01-11",
+      "2026-01-12",
+      "2026-01-13",
+      "2026-01-14",
+      "2026-01-15"
+    ],
+    "calories": [
+      1720,
+      1890,
+      1650,
+      2050,
+      1920,
+      1800,
+      1850
+    ],
+    "avg_7day": 1838
+  }
+}

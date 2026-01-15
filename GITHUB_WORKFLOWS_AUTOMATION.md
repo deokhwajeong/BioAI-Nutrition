@@ -1,17 +1,17 @@
-# GitHub Project Workflows 자동화 설정
+# GitHub Project Workflows Automation Setup
 
-**목적**: GitHub Project에 생성된 문서를 기반으로 이슈 자동 생성 & 관리  
-**적용 범위**: `deokhwajeong/BioAI-Nutrition` 프로젝트  
-**작성일**: 2026-01-15
+**Purpose**: Automatically generate and manage issues based on documents created in GitHub Project  
+**Scope**: `deokhwajeong/BioAI-Nutrition` project  
+**Created**: 2026-01-15
 
 ---
 
-## 📋 현재 상태
+## 📋 Current Status
 
-### ✅ 푸시 완료
+### ✅ Push Completed
 ```
 Commit: dab9fd7 (main)
-Files: 6개 (3,765 라인)
+Files: 6 files (3,765 lines)
 - PROJECT_ROADMAP.md
 - ADVANCED_IMPLEMENTATION_GUIDE.md
 - GITHUB_PROJECT_SETUP.md
@@ -20,34 +20,34 @@ Files: 6개 (3,765 라인)
 - COMPLETION_REPORT.md
 ```
 
-### 📊 다음 단계: Workflows 자동화
+### 📊 Next Step: Workflows Automation
 
-GitHub Project의 **Workflows** 페이지에서 다음을 자동화할 수 있습니다:
+You can automate the following on GitHub Project's **Workflows** page:
 
-| Workflow | 기능 | 상태 |
-|----------|------|------|
-| **Auto-add to Project** | 새 이슈/PR → 자동 프로젝트 추가 | ⚙️ 설정 필요 |
-| **Auto-set Status** | 라벨 기반 Status 자동 변경 | ⚙️ 설정 필요 |
-| **Auto-assign Milestone** | Phase 라벨 → Milestone 자동 할당 | ⚙️ 설정 필요 |
-| **Burndown Tracking** | Story Points 자동 계산 | ⚙️ 설정 필요 |
+| Workflow | Function | Status |
+|----------|----------|--------|
+| **Auto-add to Project** | New issue/PR → auto-add to project | ⚙️ Configuration Required |
+| **Auto-set Status** | Auto-change status based on label | ⚙️ Configuration Required |
+| **Auto-assign Milestone** | Phase label → auto-assign milestone | ⚙️ Configuration Required |
+| **Burndown Tracking** | Auto-calculate story points | ⚙️ Configuration Required |
 
 ---
 
-## 🔧 GitHub Project Workflows 설정
+## 🔧 GitHub Project Workflows Configuration
 
-### Step 1: GitHub Project 열기
+### Step 1: Open GitHub Project
 ```
 Repository → Projects → "Personalized Nutrition Platform Roadmap"
 ```
 
-### Step 2: Workflows 탭 클릭
+### Step 2: Click Workflows Tab
 ```
-Project → Automation → (오른쪽) Workflows 버튼
+Project → Automation → (Right) Workflows Button
 ```
 
-### Step 3: 워크플로우 규칙 추가
+### Step 3: Add Workflow Rules
 
-#### Workflow 1: 자동 프로젝트 추가
+#### Workflow 1: Auto-add to Project
 ```
 When: Issue or pull request is created
 Then: 
@@ -55,18 +55,18 @@ Then:
   ✓ Set field: Status = Backlog
 ```
 
-**설정**:
+**Configuration**:
 - Trigger: Issues, Pull requests
 - Action: Add to project
 - Status: Backlog
 
-#### Workflow 2: 라벨 기반 Status 변경
+#### Workflow 2: Auto-set Status Based on Label
 ```
 When: Item is added with label
 Then: Auto-set Status based on label
 ```
 
-**규칙**:
+**Rules**:
 | Label | Status |
 |-------|--------|
 | `in-progress` | In Progress |
@@ -74,13 +74,13 @@ Then: Auto-set Status based on label
 | `done` | Done |
 | `blocked` | Blocked |
 
-#### Workflow 3: Phase 라벨 → Milestone 할당
+#### Workflow 3: Phase Label → Milestone Assignment
 ```
 When: Issue labeled with phase-1/2/3/4
 Then: Auto-assign Milestone
 ```
 
-**규칙**:
+**Rules**:
 | Label | Milestone |
 |-------|-----------|
 | `phase-1` | Q1 2026 |
@@ -88,7 +88,7 @@ Then: Auto-assign Milestone
 | `phase-3` | Q3 2026 |
 | `phase-4` | Q4 2026 |
 
-#### Workflow 4: PR 병합 시 Status 변경
+#### Workflow 4: Update Status on PR Merge
 ```
 When: Pull request merged
 Then: Update issue Status → Done
@@ -96,9 +96,9 @@ Then: Update issue Status → Done
 
 ---
 
-## 📌 이슈 자동 생성 스크립트
+## 📌 Automatic Issue Generation Script
 
-### CLI를 이용한 Phase 1 이슈 생성
+### Phase 1 Issue Generation Using CLI
 
 ```bash
 #!/bin/bash
@@ -166,23 +166,23 @@ As a backend service, I want to validate API keys, so only authorized clients ac
 echo "✅ Issues created successfully!"
 ```
 
-### 실행 방법
+### How to Execute
 ```bash
-# gh CLI 설치 확인
+# Verify gh CLI installation
 which gh
 
-# 스크립트 실행
+# Run script
 chmod +x scripts/create_github_issues.sh
 ./scripts/create_github_issues.sh
 ```
 
 ---
 
-## 🔗 GitHub Project와 문서 연결
+## 🔗 Link GitHub Project with Documentation
 
-### 이슈 본문에 문서 링크 추가
+### Add Documentation Links in Issue Body
 
-각 이슈를 만들 때 관련 문서를 참조하도록:
+Each issue should reference related documentation when created:
 
 ```markdown
 ## 📚 Related Documentation
@@ -191,9 +191,9 @@ chmod +x scripts/create_github_issues.sh
 - [GITHUB_PROJECT_SETUP.md](GITHUB_PROJECT_SETUP.md)
 ```
 
-### 프로젝트 README에 링크 추가
+### Add Links to Project README
 
-`README.md`에 다음을 추가:
+Add the following to `README.md`:
 
 ```markdown
 ## 📋 Project Documentation
@@ -213,16 +213,16 @@ chmod +x scripts/create_github_issues.sh
 
 ---
 
-## 📊 GitHub Project 보드 설정
+## 📊 GitHub Project Board Setup
 
-### View 1: Backlog (우선순위 정렬)
+### View 1: Backlog (Priority Sort)
 ```
 Filter: status:Backlog
 Sort by: Priority (Critical → High → Medium → Low)
 Group by: Phase
 ```
 
-### View 2: Sprint (현재 진행)
+### View 2: Sprint (Current Progress)
 ```
 Filter: status:"In Progress" OR status:"In Review"
 Sort by: Due Date
@@ -236,7 +236,7 @@ X-axis: Days
 Y-axis: Points remaining
 ```
 
-### View 4: Velocity (팀 성과)
+### View 4: Velocity (Team Performance)
 ```
 Filter: status:Done AND closed_at:[last 4 weeks]
 Group by: Week
@@ -247,7 +247,7 @@ Show: Total points completed per week
 
 ## ⚙️ GitHub Actions Integration
 
-### 새 워크플로우 파일: `.github/workflows/project-sync.yml`
+### New Workflow File: `.github/workflows/project-sync.yml`
 
 ```yaml
 name: Sync Issues to Project
@@ -303,11 +303,11 @@ jobs:
 
 ---
 
-## 📈 모니터링 & 보고
+## 📈 Monitoring & Reporting
 
 ### Weekly Report Template
 
-**파일**: `.github/ISSUE_TEMPLATE/weekly-report.md`
+**File**: `.github/ISSUE_TEMPLATE/weekly-report.md`
 
 ```markdown
 ---
@@ -347,68 +347,68 @@ labels: ['report']
 
 ---
 
-## ✅ 체크리스트: Workflows 설정 완료
+## ✅ Checklist: Workflows Configuration Complete
 
 ### GitHub Project Automation
-- [ ] GitHub Project "Personalized Nutrition Platform Roadmap" 생성
-- [ ] Workflows 탭에서 4개 자동화 규칙 설정
+- [ ] Create GitHub Project "Personalized Nutrition Platform Roadmap"
+- [ ] Set 4 automation rules in Workflows tab
   - [ ] Auto-add to project
   - [ ] Auto-set status by label
   - [ ] Auto-assign milestone
   - [ ] Auto-update on PR merge
 
 ### Issue Templates
-- [ ] `.github/ISSUE_TEMPLATE/epic.md` 생성
-- [ ] `.github/ISSUE_TEMPLATE/story.md` 생성
-- [ ] `.github/ISSUE_TEMPLATE/task.md` 생성
-- [ ] `.github/ISSUE_TEMPLATE/bug.md` 생성
+- [ ] Create `.github/ISSUE_TEMPLATE/epic.md`
+- [ ] Create `.github/ISSUE_TEMPLATE/story.md`
+- [ ] Create `.github/ISSUE_TEMPLATE/task.md`
+- [ ] Create `.github/ISSUE_TEMPLATE/bug.md`
 
 ### GitHub Actions
-- [ ] `.github/workflows/project-sync.yml` 설정
-- [ ] Tests 실행 워크플로우 설정
-- [ ] 배포 자동화 설정
+- [ ] Configure `.github/workflows/project-sync.yml`
+- [ ] Configure test execution workflow
+- [ ] Configure deployment automation
 
 ### Documentation
-- [ ] README.md에 프로젝트 링크 추가
-- [ ] 각 이슈에 관련 문서 참조 추가
-- [ ] GitHub Discussions 활성화
-- [ ] Wiki 페이지 생성 (선택사항)
+- [ ] Add project links to README.md
+- [ ] Add documentation references to each issue
+- [ ] Enable GitHub Discussions
+- [ ] Create Wiki pages (optional)
 
 ### Initial Issues
-- [ ] Phase 1 Epic 생성 (5개)
-- [ ] Phase 1 Stories 생성 (20-30개)
-- [ ] Milestones 생성 (Q1-Q4 2026)
-- [ ] Labels 정의 (20+ 라벨)
+- [ ] Create Phase 1 Epics (5 total)
+- [ ] Create Phase 1 Stories (20-30 total)
+- [ ] Create Milestones (Q1-Q4 2026)
+- [ ] Define Labels (20+ total)
 
 ---
 
-## 🎯 다음 단계 (우선순위)
+## 🎯 Next Steps (Priority Order)
 
-### Immediate (오늘)
-1. ✅ 문서 푸시 **완료**
-2. GitHub Project 생성 (URL 접근: https://github.com/users/deokhwajeong/projects/2)
-3. Workflows 자동화 규칙 5개 추가
+### Immediate (Today)
+1. ✅ Push documentation **Complete**
+2. Create GitHub Project (URL access: https://github.com/users/deokhwajeong/projects/2)
+3. Add 5 automation rules in Workflows
 
 ### This Week
-4. Issue Templates 5개 생성
-5. Phase 1 이슈 50개 생성
-6. `.github/workflows/project-sync.yml` 추가
+4. Create 5 issue templates
+5. Generate 50 Phase 1 issues
+6. Add `.github/workflows/project-sync.yml`
 
 ### Next Week
-7. 팀 온보딩 시작
-8. 첫 스프린트 계획
-9. Daily standup 시작
+7. Start team onboarding
+8. Plan first sprint
+9. Start daily standups
 
 ---
 
-## 📚 참고 링크
+## 📚 Reference Links
 
-### GitHub 공식 문서
+### Official GitHub Documentation
 - [GitHub Project Automation](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project)
 - [GitHub Project API](https://docs.github.com/en/graphql/reference/objects#projectv2)
 - [GitHub Actions Workflows](https://docs.github.com/en/actions/using-workflows)
 
-### 프로젝트 문서
+### Project Documentation
 - [PROJECT_ROADMAP.md](../PROJECT_ROADMAP.md)
 - [GITHUB_PROJECT_SETUP.md](../GITHUB_PROJECT_SETUP.md)
 - [ADVANCED_IMPLEMENTATION_GUIDE.md](../ADVANCED_IMPLEMENTATION_GUIDE.md)
@@ -419,7 +419,7 @@ labels: ['report']
 
 ---
 
-**생성일**: 2026-01-15  
-**상태**: 📋 Implementation Ready  
-**다음 업데이트**: 2026-01-22 (주간 review)
+**Creation Date**: 2026-01-15  
+**Status**: 📋 Implementation Ready  
+**Next Update**: 2026-01-22 (Weekly Review)
 

@@ -3,9 +3,9 @@ import subprocess
 import json
 import sys
 
-print("🔗 GitHub Issues를 Project에 동기화 중...\n")
+print("🔗 Synchronizing GitHub Issues to Project...\n")
 
-# Project V2 ID 찾기
+# Finding Project V2 ID with GraphQL query
 query = """
 {
   user(login: "deokhwajeong") {
@@ -45,7 +45,7 @@ if not project_id:
     print("❌ Project #2 not found")
     sys.exit(1)
 
-# Issues 리스트
+# List of issues
 issues = [
     "Epic: User Management & Authentication",
     "Epic: Meal Data Ingestion",
@@ -62,12 +62,12 @@ issues = [
     "Epic: ML Optimization & Scale"
 ]
 
-print("추가 중...")
+print("Adding...")
 success = 0
 failed = 0
 
 for i, title in enumerate(issues, 1):
-    # Issue 정보 조회
+    # Get Issue information
     issue_query = f"""
     {{
       repository(owner: "deokhwajeong", name: "BioAI-Nutrition") {{
@@ -92,7 +92,7 @@ for i, title in enumerate(issues, 1):
         issue_data = json.loads(result.stdout)
         issues_list = issue_data.get('data', {}).get('repository', {}).get('issues', {}).get('nodes', [])
         
-        # 제목으로 Issue 찾기
+        # Find Issue by title
         found_issue = None
         for issue in issues_list:
             if issue['title'] == title:
@@ -103,7 +103,7 @@ for i, title in enumerate(issues, 1):
             issue_id = found_issue['id']
             issue_num = found_issue['number']
             
-            # Project에 추가
+            # Add to Project
             mutation = f"""
             mutation {{
               addProjectV2ItemById(input: {{projectId: "{project_id}", contentId: "{issue_id}"}}) {{
@@ -137,5 +137,5 @@ for i, title in enumerate(issues, 1):
         failed += 1
 
 print(f"\n{'='*50}")
-print(f"✅ 완료: {success}개 성공, {failed}개 실패")
+print(f"✅ Complete: {success} successful, {failed} failed")
 print(f"🔗 https://github.com/users/deokhwajeong/projects/2")
