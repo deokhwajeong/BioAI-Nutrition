@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# GitHub Project 자동 설정 스크립트
-# Milestones, Labels, Issues 생성
+# GitHub Project automatic configuration script
+# Milestones, Labels, Issues creation
 
 set -e
 
 REPO="deokhwajeong/BioAI-Nutrition"
 
-echo "🚀 GitHub Project 자동 설정 시작..."
+echo "🚀 Starting GitHub Project automatic configuration..."
 echo ""
 
 # ============================================================================
-# 1. MILESTONES 생성
+# 1. MILESTONES CREATION
 # ============================================================================
-echo "📅 Milestones 생성 중..."
+echo "📅 Creating Milestones..."
 
 gh milestone create -R $REPO "Q1 2026" --description "MVP: Core features (Jan-Mar 2026)" --due-date 2026-03-31
 echo "✓ Q1 2026 milestone created"
@@ -30,9 +30,9 @@ echo "✓ Q4 2026 milestone created"
 echo ""
 
 # ============================================================================
-# 2. LABELS 생성
+# 2. LABELS CREATION
 # ============================================================================
-echo "🏷️  Labels 생성 중..."
+echo "🏷️  Creating Labels..."
 
 # Phase Labels
 gh label create -R $REPO "phase-1" --color "0366d6" --description "Q1 2026 - MVP" || true
@@ -71,9 +71,9 @@ echo "✓ All labels created"
 echo ""
 
 # ============================================================================
-# 3. PHASE 1 EPICS 생성
+# 3. PHASE 1 EPICS CREATION
 # ============================================================================
-echo "📌 Phase 1 Epics 생성 중..."
+echo "📌 Creating Phase 1 Epics..."
 
 gh issue create -R $REPO \
   --title "Epic: User Management & Authentication" \
@@ -154,11 +154,11 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
 echo "✓ Epic 5: User Dashboard"
 
 echo ""
-echo "✅ GitHub Project 설정 완료!"
+echo "✅ GitHub Project configuration complete!"
 echo ""
-echo "📊 다음 단계:"
-echo "  1. GitHub Project 열기: https://github.com/users/deokhwajeong/projects/2"
-echo "  2. Automation → Workflows에서 4가지 규칙 추가 (웹 UI)"
-echo "  3. 팀원 초대"
-echo "  4. Sprint 계획"
+echo "📊 Next steps:"
+echo "  1. Open GitHub Project: https://github.com/users/deokhwajeong/projects/2"
+echo "  2. Add 4 rules in Automation → Workflows configuration (from web UI)"
+echo "  3. Invite team members"
+echo "  4. Sprint planning"
 echo ""

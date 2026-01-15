@@ -5,7 +5,7 @@ OWNER="deokhwajeong"
 PROJECT_ID="2"
 TOKEN=$(gh auth token)
 
-echo "🏷️  Creating Labels first..."
+echo "🏷️  Creating Labels..."
 
 # Create labels using API
 create_label_api() {

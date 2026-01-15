@@ -96,31 +96,31 @@ def generate_rule_based_recommendations(metrics: Dict[str, Any]) -> List[Dict[st
     if calories > 2000:
         recommendations.append({
             "id": "high_calories",
-            "message": f"오늘 섭취한 칼로리가 {calories}kcal입니다. 다음 식사는 채소나 단백질 위주로 가볍게 드셔 보세요.",
-            "rationale": "칼로리 섭취가 목표치를 초과했습니다.",
+            "message": f"Today's calorie intake is {calories}kcal. Try eating vegetables and protein for your next meal.",
+            "rationale": "Calorie intake exceeds goal.",
             "guardrails": ["non-diagnostic"]
         })
     sleep_hours = metrics.get("sleep_hours", 0.0)
     if sleep_hours < 6:
         recommendations.append({
             "id": "low_sleep",
-            "message": f"지난 밤 수면 시간이 {sleep_hours:.1f}시간이네요. 일찍 잠자리에 들도록 해 보세요.",
-            "rationale": "수면 시간이 부족합니다.",
+            "message": f"Last night's sleep was {sleep_hours:.1f} hours. Try to go to bed earlier.",
+            "rationale": "Sleep duration is insufficient.",
             "guardrails": ["non-diagnostic"]
         })
     steps = metrics.get("steps", 0)
     if steps < 5000:
         recommendations.append({
             "id": "low_activity",
-            "message": f"지금까지 {steps}보 걸었습니다. 10분 정도 산책하며 몸을 풀어보세요!",
-            "rationale": "활동량이 부족합니다.",
+            "message": f"You've walked {steps} steps so far. Take a 10-minute walk to stretch!",
+            "rationale": "Activity level is insufficient.",
             "guardrails": ["non-diagnostic"]
         })
     if not recommendations:
         recommendations.append({
             "id": "good_habits",
-            "message": "오늘도 좋은 습관을 유지하고 계시네요. 계속 건강한 생활을 이어가세요!",
-            "rationale": "모든 지표가 양호합니다.",
+            "message": "You're maintaining good habits today. Keep up the healthy lifestyle!",
+            "rationale": "All metrics are healthy.",
             "guardrails": ["non-diagnostic"]
         })
     return recommendations

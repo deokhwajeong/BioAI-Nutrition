@@ -4,7 +4,7 @@ set -e
 REPO="deokhwajeong/BioAI-Nutrition"
 TOKEN=$(gh auth token)
 
-echo "🚀 GitHub Project 최종 설정 시작..."
+echo "🚀 Starting GitHub Project final configuration..."
 echo ""
 
 # =========================== MILESTONES ===========================

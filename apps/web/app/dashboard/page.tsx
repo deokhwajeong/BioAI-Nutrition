@@ -36,7 +36,7 @@ export default function DashboardPage() {
         const data = (await res.json()) as MetricsResponse;
         setMetrics(data);
       } catch (e: any) {
-        setError(e?.message || '메트릭을 불러오는 중 오류가 발생했습니다.');
+        setError(e?.message || 'Error loading metrics.');
       }
     }
 

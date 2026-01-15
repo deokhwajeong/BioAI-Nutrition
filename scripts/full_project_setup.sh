@@ -4,13 +4,13 @@ REPO="deokhwajeong/BioAI-Nutrition"
 OWNER="deokhwajeong"
 PROJECT_ID="2"
 
-echo "🚀 전체 GitHub Project 자동 설정 시작..."
+echo "🚀 Starting GitHub Project automatic configuration..."
 echo ""
 
 # ============================================================================
-# 1. MILESTONES 생성 (GitHub API)
+# 1. MILESTONES CREATION (GitHub API)
 # ============================================================================
-echo "📅 Milestones 생성 중..."
+echo "📅 Creating Milestones..."
 
 create_milestone() {
     local title=$1
@@ -33,9 +33,9 @@ create_milestone "Q4 2026" "2026-12-31T23:59:59Z" "Enterprise: Compliance & scal
 echo ""
 
 # ============================================================================
-# 2. LABELS 생성 (GitHub API)
+# 2. LABELS CREATION (GitHub API)
 # ============================================================================
-echo "🏷️  Labels 생성 중..."
+echo "🏷️  Creating Labels..."
 
 create_label() {
     local name=$1
@@ -82,13 +82,13 @@ create_label "needs-estimation" "cccccc" "Needs story points"
 create_label "blocked" "d73a49" "Blocked"
 create_label "documentation" "0075ca" "Documentation"
 
-echo "✓ 24개 Labels 생성됨"
+echo "✓ 24 Labels created"
 echo ""
 
 # ============================================================================
-# 3. PHASE 1 EPICS 생성 및 PROJECT에 추가
+# 3. PHASE 1 EPICS CREATION AND PROJECT ADDITION
 # ============================================================================
-echo "📌 Phase 1 Epics 생성 중..."
+echo "📌 Creating Phase 1 Epics..."
 
 create_and_add_epic() {
     local title=$1
@@ -105,9 +105,9 @@ create_and_add_epic() {
     
     if [ -n "$ISSUE" ]; then
         echo "✓ Created: $title (#$ISSUE)"
-        # Project에 추가
+        # Add to Project
         gh project item-add $PROJECT_ID --owner $OWNER --content-id $ISSUE --content-type Issue 2>/dev/null
-        echo "  → Project에 추가됨"
+        echo "  → Added to Project"
     fi
 }
 
@@ -182,9 +182,9 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
 echo ""
 
 # ============================================================================
-# 4. PHASE 2 EPICS 생성
+# 4. PHASE 2 EPICS CREATION
 # ============================================================================
-echo "📌 Phase 2 Epics 생성 중..."
+echo "📌 Creating Phase 2 Epics..."
 
 create_and_add_epic_q2() {
     local title=$1
@@ -202,7 +202,7 @@ create_and_add_epic_q2() {
     if [ -n "$ISSUE" ]; then
         echo "✓ Created: $title (#$ISSUE)"
         gh project item-add $PROJECT_ID --owner $OWNER --content-id $ISSUE --content-type Issue 2>/dev/null
-        echo "  → Project에 추가됨"
+        echo "  → Added to Project"
     fi
 }
 
@@ -261,9 +261,9 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
 echo ""
 
 # ============================================================================
-# 5. PHASE 3 EPICS 생성
+# 5. PHASE 3 EPICS CREATION
 # ============================================================================
-echo "📌 Phase 3 Epics 생성 중..."
+echo "📌 Creating Phase 3 Epicspics..."
 
 create_and_add_epic_q3() {
     local title=$1
@@ -281,7 +281,7 @@ create_and_add_epic_q3() {
     if [ -n "$ISSUE" ]; then
         echo "✓ Created: $title (#$ISSUE)"
         gh project item-add $PROJECT_ID --owner $OWNER --content-id $ISSUE --content-type Issue 2>/dev/null
-        echo "  → Project에 추가됨"
+        echo "  → Added to Project"
     fi
 }
 
@@ -314,9 +314,9 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
 echo ""
 
 # ============================================================================
-# 6. PHASE 4 EPICS 생성
+# 6. PHASE 4 EPICS CREATION
 # ============================================================================
-echo "📌 Phase 4 Epics 생성 중..."
+echo "📌 Creating Phase 4 Epics..."
 
 create_and_add_epic_q4() {
     local title=$1
@@ -334,7 +334,7 @@ create_and_add_epic_q4() {
     if [ -n "$ISSUE" ]; then
         echo "✓ Created: $title (#$ISSUE)"
         gh project item-add $PROJECT_ID --owner $OWNER --content-id $ISSUE --content-type Issue 2>/dev/null
-        echo "  → Project에 추가됨"
+        echo "  → Added to Project"
     fi
 }
 
@@ -365,15 +365,15 @@ See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for details" \
   "epic,phase-4,high,ml"
 
 echo ""
-echo "✅ GitHub Project 전체 설정 완료!"
+echo "✅ GitHub Project configuration complete!"
 echo ""
-echo "📊 생성된 항목:"
-echo "  ✓ Milestones: 4개 (Q1-Q4 2026)"
-echo "  ✓ Labels: 24개"
-echo "  ✓ Epics: 14개 (모두 Project에 추가됨)"
+echo "📊 Created items:"
+echo "  ✓ Milestones: 4 (Q1-Q4 2026)"
+echo "  ✓ Labels: 24"
+echo "  ✓ Epics: 14 (all added to Project)"
 echo ""
-echo "📋 다음 단계:"
-echo "  1. Project 보기: https://github.com/users/$OWNER/projects/$PROJECT_ID"
-echo "  2. Automation 설정 (웹 UI에서)"
-echo "  3. 팀원 초대"
+echo "📋 Next steps:"
+echo "  1. View Project: https://github.com/users/$OWNER/projects/$PROJECT_ID"
+echo "  2. Automation → Workflows configuration (from web UI)"
+echo "  3. Invite team members"
 echo ""

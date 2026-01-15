@@ -4,13 +4,13 @@ REPO="deokhwajeong/BioAI-Nutrition"
 OWNER="deokhwajeong"
 TOKEN=$(gh auth token)
 
-echo "🚀 GitHub Project 완전 자동 설정..."
+echo "🚀 Starting GitHub Project automatic configuration..."
 echo ""
 
 # ============================================================================
-# 1. MILESTONES 확인/생성
+# 1. MILESTONES CHECK/CREATE
 # ============================================================================
-echo "📅 Milestones 확인..."
+echo "📅 Checking Milestones..."
 
 get_milestone_id() {
     local title=$1
@@ -20,7 +20,7 @@ get_milestone_id() {
         | grep -o "\"number\": [0-9]*" | head -1 | grep -o "[0-9]*" || echo ""
 }
 
-# Milestones 목록 조회
+# Get Milestones list
 MILESTONES=$(curl -s -H "Authorization: token $TOKEN" \
     -H "Accept: application/vnd.github+json" \
     https://api.github.com/repos/$OWNER/$REPO/milestones)
@@ -55,16 +55,16 @@ fi
 echo ""
 
 # ============================================================================
-# 2. LABELS 생성
+# 2. LABELS CREATION
 # ============================================================================
-echo "🏷️ Labels 생성 중..."
+echo "🏷️ Creating Labels..."
 
 create_label() {
     local name=$1
     local color=$2
     local description=$3
     
-    # 이미 존재하는지 확인
+    # Check if already exists
     CHECK=$(curl -s -H "Authorization: token $TOKEN" \
         -H "Accept: application/vnd.github+json" \
         https://api.github.com/repos/$OWNER/$REPO/labels/$name)
@@ -114,9 +114,9 @@ echo "✓ All labels created"
 echo ""
 
 # ============================================================================
-# 3. PHASE 1 EPICS 생성
+# 3. PHASE 1 EPICS CREATION
 # ============================================================================
-echo "📌 Phase 1 Epics 생성 중..."
+echo "📌 Creating Phase 1 Epics..."
 
 create_issue() {
     local title=$1
@@ -187,11 +187,11 @@ create_issue "Epic: User Dashboard" \
 "1"
 
 echo ""
-echo "✅ GitHub Project 완전 자동 설정 완료!"
+echo "✅ GitHub Project configuration complete!"
 echo ""
-echo "📊 생성된 항목:"
-echo "  ✓ Milestones: 4개"
-echo "  ✓ Labels: 24개"
-echo "  ✓ Epics: 5개"
+echo "📊 Created items:"
+echo "  ✓ Milestones: 4"
+echo "  ✓ Labels: 24"
+echo "  ✓ Epics: 5"
 echo ""
 echo "🔗 GitHub Project: https://github.com/users/deokhwajeong/projects/2"

@@ -2,9 +2,9 @@
 import subprocess
 import json
 
-print("📡 Project에 Issues 연결 중...")
+print("📡 Connecting Issues to Project...")
 
-# Project V2 ID 찾기
+# Finding Project V2 ID with GraphQL query
 query = """
 {
   user(login: "deokhwajeong") {
@@ -39,9 +39,9 @@ if not project_id:
     print("❌ Project not found")
     exit(1)
 
-# 각 Issue의 정확한 Node ID 조회
+# Get exact Issue Node ID
 for i in range(1, 14):
-    # Issue 정보 조회
+    # Get Issue information
     issue_query = f"""
     {{
       repository(owner: "deokhwajeong", name: "BioAI-Nutrition") {{
@@ -64,7 +64,7 @@ for i in range(1, 14):
         issue_id = issue_data['data']['repository']['issue']['id']
         issue_title = issue_data['data']['repository']['issue']['title']
         
-        # Project에 추가
+        # Add to Project
         mutation = f"""
         mutation {{
           addProjectV2ItemById(input: {{projectId: "{project_id}", contentId: "{issue_id}"}}) {{

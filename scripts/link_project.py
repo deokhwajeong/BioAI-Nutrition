@@ -6,9 +6,9 @@ TOKEN = subprocess.check_output(['gh', 'auth', 'token']).decode().strip()
 OWNER = "deokhwajeong"
 PROJECT_NUM = 2
 
-print("📡 Project에 Issues 연결 중...")
+print("📡 Connecting Issues to Project...")
 
-# GraphQL 쿼리로 Project V2 ID 찾기
+# Finding Project V2 ID with GraphQL query
 query = """
 {
   user(login: "deokhwajeong") {
@@ -42,7 +42,7 @@ if project_id:
     print(f"✓ Project ID found: {project_id}")
     print("")
     
-    # 각 Issue를 Project에 추가
+    # Add each Issue to Project
     for i in range(1, 14):
         mutation = f"""
         mutation {{
