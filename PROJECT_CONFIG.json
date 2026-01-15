@@ -1,0 +1,647 @@
+{
+  "projectName": "Personalized Nutrition Platform Roadmap",
+  "description": "Advanced AI-driven wellness platform with privacy-by-design architecture",
+  "repository": "deokhwajeong/BioAI-Nutrition",
+  "version": "0.1.0",
+  "status": "Active Development",
+  "lastUpdated": "2026-01-15",
+  
+  "projectGoals": [
+    {
+      "quarter": "Q1 2026",
+      "goals": [
+        "MVP launch with core features (meal analysis, basic recommendations)",
+        "User authentication & privacy controls",
+        "Food image analysis with YOLOv8",
+        "Rule-based recommendation engine"
+      ],
+      "status": "In Progress"
+    },
+    {
+      "quarter": "Q2 2026",
+      "goals": [
+        "Advanced ML models (XGBoost personalization)",
+        "Activity & sleep tracking integration",
+        "Data quality & validation pipeline",
+        "Feature engineering with Prefect"
+      ],
+      "status": "Planning"
+    },
+    {
+      "quarter": "Q3 2026",
+      "goals": [
+        "Community features & social sharing",
+        "Third-party integrations (Strava, MyFitnessPal)",
+        "Content platform & education modules",
+        "Recommendation explanation generation"
+      ],
+      "status": "Planning"
+    },
+    {
+      "quarter": "Q4 2026",
+      "goals": [
+        "Enterprise deployment & compliance (GDPR, HIPAA)",
+        "Kubernetes orchestration & scaling",
+        "Analytics & monitoring (PostHog, MLflow, OpenTelemetry)",
+        "B2B partnerships & corporate wellness"
+      ],
+      "status": "Planning"
+    }
+  ],
+
+  "phases": [
+    {
+      "name": "Phase 1: Core MVP",
+      "target": "Q1 2026",
+      "epics": [
+        {
+          "id": "epic_001",
+          "title": "User Management & Authentication",
+          "description": "User registration, API key auth, profile management",
+          "status": "In Progress",
+          "priority": "Critical",
+          "owner": "Backend Team",
+          "dueDate": "2026-02-15",
+          "stories": [
+            {
+              "id": "story_001",
+              "title": "Implement user registration endpoint",
+              "description": "POST /users - Create new user account",
+              "status": "Done",
+              "points": 5
+            },
+            {
+              "id": "story_002",
+              "title": "Add API key authentication",
+              "description": "Validate X-API-Key header on protected endpoints",
+              "status": "In Progress",
+              "points": 3
+            },
+            {
+              "id": "story_003",
+              "title": "Create user profile management API",
+              "description": "GET/PUT /users/{id} endpoints",
+              "status": "Todo",
+              "points": 5
+            }
+          ]
+        },
+        {
+          "id": "epic_002",
+          "title": "Meal Data Ingestion",
+          "description": "Manual meal entry, nutrition parsing, event storage",
+          "status": "In Progress",
+          "priority": "Critical",
+          "owner": "Backend Team",
+          "dueDate": "2026-02-28",
+          "stories": [
+            {
+              "id": "story_004",
+              "title": "Build meal event ingestion endpoint",
+              "description": "POST /events with meal data validation",
+              "status": "Done",
+              "points": 8
+            },
+            {
+              "id": "story_005",
+              "title": "Add nutrition fact parsing",
+              "description": "Extract macros/micros from event data",
+              "status": "In Progress",
+              "points": 5
+            },
+            {
+              "id": "story_006",
+              "title": "Integrate FDA FoodData Central",
+              "description": "Lookup nutrition facts from food database",
+              "status": "Todo",
+              "points": 8
+            }
+          ]
+        },
+        {
+          "id": "epic_003",
+          "title": "Food Image Analysis MVP",
+          "description": "YOLOv8-based meal detection from photos",
+          "status": "Todo",
+          "priority": "High",
+          "owner": "ML Team",
+          "dueDate": "2026-03-15",
+          "stories": [
+            {
+              "id": "story_007",
+              "title": "Implement YOLOv8 inference service",
+              "description": "Load pretrained model, run meal detection",
+              "status": "Todo",
+              "points": 8
+            },
+            {
+              "id": "story_008",
+              "title": "Build image upload endpoint",
+              "description": "POST /image-analyzer/analyze with async processing",
+              "status": "Todo",
+              "points": 5
+            },
+            {
+              "id": "story_009",
+              "title": "Add serving size estimation",
+              "description": "Estimate portion size from image dimensions",
+              "status": "Todo",
+              "points": 8
+            }
+          ]
+        },
+        {
+          "id": "epic_004",
+          "title": "Rule-Based Recommendations",
+          "description": "YAML-based recommendation engine with privacy controls",
+          "status": "In Progress",
+          "priority": "Critical",
+          "owner": "Data Team",
+          "dueDate": "2026-02-28",
+          "stories": [
+            {
+              "id": "story_010",
+              "title": "Create YAML rule parser",
+              "description": "Load and parse recommendation rules",
+              "status": "Done",
+              "points": 5
+            },
+            {
+              "id": "story_011",
+              "title": "Implement rule evaluation engine",
+              "description": "Evaluate conditions against user features",
+              "status": "In Progress",
+              "points": 8
+            },
+            {
+              "id": "story_012",
+              "title": "Build recommendation API endpoint",
+              "description": "GET /recommendations with filtering & ranking",
+              "status": "Todo",
+              "points": 5
+            }
+          ]
+        },
+        {
+          "id": "epic_005",
+          "title": "User Dashboard",
+          "description": "Frontend UI for nutrition tracking and recommendations",
+          "status": "Todo",
+          "priority": "High",
+          "owner": "Frontend Team",
+          "dueDate": "2026-03-31",
+          "stories": [
+            {
+              "id": "story_013",
+              "title": "Design dashboard layout",
+              "description": "Figma mockups for main dashboard",
+              "status": "Todo",
+              "points": 5
+            },
+            {
+              "id": "story_014",
+              "title": "Build nutrition summary component",
+              "description": "Display daily macros, progress toward targets",
+              "status": "Todo",
+              "points": 8
+            },
+            {
+              "id": "story_015",
+              "title": "Implement trend visualization",
+              "description": "Charts for 7-day and 30-day trends (Recharts)",
+              "status": "Todo",
+              "points": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 2: Advanced ML & Analytics",
+      "target": "Q2 2026",
+      "epics": [
+        {
+          "id": "epic_101",
+          "title": "Personalized ML Models",
+          "description": "XGBoost models for nutrient prediction, user clustering",
+          "status": "Planning",
+          "priority": "High",
+          "owner": "ML Team",
+          "dueDate": "2026-05-31",
+          "stories": [
+            {
+              "id": "story_101",
+              "title": "Prepare training dataset",
+              "description": "Collect & clean 10k+ user meal records",
+              "status": "Todo",
+              "points": 13
+            },
+            {
+              "id": "story_102",
+              "title": "Train XGBoost nutrient predictor",
+              "description": "Predict daily calorie/macro intake patterns",
+              "status": "Todo",
+              "points": 13
+            },
+            {
+              "id": "story_103",
+              "title": "Implement user clustering model",
+              "description": "K-means clustering for dietary pattern segmentation",
+              "status": "Todo",
+              "points": 8
+            }
+          ]
+        },
+        {
+          "id": "epic_102",
+          "title": "Activity & Sleep Tracking",
+          "description": "Ingest activity and sleep data, compute correlations",
+          "status": "Planning",
+          "priority": "High",
+          "owner": "Backend Team",
+          "dueDate": "2026-05-15",
+          "stories": [
+            {
+              "id": "story_104",
+              "title": "Add activity event schema",
+              "description": "Support activity_type, duration, calories_burned",
+              "status": "Todo",
+              "points": 5
+            },
+            {
+              "id": "story_105",
+              "title": "Add sleep event schema",
+              "description": "Support sleep_hours, sleep_quality (1-5)",
+              "status": "Todo",
+              "points": 3
+            },
+            {
+              "id": "story_106",
+              "title": "Integrate Fitbit API",
+              "description": "OAuth2 integration with Fitbit for activity data",
+              "status": "Todo",
+              "points": 13
+            }
+          ]
+        },
+        {
+          "id": "epic_103",
+          "title": "Data Quality & Validation",
+          "description": "Great Expectations pipelines, anomaly detection",
+          "status": "Planning",
+          "priority": "Medium",
+          "owner": "Data Eng Team",
+          "dueDate": "2026-06-15",
+          "stories": [
+            {
+              "id": "story_107",
+              "title": "Create data quality expectations",
+              "description": "Define GX expectations for meal events",
+              "status": "Todo",
+              "points": 8
+            },
+            {
+              "id": "story_108",
+              "title": "Implement anomaly detection",
+              "description": "Flag outliers (unrealistic macro values, sleep duration)",
+              "status": "Todo",
+              "points": 13
+            },
+            {
+              "id": "story_109",
+              "title": "Build data quality dashboard",
+              "description": "Monitor validation results, data drift metrics",
+              "status": "Todo",
+              "points": 8
+            }
+          ]
+        },
+        {
+          "id": "epic_104",
+          "title": "Feature Engineering Pipeline",
+          "description": "Prefect workflows for daily feature computation",
+          "status": "Planning",
+          "priority": "High",
+          "owner": "Data Eng + ML Team",
+          "dueDate": "2026-06-30",
+          "stories": [
+            {
+              "id": "story_110",
+              "title": "Design feature computation architecture",
+              "description": "Prefect flows, task definitions, scheduling",
+              "status": "Todo",
+              "points": 13
+            },
+            {
+              "id": "story_111",
+              "title": "Implement rolling window features",
+              "description": "7-day, 30-day averages for calories, macros",
+              "status": "Todo",
+              "points": 8
+            },
+            {
+              "id": "story_112",
+              "title": "Build feature store",
+              "description": "Store computed features for ML models",
+              "status": "Todo",
+              "points": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 3: Community & Ecosystem",
+      "target": "Q3 2026",
+      "epics": [
+        {
+          "id": "epic_201",
+          "title": "Social Features",
+          "description": "Meal sharing, nutrition challenges, forums",
+          "status": "Planning",
+          "priority": "Medium",
+          "owner": "Frontend + Backend Team",
+          "dueDate": "2026-08-31"
+        },
+        {
+          "id": "epic_202",
+          "title": "Third-Party Integrations",
+          "description": "Strava, MyFitnessPal, Telegram/Slack notifications",
+          "status": "Planning",
+          "priority": "Medium",
+          "owner": "Integration Team",
+          "dueDate": "2026-09-15"
+        },
+        {
+          "id": "epic_203",
+          "title": "Content & Education",
+          "description": "Nutrition modules, recipe recommendations, video tutorials",
+          "status": "Planning",
+          "priority": "Low",
+          "owner": "Content + Frontend Team",
+          "dueDate": "2026-09-30"
+        }
+      ]
+    },
+    {
+      "name": "Phase 4: Enterprise & Compliance",
+      "target": "Q4 2026",
+      "epics": [
+        {
+          "id": "epic_301",
+          "title": "Compliance & Security",
+          "description": "GDPR, HIPAA, SOC 2, security audit",
+          "status": "Planning",
+          "priority": "Critical",
+          "owner": "Security & Compliance Team",
+          "dueDate": "2026-12-31"
+        },
+        {
+          "id": "epic_302",
+          "title": "Deployment & Scaling",
+          "description": "Kubernetes, multi-region, high-availability",
+          "status": "Planning",
+          "priority": "Critical",
+          "owner": "DevOps Team",
+          "dueDate": "2026-11-30"
+        },
+        {
+          "id": "epic_303",
+          "title": "Analytics & Monitoring",
+          "description": "PostHog, MLflow, OpenTelemetry, Grafana dashboards",
+          "status": "Planning",
+          "priority": "High",
+          "owner": "Data + DevOps Team",
+          "dueDate": "2026-12-15"
+        },
+        {
+          "id": "epic_304",
+          "title": "B2B & Partnership Programs",
+          "description": "Corporate wellness, health coach APIs, affiliate program",
+          "status": "Planning",
+          "priority": "Medium",
+          "owner": "Business + Backend Team",
+          "dueDate": "2026-12-31"
+        }
+      ]
+    }
+  ],
+
+  "keyMetrics": {
+    "product": [
+      {
+        "metric": "User Registrations",
+        "target": "1,000 by Q2 2026",
+        "current": 0,
+        "unit": "users"
+      },
+      {
+        "metric": "Daily Active Users (DAU)",
+        "target": "200+ by Q2 2026",
+        "current": 0,
+        "unit": "users/day"
+      },
+      {
+        "metric": "Recommendation Click-Through Rate",
+        "target": ">30%",
+        "current": "TBD",
+        "unit": "%"
+      },
+      {
+        "metric": "Data Deletion Requests",
+        "target": "<5% users/month",
+        "current": "TBD",
+        "unit": "%"
+      }
+    ],
+    "technical": [
+      {
+        "metric": "API Latency (p95)",
+        "target": "<200ms",
+        "current": "120ms avg",
+        "unit": "ms"
+      },
+      {
+        "metric": "Image Analysis Accuracy",
+        "target": ">85%",
+        "current": "In Training",
+        "unit": "%"
+      },
+      {
+        "metric": "Recommendation Quality Score",
+        "target": ">4.0/5.0",
+        "current": "TBD",
+        "unit": "/5"
+      },
+      {
+        "metric": "Data Completeness",
+        "target": ">95%",
+        "current": "98%",
+        "unit": "%"
+      }
+    ]
+  },
+
+  "techStack": {
+    "backend": {
+      "framework": "FastAPI",
+      "language": "Python 3.11",
+      "orm": "SQLAlchemy",
+      "database": "PostgreSQL",
+      "validation": "Pydantic"
+    },
+    "frontend": {
+      "framework": "Next.js 16",
+      "ui": "React 19",
+      "language": "TypeScript",
+      "styling": "TailwindCSS",
+      "visualization": "Recharts, D3.js"
+    },
+    "ml_data": {
+      "ml": "Scikit-learn, XGBoost, PyTorch",
+      "vision": "YOLOv8, OpenCV",
+      "data": "Pandas, Polars",
+      "validation": "Great Expectations",
+      "orchestration": "Prefect"
+    },
+    "infrastructure": {
+      "containerization": "Docker",
+      "orchestration": "Kubernetes",
+      "ci_cd": "GitHub Actions",
+      "monitoring": "PostHog, MLflow, OpenTelemetry",
+      "hosting": "Fly.io (planned), AWS/GCP"
+    }
+  },
+
+  "privacy_ethics": {
+    "principles": [
+      {
+        "principle": "Minimize Data Collection",
+        "implementation": "Only collect necessary health/nutrition data; no diagnosis"
+      },
+      {
+        "principle": "Pseudonymization",
+        "implementation": "User IDs hashed; dietary data separated from PII"
+      },
+      {
+        "principle": "Transparent Explanations",
+        "implementation": "Every recommendation includes rationale & data sources"
+      },
+      {
+        "principle": "User Control",
+        "implementation": "Delete data anytime; opt-in for analytics"
+      },
+      {
+        "principle": "Audit Trail",
+        "implementation": "All data transformations logged (PIIFilter)"
+      }
+    ],
+    "compliance_roadmap": [
+      {
+        "regulation": "GDPR",
+        "target": "Q4 2026",
+        "status": "In Planning"
+      },
+      {
+        "regulation": "CCPA",
+        "target": "Q4 2026",
+        "status": "In Planning"
+      },
+      {
+        "regulation": "LGPD",
+        "target": "Q4 2026",
+        "status": "In Planning"
+      },
+      {
+        "regulation": "PIPEDA",
+        "target": "Q4 2026",
+        "status": "In Planning"
+      }
+    ]
+  },
+
+  "teamStructure": {
+    "teams": [
+      {
+        "name": "Backend Team",
+        "focus": "API development, database design, business logic",
+        "lead": "TBD",
+        "members": []
+      },
+      {
+        "name": "Frontend Team",
+        "focus": "UI/UX, React components, user experience",
+        "lead": "TBD",
+        "members": []
+      },
+      {
+        "name": "ML Team",
+        "focus": "Model training, computer vision, feature engineering",
+        "lead": "TBD",
+        "members": []
+      },
+      {
+        "name": "Data Eng Team",
+        "focus": "Data pipeline, validation, feature store",
+        "lead": "TBD",
+        "members": []
+      },
+      {
+        "name": "DevOps Team",
+        "focus": "Infrastructure, deployment, monitoring",
+        "lead": "TBD",
+        "members": []
+      },
+      {
+        "name": "Security & Compliance",
+        "focus": "Data privacy, security audit, compliance",
+        "lead": "TBD",
+        "members": []
+      }
+    ]
+  },
+
+  "resources": {
+    "documentation": [
+      {
+        "title": "Project Roadmap",
+        "path": "PROJECT_ROADMAP.md",
+        "description": "High-level strategy and milestones"
+      },
+      {
+        "title": "Advanced Implementation Guide",
+        "path": "ADVANCED_IMPLEMENTATION_GUIDE.md",
+        "description": "Deep technical details and architecture"
+      },
+      {
+        "title": "Database Setup Guide",
+        "path": "DATABASE_SETUP.md",
+        "description": "Schema, migrations, initialization"
+      },
+      {
+        "title": "API Documentation",
+        "path": "http://localhost:8000/docs",
+        "description": "Interactive Swagger/OpenAPI (when running)"
+      },
+      {
+        "title": "README",
+        "path": "README.md",
+        "description": "Project overview and quick start"
+      }
+    ],
+    "external_links": [
+      {
+        "title": "GitHub Repository",
+        "url": "https://github.com/deokhwajeong/BioAI-Nutrition"
+      },
+      {
+        "title": "GitHub Issues",
+        "url": "https://github.com/deokhwajeong/BioAI-Nutrition/issues"
+      },
+      {
+        "title": "GitHub Discussions",
+        "url": "https://github.com/deokhwajeong/BioAI-Nutrition/discussions"
+      }
+    ]
+  }
+}
