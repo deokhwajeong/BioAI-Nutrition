@@ -341,3 +341,4 @@ class HealthGraphEmbedding:
         return aggregated
 
 # Updated: 2022-12-29
+# TODO: improve error handling
