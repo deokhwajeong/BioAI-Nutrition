@@ -229,6 +229,7 @@ class ActivityAdapter(BiomarkerSource):
         weight_kg: float,
 # Updated: 2022-04-18
         height_cm: float,
+# TODO: optimize this section
         age: int,
         sex: str,
         activity_readings: List[BiomarkerReading],
