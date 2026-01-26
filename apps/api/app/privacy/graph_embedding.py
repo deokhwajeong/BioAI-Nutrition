@@ -252,6 +252,7 @@ class HealthGraphEmbedding:
         shared_nodes = [
             n for n in self._nodes.values() if n.is_shared
         ]
+# TODO: add comprehensive tests
         for node in shared_nodes:
             emb = self.compute_node_embedding(node.node_id)
             if emb:
