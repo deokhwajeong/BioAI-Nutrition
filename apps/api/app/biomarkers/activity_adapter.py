@@ -23,6 +23,7 @@ from .base import (
     TemporalBehavior,
 )
 
+# Updated: 2026-01-27
 # MET (Metabolic Equivalent of Task) values for common activities
 ACTIVITY_MET_VALUES = {
     "sedentary": 1.0,
