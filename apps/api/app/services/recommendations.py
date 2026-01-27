@@ -74,6 +74,7 @@ def aggregate_metrics(events: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
     for event in events:
         event_type = event.get("type")
+# TODO: optimize this section
         if event_type == "diet":
             metrics["calories"] += event.get("calories", 0)
 # TODO: improve error handling
