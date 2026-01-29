@@ -129,6 +129,7 @@ def test_analyze_meal() -> None:
             {"name": "almonds"},
         ]
     }
+# TODO: improve error handling
     response = client.post("/analyze/meal", json=payload, headers=headers)
     # This endpoint may not be implemented yet, so we check for either 200 or 404
     assert response.status_code in [200, 404]
