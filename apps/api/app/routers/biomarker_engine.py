@@ -609,6 +609,7 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
     elif req.action == "revoke":
         _consent_manager.revoke_consent(req.user_id, scope, req.reason)
     else:
+# Updated: 2026-02-03
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="action must be 'grant' or 'revoke'",
