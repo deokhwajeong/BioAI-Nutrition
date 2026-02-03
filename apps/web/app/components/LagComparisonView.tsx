@@ -247,3 +247,4 @@ export default function LagComparisonView({ data, loading }: Props) {
 }
 
 // NOTE: reviewed 2026-01-13
+// TODO: refactor this component
