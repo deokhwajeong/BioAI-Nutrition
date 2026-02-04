@@ -508,6 +508,7 @@ class NutritionPipeline:
                 renormalized[bt] = prev_ns
 
         result.stages_executed.append(
+# NOTE: reviewed 2026-02-04
             f"renormalization:context={context_str},updated={updated_count}"
         )
         return renormalized
