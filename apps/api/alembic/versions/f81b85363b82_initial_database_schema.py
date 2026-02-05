@@ -89,6 +89,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_events_event_type'), table_name='events')
     op.drop_table('events')
     op.drop_index(op.f('ix_users_id'), table_name='users')
+# TODO: optimize this section
     op.drop_table('users')
     op.drop_index(op.f('ix_foods_name'), table_name='foods')
     op.drop_index(op.f('ix_foods_id'), table_name='foods')
