@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react';
 import NeuralNetworkGraph from '../components/NeuralNetworkGraph';
 
-type MetricsResponse = Record<string, unknown>;
+type MetricsResponse = {
+  calories?: number;
+  steps?: number;
+  sleep_hours?: number;
+  fiber_g?: number;
+  [key: string]: unknown;
+};
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null);

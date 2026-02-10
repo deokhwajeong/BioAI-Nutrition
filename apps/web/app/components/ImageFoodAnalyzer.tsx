@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { analyzeFoodImage } from "../lib/api";
-import type { FoodNutrition } from "../lib/types";
+import { analyzeFoodImage } from "../../lib/api";
+import type { FoodNutrition } from "../../lib/types";
 
 export default function ImageFoodAnalyzer() {
   const [image, setImage] = useState<string | null>(null);
@@ -175,7 +175,7 @@ export default function ImageFoodAnalyzer() {
                   {item.name}
                 </h4>
                 <div className="space-y-3 text-sm">
-                  {item.calories !== null && (
+                  {item.calories != null && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Calories</span>
                       <span className="font-semibold text-gray-900 dark:text-white text-lg">
@@ -183,7 +183,7 @@ export default function ImageFoodAnalyzer() {
                       </span>
                     </div>
                   )}
-                  {item.protein_g !== null && (
+                  {item.protein_g != null && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Protein</span>
                       <span className="font-semibold text-gray-900 dark:text-white">
@@ -191,7 +191,7 @@ export default function ImageFoodAnalyzer() {
                       </span>
                     </div>
                   )}
-                  {item.carbs_g !== null && (
+                  {item.carbs_g != null && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Carbs</span>
                       <span className="font-semibold text-gray-900 dark:text-white">
@@ -199,7 +199,7 @@ export default function ImageFoodAnalyzer() {
                       </span>
                     </div>
                   )}
-                  {item.fat_g !== null && (
+                  {item.fat_g != null && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">Fat</span>
                       <span className="font-semibold text-gray-900 dark:text-white">

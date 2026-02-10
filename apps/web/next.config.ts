@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
+const BACKEND = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8000";
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      { source: "/engine/:path*", destination: `${BACKEND}/engine/:path*` },
+      { source: "/synthea/:path*", destination: `${BACKEND}/synthea/:path*` },
+      { source: "/analyze-meal",  destination: `${BACKEND}/analyze-meal` },
+      { source: "/image-analyze/:path*", destination: `${BACKEND}/image-analyze/:path*` },
+      { source: "/recommendations", destination: `${BACKEND}/recommendations` },
+      { source: "/health",        destination: `${BACKEND}/health` },
+    ];
+  },
   async headers() {
     return [
       {
@@ -14,7 +26,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self'",
-              "connect-src 'self' http://localhost:8000 https://reimagined-robot-69w576vxjjp4c5w7x-8000.app.github.dev",
+              "connect-src 'self'",
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",

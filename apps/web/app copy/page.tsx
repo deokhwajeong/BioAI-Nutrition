@@ -5,14 +5,14 @@ import { postRecommendations, analyzeMeal } from "../lib/api";
 import type { Recommendation, FoodNutrition } from "../lib/types";
 
 export default function HomePage() {
-  // 기존 fiber recommendation 상태
+  // Previous fiber recommendation state
   const [fiber, setFiber] = useState("10");
   const [fiberTarget, setFiberTarget] = useState("25");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState<Recommendation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 새 meal analyzer 상태
+  // New meal analyzer state
   const [mealText, setMealText] = useState("");
   const [mealLoading, setMealLoading] = useState(false);
   const [mealResults, setMealResults] = useState<FoodNutrition[] | null>(null);
@@ -74,7 +74,7 @@ export default function HomePage() {
         Simple prototypes for rule based recommendations and meal analysis.
       </p>
 
-      {/* 1. Fiber recommendation 폼 */}
+      {/* 1. Fiber recommendation form */}
       <section style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
           Fiber recommendation
@@ -193,7 +193,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 2. Meal analyzer 섹션 */}
+      {/* 2. Meal analyzer section */}
       <section>
         <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
           Meal analyzer

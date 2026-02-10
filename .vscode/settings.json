@@ -1,4 +1,5 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "idl.view.showWelcomePage": false,
+    "idl.debug.showIntro": false,
+    "idl.path": "/usr/local/bin/idl" 
 }

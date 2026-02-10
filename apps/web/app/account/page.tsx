@@ -68,7 +68,7 @@ export default function AccountPage() {
       <section className="pt-6 border-t space-y-2 max-w-md">
         <h2 className="text-lg font-semibold">Privacy Actions (MVP)</h2>
         <p className="text-sm text-gray-600">
-          TODO: 데이터 export / delete 요청 UI를 여기에 붙일 수 있어요.
+          TODO: You can add the data export / delete request UI here.
         </p>
         <div className="flex gap-2">
           <button
