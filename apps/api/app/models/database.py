@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Text
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
 from datetime import datetime
@@ -87,3 +87,113 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+# ═════════════════════════════════════════════════════════════════
+#  Patent-Core: Biomarker Engine Models
+# ═════════════════════════════════════════════════════════════════
+
+
+class BiomarkerReading(Base):
+    """Stores raw biomarker readings from heterogeneous sources.
+
+    Patent reference: data ingestion layer for the heterogeneous
+    biomarker temporal synchronization architecture.
+    """
+    __tablename__ = "biomarker_readings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    source_id = Column(String, nullable=False, index=True)
+    user_id = Column(String, nullable=False, index=True)
+    biomarker_type = Column(String, nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True)
+    value = Column(Float, nullable=False)
+    unit = Column(String, default="")
+    confidence = Column(Float, default=1.0)
+    raw_hash = Column(String, default="")
+    metadata_json = Column(Text, default="{}")  # JSON string
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),
+    )
+
+
+class PersonalBaseline(Base):
+    """Stores learned personal baselines per user × biomarker.
+
+    Patent reference: physiological-aware normalization layer with
+    dual-timescale EWMA and circadian profile learning.
+    """
+    __tablename__ = "personal_baselines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=False, index=True)
+    biomarker_type = Column(String, nullable=False)
+    short_term_mean = Column(Float, default=0.0)
+    long_term_mean = Column(Float, default=0.0)
+    variance = Column(Float, default=0.0)
+    sample_count = Column(Integer, default=0)
+    hourly_means_json = Column(Text, default="{}")
+    hourly_counts_json = Column(Text, default="{}")
+    last_updated = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_baseline_user_type", "user_id", "biomarker_type", unique=True),
+    )
+
+
+class GeneticProfile(Base):
+    """Stores genetic variant data for nutrigenomic personalization.
+
+    Patent reference: genetic modifier computation for
+    dose-dependent nutrient demand adjustment.
+    """
+    __tablename__ = "genetic_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=False, unique=True, index=True)
+    genotypes_json = Column(Text, default="{}")  # {rsID: genotype}
+    computed_modifiers_json = Column(Text, default="{}")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ConsentAuditLog(Base):
+    """Immutable audit trail for consent grant/revocation events.
+
+    Patent reference: dynamic consent management system with
+    real-time revocation and cryptographic audit trail.
+    """
+    __tablename__ = "consent_audit_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=False, index=True)
+    scope = Column(String, nullable=False)
+    action = Column(String, nullable=False)  # granted / revoked
+    reason = Column(String, default="")
+    ip_hash = Column(String, default="")
+    consent_version = Column(String, default="1.0")
+    expires_at = Column(DateTime, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class NutrientBudgetSnapshot(Base):
+    """Snapshots of calculated nutrient budgets for audit and ML training.
+
+    Patent reference: real-time nutrient demand calculation output,
+    preserving the full modification chain for reproducibility.
+    """
+    __tablename__ = "nutrient_budget_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False)
+    targets_json = Column(Text, default="{}")
+    metabolic_state = Column(String, default="")
+    active_phases_json = Column(Text, default="[]")
+    modifications_json = Column(Text, default="[]")
+    confidence = Column(Float, default=0.0)
+    frame_completeness = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)

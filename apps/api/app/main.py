@@ -19,7 +19,7 @@ from pydantic_settings import BaseSettings
 from typing import Any
 
 from .routes import ingest, users
-from .routers import events, recommendations, image_analyzer
+from .routers import events, recommendations, image_analyzer, biomarker_engine, meal_router, synthea_router
 import logging
 
 from .services.privacy import PIIFilter
@@ -117,6 +117,27 @@ app.include_router(
 app.include_router(
     image_analyzer.router,
     tags=["image-analyze"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# meal analysis router
+app.include_router(
+    meal_router.router,
+    tags=["meal-analyze"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# Biomarker synchronization engine (patent-core pipeline)
+app.include_router(
+    biomarker_engine.router,
+    tags=["biomarker-engine"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# Synthea FHIR data loader
+app.include_router(
+    synthea_router.router,
+    tags=["synthea"],
     dependencies=[Depends(verify_api_key)],
 )
 

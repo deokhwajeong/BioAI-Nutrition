@@ -1,0 +1,80 @@
+======================================================================
+BioAI Nutrition — Lag-Time Synchronization Validation Report
+======================================================================
+
+Date: 2026-02-10 02:16:21
+User Profile: Synthetic_Patient_001
+  Genotype: TCF7L2 TT
+  γ_genetic: 1.25
+  Fasting Glucose: 106 mg/dL
+  Insulin Sensitivity: 0.5
+  Total Meals: 11
+  Total Glucose Readings: 889
+  Data Duration: 3 days
+
+----------------------------------------------------------------------
+CORRELATION ANALYSIS (Meal Carbs → Glucose Response)
+----------------------------------------------------------------------
+
+  No shift (raw):         r = 0.1478
+  Static +30 min:         r = 0.5910
+  Static +60 min:         r = 0.9001
+  Static +90 min:         r = 0.7552
+  Dynamic BioAI:          r = 0.9376  ★ BEST
+
+  Improvement (Raw → Dynamic):     +534.5%
+  Improvement (Best Static → Dyn): +4.2%
+
+----------------------------------------------------------------------
+PEAK TIMING ACCURACY
+----------------------------------------------------------------------
+
+  Static 60min MAE:       17.3 min
+  Dynamic BioAI MAE:      3.0 min
+  Reduction:              83%
+
+----------------------------------------------------------------------
+PER-MEAL DYNAMIC LAG COMPUTATION
+----------------------------------------------------------------------
+
+  Meal                          Time      γ      φ   Lag(min)
+  ------------------------------------------------------------
+  Day1 Breakfast               07:30   1.25  1.139       85.4
+  Day1 Lunch                   12:30   1.25  1.091       81.8
+  Day1 Dinner                  18:30   1.25  0.881       66.1
+  Day1 Late Snack              22:00   1.25  0.855       64.1
+  Day2 Breakfast               08:00   1.25  1.145       85.9
+  Day2 Lunch                   13:00   1.25  1.075       80.6
+  Day2 Dinner                  19:00   1.25  0.870       65.3
+  Day3 Breakfast               07:30   1.25  1.139       85.4
+  Day3 Lunch                   12:30   1.25  1.091       81.8
+  Day3 Dinner                  19:00   1.25  0.870       65.3
+  Day3 Late Snack              22:00   1.25  0.855       64.1
+
+----------------------------------------------------------------------
+KEY FORMULA
+----------------------------------------------------------------------
+
+  t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)
+
+  Where:
+    Δt_base(glucose)  = 60.0 min
+    γ_genetic(TCF7L2 TT) = 1.25
+    φ_circadian       = 1.145 (8AM) to 0.961 (2AM)
+
+----------------------------------------------------------------------
+CONCLUSION
+----------------------------------------------------------------------
+
+  Dynamic lag compensation, which adapts to both genotype and circadian
+  rhythm, significantly outperforms any fixed time-shift approach.
+  This validates the core invention of BioAI Nutrition's patent-pending
+  Physiological Lag Model.
+
+======================================================================
+  Output files:
+    - /workspaces/BioAI-Nutrition/output/lag_sync_before_after.png
+    - /workspaces/BioAI-Nutrition/output/lag_sync_correlation.png
+    - /workspaces/BioAI-Nutrition/output/lag_sync_dynamic_vs_static.png
+    - /workspaces/BioAI-Nutrition/output/lag_sync_report.txt
+======================================================================
