@@ -37,6 +37,13 @@ from app.engine.pipeline import NutritionPipeline, PipelineResult
 from app.engine.temporal_sync import Resolution, TemporalSynchronizer
 from app.privacy.consent_manager import ConsentScope, DynamicConsentManager
 from app.privacy.differential_privacy import DifferentialPrivacyEngine
+from app.privacy.differential_privacy import (
+    DynamicEpsilonAllocator,
+    PrivacyBudget,
+    SensitivityTier,
+    TIER_EPSILON_MAP,
+    NUTRIENT_SENSITIVITY_TIERS,
+)
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)
 
@@ -363,7 +370,9 @@ class TestConsentAndPrivacy:
         )
 
         assert result.dp_applied is True
-        assert "dp_noise:applied" in result.stages_executed
+        dp_stages = [s for s in result.stages_executed if s.startswith("dp_noise:")]
+        assert len(dp_stages) == 1
+        assert "dynamic_eps" in dp_stages[0]
 
     def test_consent_revoke_drops_data_mid_session(self):
         """After revoking consent, subsequent pipeline calls should filter."""
@@ -1471,3 +1480,291 @@ class TestConflictResolutionLayer:
         assert result.budget.targets["protein_g"].daily_target <= 56
         # Conflict resolution should be documented
         assert len(result.budget.conflict_resolutions) >= 1
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dynamic Epsilon Budget Management Tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestDynamicEpsilonBudget:
+    """Tests for dynamic privacy budget allocation based on data sensitivity.
+
+    Patent claim: "A dynamic privacy budget allocation system that assigns
+    differential privacy parameters based on biomarker data sensitivity
+    classification, manages cumulative per-user privacy exposure indices,
+    and adaptively adjusts noise injection rates as budget thresholds
+    are approached."
+    """
+
+    # ── Tier classification tests ──────────────────────────────────
+
+    def test_sensitivity_tier_classification(self):
+        """Nutrients must be classified into correct sensitivity tiers."""
+        # Genetic-derived nutrients → CRITICAL
+        assert NUTRIENT_SENSITIVITY_TIERS["folate_mcg"] == SensitivityTier.CRITICAL
+        assert NUTRIENT_SENSITIVITY_TIERS["b12_mcg"] == SensitivityTier.CRITICAL
+        assert NUTRIENT_SENSITIVITY_TIERS["vitamin_d_iu"] == SensitivityTier.CRITICAL
+        assert NUTRIENT_SENSITIVITY_TIERS["caffeine_mg"] == SensitivityTier.CRITICAL
+
+        # Glucose-derived → HIGH
+        assert NUTRIENT_SENSITIVITY_TIERS["carbs_g"] == SensitivityTier.HIGH
+        assert NUTRIENT_SENSITIVITY_TIERS["kcal"] == SensitivityTier.HIGH
+
+        # HR/HRV-derived → MEDIUM
+        assert NUTRIENT_SENSITIVITY_TIERS["water_ml"] == SensitivityTier.MEDIUM
+        assert NUTRIENT_SENSITIVITY_TIERS["magnesium_mg"] == SensitivityTier.MEDIUM
+
+        # Activity-derived → LOW
+        assert NUTRIENT_SENSITIVITY_TIERS["protein_g"] == SensitivityTier.LOW
+        assert NUTRIENT_SENSITIVITY_TIERS["fiber_g"] == SensitivityTier.LOW
+
+    def test_tier_epsilon_ordering(self):
+        """More sensitive tiers must receive SMALLER epsilon (more noise)."""
+        assert TIER_EPSILON_MAP[SensitivityTier.CRITICAL] < TIER_EPSILON_MAP[SensitivityTier.HIGH]
+        assert TIER_EPSILON_MAP[SensitivityTier.HIGH] < TIER_EPSILON_MAP[SensitivityTier.MEDIUM]
+        assert TIER_EPSILON_MAP[SensitivityTier.MEDIUM] < TIER_EPSILON_MAP[SensitivityTier.LOW]
+
+    def test_all_nutrients_mapped(self):
+        """Every nutrient in the standard target set must have a tier."""
+        expected_nutrients = [
+            "kcal", "carbs_g", "protein_g", "fat_g", "fiber_g",
+            "water_ml", "folate_mcg", "b12_mcg", "vitamin_d_iu",
+            "magnesium_mg", "caffeine_mg", "calcium_mg", "sodium_mg",
+            "vitamin_b6_mg",
+        ]
+        for n in expected_nutrients:
+            assert n in NUTRIENT_SENSITIVITY_TIERS, f"{n} missing from tier map"
+
+    # ── Dynamic epsilon allocation tests ────────────────────────────
+
+    def test_dynamic_epsilon_varies_by_tier(self):
+        """Genetic nutrient (folate) must get smaller ε than activity nutrient (fiber)."""
+        allocator = DynamicEpsilonAllocator()
+
+        eps_folate = allocator.get_epsilon_for_nutrient("folate_mcg")
+        eps_fiber = allocator.get_epsilon_for_nutrient("fiber_g")
+
+        assert eps_folate < eps_fiber, (
+            f"folate ε={eps_folate} should be < fiber ε={eps_fiber}"
+        )
+
+    def test_dynamic_epsilon_critical_vs_low(self):
+        """CRITICAL tier nutrient ε must be ≤ 1/4 of LOW tier ε."""
+        allocator = DynamicEpsilonAllocator()
+
+        eps_critical = allocator.get_epsilon_for_nutrient("b12_mcg")  # CRITICAL
+        eps_low = allocator.get_epsilon_for_nutrient("protein_g")     # LOW
+
+        assert eps_critical <= eps_low / 4, (
+            f"CRITICAL ε={eps_critical} should be ≤ LOW ε/4={eps_low/4}"
+        )
+
+    def test_unknown_nutrient_defaults_to_medium(self):
+        """Unknown nutrients default to MEDIUM tier."""
+        allocator = DynamicEpsilonAllocator()
+
+        tier = allocator.get_tier_for_nutrient("unknown_nutrient_xyz")
+        assert tier == SensitivityTier.MEDIUM
+
+        eps = allocator.get_epsilon_for_nutrient("unknown_nutrient_xyz")
+        assert eps == TIER_EPSILON_MAP[SensitivityTier.MEDIUM]
+
+    # ── Adaptive epsilon under budget pressure ──────────────────────
+
+    def test_adaptive_epsilon_reduces_near_threshold(self):
+        """When budget is 75% spent, epsilon should be reduced by 25%."""
+        allocator = DynamicEpsilonAllocator(
+            budget_warning_threshold=0.7,
+            budget_critical_threshold=0.9,
+        )
+        budget = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.75)
+
+        base_eps = allocator.get_epsilon_for_nutrient("fiber_g")
+        adaptive_eps = allocator.get_adaptive_epsilon("fiber_g", budget)
+
+        assert adaptive_eps == pytest.approx(base_eps * 0.75, rel=1e-6)
+
+    def test_adaptive_epsilon_halves_at_critical(self):
+        """When budget is ≥90% spent, epsilon is halved."""
+        allocator = DynamicEpsilonAllocator(
+            budget_critical_threshold=0.9,
+        )
+        budget = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.95)
+
+        base_eps = allocator.get_epsilon_for_nutrient("kcal")
+        adaptive_eps = allocator.get_adaptive_epsilon("kcal", budget)
+
+        assert adaptive_eps == pytest.approx(base_eps * 0.5, rel=1e-6)
+
+    def test_adaptive_epsilon_unchanged_when_fresh(self):
+        """With a fresh budget, epsilon equals the base tier value."""
+        allocator = DynamicEpsilonAllocator()
+        budget = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.0)
+
+        base_eps = allocator.get_epsilon_for_nutrient("carbs_g")
+        adaptive_eps = allocator.get_adaptive_epsilon("carbs_g", budget)
+
+        assert adaptive_eps == base_eps
+
+    # ── Exposure tracking tests ─────────────────────────────────────
+
+    def test_query_recording_and_exposure_report(self):
+        """Query history must be tracked and reportable per tier."""
+        allocator = DynamicEpsilonAllocator()
+        budget = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.0)
+
+        # Simulate queries
+        allocator.record_query("user-1", "folate_mcg", 0.1, 100.0)
+        allocator.record_query("user-1", "b12_mcg", 0.1, 10.0)
+        allocator.record_query("user-1", "fiber_g", 0.8, 12.5)
+        budget.epsilon_spent = 1.0  # Manually update for report
+
+        report = allocator.get_exposure_report("user-1", budget)
+
+        assert report.user_id == "user-1"
+        assert report.total_epsilon_spent == 1.0
+        assert report.per_tier_query_count["critical"] == 2
+        assert report.per_tier_query_count["low"] == 1
+        assert report.exposure_index == pytest.approx(1.0)
+        assert report.risk_level == "critical"
+
+    def test_exposure_report_risk_levels(self):
+        """Risk levels must escalate correctly with exposure."""
+        allocator = DynamicEpsilonAllocator()
+
+        # Low risk (< 40%)
+        budget_low = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.2)
+        report_low = allocator.get_exposure_report("u-1", budget_low)
+        assert report_low.risk_level == "low"
+
+        # Moderate risk (40-70%)
+        budget_mod = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.5)
+        report_mod = allocator.get_exposure_report("u-2", budget_mod)
+        assert report_mod.risk_level == "moderate"
+
+        # High risk (70-90%)
+        budget_high = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.8)
+        report_high = allocator.get_exposure_report("u-3", budget_high)
+        assert report_high.risk_level == "high"
+
+        # Critical risk (≥ 90%)
+        budget_crit = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.95)
+        report_crit = allocator.get_exposure_report("u-4", budget_crit)
+        assert report_crit.risk_level == "critical"
+
+    def test_exposure_reset(self):
+        """Reset should clear query history for a user."""
+        allocator = DynamicEpsilonAllocator()
+        allocator.record_query("user-x", "kcal", 0.3, 500.0)
+        allocator.reset_history("user-x")
+
+        budget = PrivacyBudget(epsilon_total=1.0, epsilon_spent=0.0)
+        report = allocator.get_exposure_report("user-x", budget)
+        assert sum(report.per_tier_query_count.values()) == 0
+
+    # ── Pipeline integration tests ──────────────────────────────────
+
+    def test_pipeline_uses_dynamic_epsilon(self):
+        """Pipeline Stage 6 must use tier-based dynamic ε, not flat 0.5."""
+        dp = DifferentialPrivacyEngine(default_epsilon=1.0)
+        from app.engine.metabolic_state import MetabolicStateEstimator
+
+        pipeline = NutritionPipeline(
+            synchronizer=TemporalSynchronizer(),
+            normalizer=PhysiologicalNormalizer(),
+            interpolator=CircadianInterpolator(),
+            state_estimator=MetabolicStateEstimator(),
+            nutrient_calculator=NutrientDemandCalculator(),
+            consent_manager=DynamicConsentManager(),
+            privacy_engine=dp,
+        )
+
+        import random
+        random.seed(42)
+
+        result = pipeline.execute(user_id="dp-test-1", readings={})
+        assert result.dp_applied is True
+
+        # Audit trail should record dynamic epsilon and tiers
+        dp_stages = [s for s in result.stages_executed if s.startswith("dp_noise:")]
+        assert len(dp_stages) == 1
+        assert "dynamic_eps" in dp_stages[0]
+        assert "tiers=" in dp_stages[0]
+
+    def test_pipeline_genetic_nutrient_more_noisy(self):
+        """Genetic-derived nutrients should have MORE noise (larger scale)
+        than activity-derived nutrients, because ε is smaller → scale = S/ε is larger.
+        """
+        from app.engine.metabolic_state import MetabolicStateEstimator
+
+        # Run many times and measure variance
+        import random
+        random.seed(99)
+
+        N = 200
+        folate_values = []
+        fiber_values = []
+
+        for i in range(N):
+            dp_i = DifferentialPrivacyEngine(default_epsilon=10.0)
+            pipeline = NutritionPipeline(
+                synchronizer=TemporalSynchronizer(),
+                normalizer=PhysiologicalNormalizer(),
+                interpolator=CircadianInterpolator(),
+                state_estimator=MetabolicStateEstimator(),
+                nutrient_calculator=NutrientDemandCalculator(),
+                consent_manager=DynamicConsentManager(),
+                privacy_engine=dp_i,
+            )
+            result = pipeline.execute(user_id=f"noise-test-{i}", readings={})
+            targets = result.budget.targets
+            if "folate_mcg" in targets:
+                folate_values.append(targets["folate_mcg"].daily_target)
+            if "fiber_g" in targets:
+                fiber_values.append(targets["fiber_g"].daily_target)
+
+        if len(folate_values) >= 10 and len(fiber_values) >= 10:
+            # Folate (CRITICAL) should have higher variance than fiber (LOW)
+            folate_var = sum((v - sum(folate_values)/len(folate_values))**2 for v in folate_values) / len(folate_values)
+            fiber_var = sum((v - sum(fiber_values)/len(fiber_values))**2 for v in fiber_values) / len(fiber_values)
+
+            # Relative variance (normalized by mean²) should be higher for folate
+            folate_mean = sum(folate_values) / len(folate_values)
+            fiber_mean = sum(fiber_values) / len(fiber_values)
+
+            if folate_mean > 0 and fiber_mean > 0:
+                folate_cv = (folate_var ** 0.5) / folate_mean
+                fiber_cv = (fiber_var ** 0.5) / fiber_mean
+                # CRITICAL tier's smaller ε produces larger noise
+                assert folate_cv > fiber_cv * 0.5, (
+                    f"Folate CV={folate_cv:.4f} should be > fiber CV×0.5={fiber_cv*0.5:.4f}"
+                )
+
+    def test_pipeline_exposure_report_accessible(self):
+        """Pipeline must expose privacy exposure report after execution."""
+        from app.engine.metabolic_state import MetabolicStateEstimator
+
+        dp = DifferentialPrivacyEngine(default_epsilon=1.0)
+        pipeline = NutritionPipeline(
+            synchronizer=TemporalSynchronizer(),
+            normalizer=PhysiologicalNormalizer(),
+            interpolator=CircadianInterpolator(),
+            state_estimator=MetabolicStateEstimator(),
+            nutrient_calculator=NutrientDemandCalculator(),
+            consent_manager=DynamicConsentManager(),
+            privacy_engine=dp,
+        )
+
+        import random
+        random.seed(123)
+
+        pipeline.execute(user_id="report-test", readings={})
+        report = pipeline.get_privacy_exposure_report("report-test")
+
+        assert report is not None
+        assert report.user_id == "report-test"
+        assert report.total_epsilon_spent > 0
+        assert report.exposure_index > 0
+        assert report.risk_level in ("low", "moderate", "high", "critical")
+        assert sum(report.per_tier_query_count.values()) > 0

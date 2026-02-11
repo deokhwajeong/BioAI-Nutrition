@@ -38,7 +38,11 @@ from typing import Any, Dict, List, Optional, Set
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 from ..privacy.consent_manager import ConsentScope, DynamicConsentManager
-from ..privacy.differential_privacy import DifferentialPrivacyEngine
+from ..privacy.differential_privacy import (
+    DifferentialPrivacyEngine,
+    DynamicEpsilonAllocator,
+    NUTRIENT_SENSITIVITY_TIERS,
+)
 from .interpolation import CircadianInterpolator
 from .metabolic_state import MetabolicState, MetabolicStateEstimator
 from .normalization import (
@@ -150,6 +154,7 @@ class NutritionPipeline:
         self._nutrient_calculator = nutrient_calculator
         self._consent_manager = consent_manager
         self._privacy_engine = privacy_engine
+        self._epsilon_allocator = DynamicEpsilonAllocator()
         self._calibrator: Optional[AdaptiveLagCalibrator] = None
 
     def set_calibrator(self, calibrator: AdaptiveLagCalibrator) -> None:
@@ -461,16 +466,26 @@ class NutritionPipeline:
     ) -> None:
         """Stage 6: Apply differential privacy noise to output.
 
-        Patent-relevant: "Nutrient budget outputs are perturbed with
-        calibrated Laplace noise (ε-differential privacy) before
-        transmission, ensuring that individual biomarker readings cannot
-        be reconstructed from the published budget."
+        Patent claim: "A dynamic privacy budget allocation system that
+        assigns differential privacy parameters based on biomarker data
+        sensitivity classification, manages cumulative per-user privacy
+        exposure indices, and adaptively adjusts noise injection rates
+        as budget thresholds are approached."
+
+        Instead of a fixed ε=0.5 for every nutrient, each nutrient is
+        classified into a SensitivityTier (CRITICAL → LOW). Nutrients
+        derived from genetic data receive smaller ε (more noise, stronger
+        privacy), while nutrients from activity data receive larger ε
+        (less noise, acceptable privacy).
+
+        The allocator also monitors the user's cumulative privacy
+        exposure and further reduces ε when budget thresholds are
+        approached, preventing sudden budget exhaustion.
         """
         if self._privacy_engine is None:
             result.stages_executed.append("dp_noise:skipped")
             return
 
-        # Apply DP noise to each nutrient target
         # Sensitivity = max plausible change in a single person's data
         NUTRIENT_SENSITIVITIES = {
             "kcal": 500.0,
@@ -489,24 +504,62 @@ class NutritionPipeline:
             "vitamin_b6_mg": 0.5,
         }
 
+        # Get user's privacy budget for adaptive allocation
+        user_budget = self._privacy_engine.get_or_create_budget(user_id)
+        tier_summary: Dict[str, int] = {}  # Tier → count for audit trail
+
         for name, target in budget.targets.items():
             sensitivity = NUTRIENT_SENSITIVITIES.get(name, 50.0)
+
+            # Dynamic ε allocation: tier-based + budget-adaptive
+            tier = self._epsilon_allocator.get_tier_for_nutrient(name)
+            epsilon = self._epsilon_allocator.get_adaptive_epsilon(
+                nutrient=name,
+                budget=user_budget,
+            )
+
             noisy_value = self._privacy_engine.add_laplace_noise(
                 user_id=user_id,
                 value=target.daily_target,
                 sensitivity=sensitivity,
-                epsilon=0.5,  # Per-query ε
+                epsilon=epsilon,
             )
             if noisy_value is None:
                 # Privacy budget exhausted — keep original value
                 continue
+
+            # Record query for exposure tracking
+            noise_scale = sensitivity / epsilon
+            self._epsilon_allocator.record_query(
+                user_id=user_id,
+                nutrient=name,
+                epsilon_consumed=epsilon,
+                noise_scale=noise_scale,
+            )
+
             # Clamp to valid range
             lo = target.minimum if target.minimum is not None else 0.0
             hi = target.maximum if target.maximum is not None else float("inf")
             target.daily_target = max(lo, min(hi, noisy_value))
 
+            tier_key = tier.value
+            tier_summary[tier_key] = tier_summary.get(tier_key, 0) + 1
+
+        # Audit trail with tier breakdown
+        tier_str = ",".join(f"{k}={v}" for k, v in sorted(tier_summary.items()))
         result.dp_applied = True
-        result.stages_executed.append("dp_noise:applied")
+        result.stages_executed.append(f"dp_noise:dynamic_eps,tiers=[{tier_str}]")
+
+    def get_privacy_exposure_report(self, user_id: str) -> Optional[Any]:
+        """Get the cumulative privacy exposure report for a user.
+
+        Returns a PrivacyExposureReport with per-tier breakdown,
+        exposure index, risk level, and estimated remaining queries.
+        """
+        if self._privacy_engine is None:
+            return None
+        budget = self._privacy_engine.get_or_create_budget(user_id)
+        return self._epsilon_allocator.get_exposure_report(user_id, budget)
 
     # ── Self-Calibration Feedback Loop ──────────────────────────────
 
