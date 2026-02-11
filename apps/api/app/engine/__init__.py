@@ -28,7 +28,7 @@ from .normalization import (
 )
 from .interpolation import CircadianInterpolator
 from .metabolic_state import MetabolicStateEstimator, MetabolicState
-from .nutrient_calculator import NutrientDemandCalculator, NutrientBudget
+from .nutrient_calculator import NutrientDemandCalculator, NutrientBudget, ConflictResolution
 from .pipeline import NutritionPipeline, PipelineResult
 from .self_calibration import (
     AdaptiveLagCalibrator,
@@ -50,6 +50,7 @@ __all__ = [
     "MetabolicState",
     "NutrientDemandCalculator",
     "NutrientBudget",
+    "ConflictResolution",
     "NutritionPipeline",
     "PipelineResult",
     "AdaptiveLagCalibrator",

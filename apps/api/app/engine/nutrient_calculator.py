@@ -65,6 +65,18 @@ class NutrientTarget:
         return self.remaining / self.daily_target
 
 
+# ── Priority hierarchy for conflict resolution ──────────────────
+# Higher number = higher priority (overrides lower)
+PRIORITY_HIERARCHY = {
+    "base_rda": 0,              # RDA defaults
+    "metabolic_state": 1,       # Metabolic state adjustments
+    "biomarker_reactive": 2,    # Real-time biomarker-driven
+    "genetic": 3,               # Genetic optimization
+    "medical_warning": 4,       # Medical warnings
+    "medical_critical": 5,      # Medical critical constraints — ALWAYS WINS
+}
+
+
 @dataclass
 class MedicalConstraint:
     """A medical or safety constraint on nutrient intake.
@@ -82,6 +94,34 @@ class MedicalConstraint:
     reason: str
     severity: str = "warning"  # "warning", "critical"
     source: str = "user_reported"  # "user_reported", "medical_record", "genetic"
+
+    @property
+    def priority(self) -> int:
+        """Return numeric priority based on severity."""
+        if self.severity == "critical":
+            return PRIORITY_HIERARCHY["medical_critical"]
+        return PRIORITY_HIERARCHY["medical_warning"]
+
+
+@dataclass
+class ConflictResolution:
+    """Documents a resolved conflict between two nutrient adjustment sources.
+
+    Patent-relevant: This audit record proves that the system implements
+    hierarchical safety-first decision-making, not mere clamping.
+    """
+
+    nutrient: str
+    conflict_type: str  # "genetic_vs_medical", "metabolic_vs_medical", "reactive_vs_medical"
+    genetic_recommended: float  # What genetics suggested
+    medical_limit: float        # What medicine requires
+    resolved_value: float       # Final resolved value
+    winner: str                 # "medical_critical", "medical_warning", "genetic"
+    loser: str                  # The overridden source
+    safety_margin: float        # How far the resolved value is from the medical limit
+    constraint_reason: str      # Why the medical constraint exists
+    severity: str               # "critical" or "warning"
+    resolution_rationale: str   # Human-readable explanation
 
 
 @dataclass
@@ -138,6 +178,9 @@ class NutrientBudget:
 
     # Active medical constraints
     active_constraints: List[MedicalConstraint] = field(default_factory=list)
+
+    # Conflict resolutions (genetic vs. medical)
+    conflict_resolutions: List[ConflictResolution] = field(default_factory=list)
 
     # Overall budget quality/confidence
     confidence: float = 0.0
@@ -307,9 +350,11 @@ class NutrientDemandCalculator:
 
         # Step 5: Consumed amounts already applied in base_targets
 
-        # Step 6: Apply medical constraints
+        # Step 6: Conflict Resolution Layer — medical safety ALWAYS wins
         constraints = self._user_constraints.get(user_id, [])
-        self._apply_constraints(adjusted, constraints, budget)
+        self._resolve_conflicts_and_apply_constraints(
+            adjusted, constraints, budget, genetic_modifiers
+        )
 
         # Step 7: Distribute across time buckets
         budget.time_buckets = self._create_time_buckets(
@@ -523,51 +568,134 @@ class NutrientDemandCalculator:
                 "qualitative": "prefer_low_gi",
             })
 
-    def _apply_constraints(
+    def _resolve_conflicts_and_apply_constraints(
         self,
         targets: Dict[str, NutrientTarget],
         constraints: List[MedicalConstraint],
         budget: NutrientBudget,
+        genetic_modifiers: Dict[str, float],
     ) -> None:
-        """Apply medical constraints as hard boundaries.
+        """Conflict Resolution Layer: hierarchical safety-first decision-making.
 
-        Constraints override all other modifications. A renal patient's
-        protein limit cannot be exceeded regardless of post-exercise
-        recovery demands.
+        Patent claim: "A hierarchical conflict resolution method wherein
+        medical safety thresholds are unconditionally prioritized over
+        genetically optimized nutrient targets, producing a final clamped
+        budget with a complete conflict audit trail."
+
+        Priority hierarchy (highest wins):
+          5. Medical Critical  — life-threatening (CKD, severe allergy)
+          4. Medical Warning   — clinically significant (hypertension)
+          3. Genetic           — SNP-based optimization
+          2. Biomarker Reactive — real-time z-score adjustments
+          1. Metabolic State   — phase-driven modifications
+          0. Base RDA          — population-level defaults
+
+        When a genetic recommendation conflicts with a medical constraint,
+        the medical constraint ALWAYS wins, and a ConflictResolution
+        record is emitted for audit.
         """
-        for constraint in constraints:
+        # Identify which nutrients had genetic modifications applied
+        genetic_modified_nutrients: Dict[str, float] = {}
+        for mod in budget.modifications:
+            if mod.get("step") == "genetic":
+                nutrient = mod["nutrient"]
+                # Track the pre-genetic value (old_value) to document conflict
+                genetic_modified_nutrients[nutrient] = mod["old_value"]
+
+        # Sort constraints: critical first, then warning
+        sorted_constraints = sorted(
+            constraints, key=lambda c: c.priority, reverse=True
+        )
+
+        for constraint in sorted_constraints:
             if constraint.nutrient not in targets:
                 continue
 
             target = targets[constraint.nutrient]
+            pre_resolution_value = target.daily_target
+            conflict_detected = False
+            conflict_type = "medical_constraint"
 
             if constraint.constraint_type == "max":
                 if target.daily_target > constraint.value:
+                    conflict_detected = True
                     old = target.daily_target
                     target.daily_target = constraint.value
                     target.maximum = constraint.value
-                    budget.modifications.append({
-                        "step": "medical_constraint",
-                        "nutrient": constraint.nutrient,
-                        "old_value": round(old, 1),
-                        "new_value": constraint.value,
-                        "reason": constraint.reason,
-                        "severity": constraint.severity,
-                    })
 
             elif constraint.constraint_type == "min":
                 if target.daily_target < constraint.value:
+                    conflict_detected = True
                     old = target.daily_target
                     target.daily_target = constraint.value
                     target.minimum = constraint.value
-                    budget.modifications.append({
-                        "step": "medical_constraint",
-                        "nutrient": constraint.nutrient,
-                        "old_value": round(old, 1),
-                        "new_value": constraint.value,
-                        "reason": constraint.reason,
-                        "severity": constraint.severity,
-                    })
+
+            if not conflict_detected:
+                continue
+
+            # Determine if this was a genetic vs. medical conflict
+            was_genetically_modified = (
+                constraint.nutrient in genetic_modified_nutrients
+            )
+
+            if was_genetically_modified:
+                conflict_type = "genetic_vs_medical"
+                base_value = genetic_modified_nutrients[constraint.nutrient]
+            else:
+                # Check if metabolic or reactive modification caused it
+                for mod in budget.modifications:
+                    if (
+                        mod["nutrient"] == constraint.nutrient
+                        and mod["step"] in ("metabolic_state", "biomarker_reactive")
+                    ):
+                        conflict_type = f"{mod['step']}_vs_medical"
+                        break
+
+            # Record the conflict resolution
+            safety_margin = abs(target.daily_target - constraint.value)
+            resolution = ConflictResolution(
+                nutrient=constraint.nutrient,
+                conflict_type=conflict_type,
+                genetic_recommended=pre_resolution_value,
+                medical_limit=constraint.value,
+                resolved_value=target.daily_target,
+                winner=(
+                    "medical_critical"
+                    if constraint.severity == "critical"
+                    else "medical_warning"
+                ),
+                loser=(
+                    "genetic" if was_genetically_modified
+                    else conflict_type.split("_vs_")[0]
+                    if "_vs_" in conflict_type
+                    else "adjustment"
+                ),
+                safety_margin=round(safety_margin, 2),
+                constraint_reason=constraint.reason,
+                severity=constraint.severity,
+                resolution_rationale=(
+                    f"Medical safety ({constraint.severity}) overrides "
+                    f"{'genetic optimization' if was_genetically_modified else 'nutrient adjustment'}: "
+                    f"{constraint.nutrient} clamped from "
+                    f"{pre_resolution_value:.1f} to {constraint.value:.1f} "
+                    f"({constraint.reason})"
+                ),
+            )
+            budget.conflict_resolutions.append(resolution)
+
+            # Also add to standard modifications audit trail
+            budget.modifications.append({
+                "step": "conflict_resolution",
+                "nutrient": constraint.nutrient,
+                "old_value": round(pre_resolution_value, 1),
+                "new_value": constraint.value,
+                "reason": constraint.reason,
+                "severity": constraint.severity,
+                "conflict_type": conflict_type,
+                "winner": resolution.winner,
+                "loser": resolution.loser,
+                "resolution": resolution.resolution_rationale,
+            })
 
     def _create_time_buckets(
         self,

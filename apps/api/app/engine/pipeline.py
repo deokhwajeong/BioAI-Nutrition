@@ -47,6 +47,7 @@ from .normalization import (
     PhysiologicalNormalizer,
 )
 from .nutrient_calculator import (
+    ConflictResolution,
     MedicalConstraint,
     NutrientBudget,
     NutrientDemandCalculator,

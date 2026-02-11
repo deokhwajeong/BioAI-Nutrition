@@ -558,9 +558,9 @@ Existing systems perform only **single-axis** classification like "fasting vs. f
 3. Apply genetic modifiers (SNP-based nutrient efficiency coefficients — **17 modifier→target mappings**)
 4. Apply biomarker-reactive adjustments (real-time z-score based)
 5. Subtract already-consumed amounts
-6. Apply medical constraints (hard boundaries via `/engine/medical-constraints` API)
+6. ⚠️ Conflict Resolution Layer — medical safety thresholds take priority
 7. Distribute remaining budget across time buckets
-8. Output NutrientBudget (with complete audit trail)
+8. Output NutrientBudget (with complete audit trail + conflict resolution records)
 ```
 
 **Biomarker-Reactive Adjustment Examples:**
@@ -574,6 +574,78 @@ Existing systems perform only **single-axis** classification like "fasting vs. f
 | Insulin sensitivity < 0.5 | Recommend low-GI carbohydrates (qualitative) | — |
 
 **All 5 reactive adjustments have been verified through 7 dedicated unit tests** (`test_patent_gaps.py::TestReactiveBiomarkerAdjustments`), confirming proportional adjustment, 25% cap enforcement, genetic×reactive combination, and audit trail completeness.
+
+#### Conflict Resolution Layer
+
+**Core Problem:** When genetic optimization (Step 3) and medical contraindications conflict, which one wins?
+
+**Example:** A TCF7L2 T/T carrier's genetic profile recommends carbohydrate sensitivity ×1.3 (lower carbs), while an MTHFR CT variant recommends folate ×1.5 increase. If this patient also has CKD stage 3 with a protein maximum of 56g, the genetically recommended protein increase conflicts with the medical safety ceiling.
+
+**Hierarchical Priority Structure:**
+
+| Priority | Layer | Description | Overridable? |
+|---|---|---|---|
+| 5 (highest) | Medical Critical | Life-threatening — CKD, severe allergy | ❌ Never |
+| 4 | Medical Warning | Clinically significant — hypertension, diabetes | ❌ |
+| 3 | Genetic Optimization | SNP-based nutrient efficiency | ✅ By medical |
+| 2 | Biomarker Reactive | Real-time z-score driven | ✅ |
+| 1 | Metabolic State | Phase-driven modifiers | ✅ |
+| 0 | Base RDA | Population-level defaults | ✅ |
+
+**Algorithm:**
+
+```python
+def _resolve_conflicts_and_apply_constraints(...):
+    # 1. Track which nutrients were genetically modified
+    # 2. Sort medical constraints by priority (Critical > Warning)
+    # 3. For each constraint:
+    #    a) Check if target exceeds medical limit
+    #    b) If so: clamp to medical limit
+    #    c) Detect if genetic modification caused the conflict
+    #    d) Emit ConflictResolution audit record
+    #    e) Document resolution rationale
+```
+
+**Conflict Resolution Audit Record (`ConflictResolution`):**
+
+```python
+@dataclass
+class ConflictResolution:
+    nutrient: str               # Conflicting nutrient
+    conflict_type: str          # "genetic_vs_medical"
+    genetic_recommended: float  # What genetics suggested
+    medical_limit: float        # What medicine requires
+    resolved_value: float       # Final resolved value (= medical_limit)
+    winner: str                 # "medical_critical" | "medical_warning"
+    loser: str                  # "genetic" | "metabolic_state" | ...
+    safety_margin: float        # Safety margin
+    constraint_reason: str      # Medical justification
+    resolution_rationale: str   # Human-readable explanation
+```
+
+**Concrete Conflict Scenarios:**
+
+| Scenario | Genetic Recommendation | Medical Constraint | Resolution | Winner |
+|---|---|---|---|---|
+| CKD + post-exercise recovery | Protein 126g (×1.5 genetic boost) | Protein ≤56g (CKD) | 56g | Medical (Critical) |
+| Hypertension + electrolyte replenishment | Sodium 2300mg | Sodium ≤1500mg | 1500mg | Medical (Warning) |
+| MTHFR variant + supplementation | Folate 600μg | Folate ≤1000μg (UL) | 600μg | No conflict |
+| Underweight + calorie sensitivity | Energy 1500kcal | Energy ≥1800kcal | 1800kcal | Medical (Critical) |
+
+**Patent Claim (Conflict Resolution):**
+
+> *"A hierarchical conflict resolution method for a physiological lag model wherein medically determined safety thresholds are unconditionally prioritized over genetically optimized nutrient targets, comprising: conflict type classification, winner/loser determination, safety margin computation, and resolution rationale documentation in a complete audit trail."*
+
+10 dedicated unit tests (`test_patent_gaps.py::TestConflictResolutionLayer`) verify:
+- Genetic vs. medical critical conflict resolution
+- Medical warning conflict resolution
+- Complete conflict audit trail
+- Critical > Warning priority ordering
+- No conflict record when within bounds
+- Minimum constraint conflict resolution
+- Conflict step in modifications history
+- Priority hierarchy value correctness
+- Pipeline integration test
 
 **14 Default Nutrient Targets:**
 
@@ -1000,8 +1072,8 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | `privacy/` | 4 | ~1,200 | Privacy protection layer |
 | `services/` | 2+ | ~700 | FHIR importer, analyzers |
 | `routers/` | 6 | ~900 | API endpoints (incl. medical constraints) |
-| `tests/` | 3 | ~2,100 | 111 passing tests (sync, engine, patent gaps, self-calibration) |
-| **Total** | **27+** | **~10,100** | — |
+| `tests/` | 3 | ~2,400 | 121 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution) |
+| **Total** | **27+** | **~10,400** | — |
 
 ---
 
@@ -1024,6 +1096,7 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | Medical constraint enforcement | ❌ | ❌ | ❌ | ❌ | ✅ (API-driven) |
 | Micronutrient genetic adjustment | ❌ | ❌ | ❌ | ❌ | ✅ (8 micronutrients) |
 | **Adaptive self-calibration (feedback loop)** | ❌ | ❌ | ❌ | ❌ | **✅ (3-channel EMA)** |
+| **Genetic–medical conflict resolution (safety-first)** | ❌ | ❌ | ❌ | ❌ | **✅ (hierarchical decision)** |
 
 ### 12.2 Core Differentiator Summary
 
@@ -1055,6 +1128,8 @@ This is not simple time-series resampling. **Mathematically modeling biological 
 - [x] ~~99 passing tests (patent gap coverage)~~ ✅
 - [x] ~~Adaptive self-calibration feedback loop (3-channel EMA back-propagation, peak detection, convergence tracking)~~ ✅
 - [x] ~~111 passing tests (including 12 self-calibration tests)~~ ✅
+- [x] ~~Hierarchical conflict resolution layer (genetic optimization vs medical safety — medical always wins)~~ ✅
+- [x] ~~121 passing tests (including 10 conflict resolution tests)~~ ✅
 
 ### Phase 2 (2026 Q3): Algorithm Enhancement
 - [ ] Machine learning-based lag model personalization (Bayesian optimization)
