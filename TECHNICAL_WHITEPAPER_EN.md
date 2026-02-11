@@ -341,7 +341,7 @@ LOINC_MAP = {
 5. **Interpolate (Stage 3):** Data gaps filled using circadian rhythm models (not naive linear interpolation)
 6. **Estimate (Stage 4):** Compound metabolic state classification (e.g., "fasting + sleeping" ≠ "fasting + post-exercise recovery")
 7. **Calculate (Stage 5):** Real-time nutrient budget with time-bucketed distribution (14 targets: 6 macro + 8 micronutrients)
-8. **DP Noise (Stage 6):** Laplace noise injection (ε=0.5 per query) with per-nutrient sensitivity calibration
+8. **DP Noise (Stage 6):** Sensitivity-tiered dynamic ε allocation — genetic data (ε=0.1) vs activity data (ε=0.8)
 
 ---
 
@@ -670,39 +670,50 @@ TimeBucket(
 
 ---
 
-### Stage 6: Differential Privacy Noise Injection
+### Stage 6: Dynamic ε Differential Privacy Noise Injection
 
-**File:** `engine/pipeline.py` — `_stage_dp_noise()`
+**File:** `engine/pipeline.py` — `_stage_dp_noise()`, `privacy/differential_privacy.py` — `DynamicEpsilonAllocator`
 
-**Purpose:** Applies mathematically calibrated Laplace noise to the nutrient budget **before** it leaves the pipeline, ensuring ε-differential privacy for every output.
+**Purpose:** A dynamic noise control system that **differentially allocates** privacy budget (ε) based on biomarker data sensitivity and manages cumulative privacy exposure indices.
 
-**Algorithm:**
+**Core Innovation: Fixed ε → Sensitivity-Tiered Dynamic ε**
 
-For each nutrient target $n$ in the budget:
+Unlike conventional approaches (flat ε=0.5 for all queries), BioAI classifies each nutrient target by the sensitivity of its source biomarker data:
 
-$$\tilde{v}_n = v_n + \text{Lap}\left(\frac{\Delta_n}{\epsilon}\right)$$
+| Sensitivity Tier | ε Allocation | Noise Level | Nutrients | Source Data |
+|---|---|---|---|---|
+| **CRITICAL** | 0.1 | Highest (strongest protection) | folate, B12, vitamin D, caffeine | Genetic data |
+| **HIGH** | 0.3 | High | carbs, kcal | Blood glucose (CGM) |
+| **MEDIUM** | 0.5 | Standard | water, magnesium, B6, sodium | Heart rate, HRV, sleep |
+| **LOW** | 0.8 | Low (acceptable exposure) | protein, fat, fiber, calcium | Activity/steps |
 
-Where:
-- $v_n$ = true nutrient target value
-- $\Delta_n$ = per-nutrient sensitivity (calibrated to physiological ranges)
-- $\epsilon = 0.5$ per query (total budget $\epsilon_{total} = 1.0$ resets every 24 hours)
+**Mathematical Definition:**
 
-**Per-Nutrient Sensitivity Calibration:**
+For each nutrient target $n$ with sensitivity tier $\tau(n)$:
 
-| Nutrient | Sensitivity ($\Delta$) | Rationale |
+$$\tilde{v}_n = v_n + \text{Lap}\left(\frac{\Delta_n}{\epsilon_{\tau(n)} \cdot \alpha(B)}\right)$$
+
+Where $\alpha(B)$ is the budget adaptation coefficient:
+
+$$\alpha(B) = \begin{cases} 1.0 & \text{if } B_{spent}/B_{total} < 0.7 \\ 0.75 & \text{if } 0.7 \leq B_{spent}/B_{total} < 0.9 \\ 0.5 & \text{if } B_{spent}/B_{total} \geq 0.9 \end{cases}$$
+
+**Cumulative Privacy Exposure Index (PEI):**
+
+$$PEI = \frac{\sum_{i} \epsilon_i^{consumed}}{B_{total}}$$
+
+| PEI Range | Risk Level | System Action |
 |---|---|---|
-| kcal | 500.0 | Typical daily variation |
-| carbs_g, protein_g | 50.0, 30.0 | Macro ranges |
-| water_ml | 500.0 | Hydration variation |
-| caffeine_mg | 100.0 | Caffeine tolerance |
-| folate_mcg | 100.0 | Supplement variation |
+| 0.0 – 0.39 | Low | Normal operation |
+| 0.4 – 0.69 | Moderate | Enhanced monitoring |
+| 0.7 – 0.89 | High | ε reduced by 25% (budget preservation) |
+| 0.9 – 1.0 | Critical | ε reduced by 50% → on exhaustion, original value preserved |
 
 **Safety Guarantees:**
-- Noisy values are clamped to `[minimum, maximum]` per target (never recommends negative nutrients or exceeds UL)
-- If privacy budget is exhausted → original unperturbed value is preserved (fail-safe)
-- Audit trail records: `dp_noise:applied` or `dp_noise:skipped`
+- Noisy values clamped to `[minimum, maximum]` per target
+- Budget exhaustion → fail-safe to unperturbed values
+- Audit trail: `dp_noise:dynamic_eps,tiers=[critical=4,high=2,low=4,medium=4]`
 
-**Patent Relevance:** The pipeline's output is **provably privacy-preserving** — even a recipient who sees the nutrient budget cannot reconstruct the underlying biomarker readings that generated it.
+**Patent Claim:** "A dynamic privacy budget allocation system that assigns differential privacy parameters based on biomarker data sensitivity classification, manages cumulative per-user privacy exposure indices, and adaptively adjusts noise injection rates as budget thresholds are approached."
 
 ---
 
@@ -834,14 +845,16 @@ class EdgeProcessedOutput:
     manifest: EdgeProcessingManifest  # Privacy audit document
 ```
 
-#### Layer 2: Differential Privacy
+#### Layer 2: Dynamic Differential Privacy
 
-Mathematically calibrated noise is added to aggregated data:
+Mathematically calibrated noise is **differentially applied based on data sensitivity**:
 
-- **Laplace mechanism:** Numeric queries (mean glucose, total steps)
+- **4-tier sensitivity classification:** CRITICAL (genetic) → HIGH (glucose) → MEDIUM (HR/sleep) → LOW (activity)
+- **Laplace mechanism:** Tier-specific ε allocation per nutrient query
 - **Gaussian mechanism:** High-dimensional queries with (ε, δ)-DP
-- **Privacy budget management:** Per-user $\epsilon_{total}$ = 1.0 budget resets every 24 hours
-- **Pipeline integration:** Stage 6 applies Laplace noise with $\epsilon$ = 0.5 per query to every nutrient target in the budget output
+- **Dynamic budget management:** Per-user $\epsilon_{total}$ = 1.0, 24-hour reset, **ε auto-scales down as budget depletes**
+- **Exposure index tracking:** Per-tier query counts and ε consumption history, real-time risk level detection
+- **Pipeline integration:** Stage 6 uses `DynamicEpsilonAllocator` to identify each nutrient's source sensitivity and allocate adaptive ε
 
 $$Pr[\mathcal{M}(D) \in S] \leq e^{\epsilon} \cdot Pr[\mathcal{M}(D') \in S] + \delta$$
 
