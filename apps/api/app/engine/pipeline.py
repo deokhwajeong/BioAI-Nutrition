@@ -73,6 +73,12 @@ BIOMARKER_CONSENT_MAP: Dict[BiomarkerType, ConsentScope] = {
     BiomarkerType.ACTIVITY_CALORIES: ConsentScope.ACTIVITY_DATA,
     BiomarkerType.SLEEP: ConsentScope.SLEEP_DATA,
     BiomarkerType.GENOTYPE: ConsentScope.GENETIC_DATA,
+    BiomarkerType.MEAL: ConsentScope.MEAL_DATA,
+    BiomarkerType.WEIGHT: ConsentScope.WEIGHT_DATA,
+    BiomarkerType.WATER_INTAKE: ConsentScope.WATER_INTAKE_DATA,
+    BiomarkerType.MEDICATION: ConsentScope.MEDICATION_DATA,
+    BiomarkerType.BLOOD_TEST: ConsentScope.BLOOD_TEST_DATA,
+    BiomarkerType.LOCATION: ConsentScope.LOCATION_DATA,
 }
 
 

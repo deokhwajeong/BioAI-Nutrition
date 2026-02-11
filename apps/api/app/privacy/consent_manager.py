@@ -30,6 +30,9 @@ class ConsentScope(str, Enum):
     MEDICATION_DATA = "medication_data"
     WEIGHT_DATA = "weight_data"
     HEART_RATE_DATA = "heart_rate_data"
+    BLOOD_TEST_DATA = "blood_test_data"
+    WATER_INTAKE_DATA = "water_intake_data"
+    LOCATION_DATA = "location_data"
 
     # Derived data
     METABOLIC_STATE = "metabolic_state"
@@ -40,6 +43,9 @@ class ConsentScope(str, Enum):
     HOUSEHOLD_SHARING = "household_sharing"
     RESEARCH_SHARING = "research_sharing"
     PROVIDER_SHARING = "provider_sharing"
+    THIRD_PARTY_SHARING = "third_party_sharing"
+    RESEARCH_USE = "research_use"
+    MODEL_TRAINING = "model_training"
 
 
 class ConsentAction(str, Enum):
@@ -90,6 +96,9 @@ class ConsentState:
             ConsentScope.HEART_RATE_DATA: {"heart_rate", "hrv"},
             ConsentScope.MEAL_DATA: {"meal"},
             ConsentScope.WEIGHT_DATA: {"weight"},
+            ConsentScope.BLOOD_TEST_DATA: {"blood_panel"},
+            ConsentScope.WATER_INTAKE_DATA: {"water_intake"},
+            ConsentScope.LOCATION_DATA: {"location"},
         }
 
         allowed: Set[str] = set()

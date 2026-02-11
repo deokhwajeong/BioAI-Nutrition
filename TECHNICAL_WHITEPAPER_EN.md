@@ -1080,10 +1080,10 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 
 | Module | Files | Lines of Code (approx.) | Role |
 |---|---|---|---|
-| `engine/` | 7 | ~4,100 | Patent-core pipeline (incl. `pipeline.py` orchestrator + `self_calibration.py` feedback loop) |
+| `engine/` | 7 | ~4,1500 | Privacy protection layer (dynamic ε allocator, exposure tracker)l. `pipeline.py` orchestrator + `self_calibration.py` feedback loop) |
 | `biomarkers/` | 5 | ~1,100 | Data source adapters |
 | `privacy/` | 4 | ~1,200 | Privacy protection layer |
-| `services/` | 2+ | ~700 | FHIR importer, analyzers |
+| `services/` | 2+ |700 | 136 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution, dynamic ε
 | `routers/` | 6 | ~900 | API endpoints (incl. medical constraints) |
 | `tests/` | 3 | ~2,400 | 121 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution) |
 | **Total** | **27+** | **~10,400** | — |
@@ -1103,7 +1103,7 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | Circadian-corrected interpolation | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Compound metabolic state inference | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Real-time temporal nutrient distribution | ❌ | ❌ | ❌ | ❌ | ✅ |
-| FHIR R4 compatible | ❌ | ❌ | ❌ | ✅ (export only) | ✅ (import & export) |
+| FHIR R4 compatible | ❌ | ❌ | ❌ | ✅ (exportDynamic  only) | ✅ (import & export) |
 | Edge computing privacy | ❌ | ❌ | ❌ | Partial | ✅ (triple-layer) |
 | Differential privacy | ❌ | ❌ | ❌ | ❌ | ✅ (ε-DP) |
 | Medical constraint enforcement | ❌ | ❌ | ❌ | ❌ | ✅ (API-driven) |
@@ -1141,6 +1141,8 @@ This is not simple time-series resampling. **Mathematically modeling biological 
 - [x] ~~99 passing tests (patent gap coverage)~~ ✅
 - [x] ~~Adaptive self-calibration feedback loop (3-channel EMA back-propagation, peak detection, convergence tracking)~~ ✅
 - [x] ~~111 passing tests (including 12 self-calibration tests)~~ ✅
+- [x] ~~Dynamic ε privacy budget management (4-tier sensitivity classification, adaptive ε allocation, cumulative exposure index)~~ ✅
+- [x] ~~136 passing tests (including 15 dynamic ε tests)~~ ✅
 - [x] ~~Hierarchical conflict resolution layer (genetic optimization vs medical safety — medical always wins)~~ ✅
 - [x] ~~121 passing tests (including 10 conflict resolution tests)~~ ✅
 

@@ -122,6 +122,22 @@ class ModificationOut(BaseModel):
     reason: str
 
 
+class ConflictResolutionOut(BaseModel):
+    """Audit record of a Safety-First Override conflict resolution."""
+
+    nutrient: str
+    conflict_type: str
+    genetic_recommended: float
+    medical_limit: float
+    resolved_value: float
+    winner: str
+    loser: str
+    safety_margin: float
+    constraint_reason: str
+    severity: str
+    resolution_rationale: str
+
+
 class NutrientBudgetResponse(BaseModel):
     timestamp: datetime
     user_id: str
@@ -130,6 +146,7 @@ class NutrientBudgetResponse(BaseModel):
     metabolic_state: str
     active_phases: List[str]
     modifications: List[ModificationOut]
+    conflict_resolutions: List[ConflictResolutionOut] = []
     next_meal_recommendation: Dict[str, float]
     confidence: float
 
@@ -145,6 +162,7 @@ class MetabolicStateOut(BaseModel):
     hours_since_last_exercise: float
     insulin_sensitivity_estimate: float
     nutrient_priority_shifts: Dict[str, float]
+    decision_log: List[str] = []
 
 
 # ── Consent ─────────────────────────────────────────────────────────
@@ -164,6 +182,14 @@ class ConsentStatusOut(BaseModel):
     granted_scopes: List[str]
     revoked_scopes: List[str]
     allowed_biomarkers: List[str]
+    policy_gates: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Status of policy-level consent gates that control specific "
+            "system features. Shows which gates are open/closed and what "
+            "each gate controls."
+        ),
+    )
 
 
 # ── Genetic Profile ─────────────────────────────────────────────────

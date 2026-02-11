@@ -43,6 +43,7 @@ DEFAULT_GENOTYPES: Dict[str, str] = {
 DEFAULT_SCOPES = [
     "glucose_data", "activity_data", "heart_rate_data",
     "sleep_data", "genetic_data", "meal_data",
+    "location_data", "third_party_sharing", "research_use", "model_training",
 ]
 
 # ── Realistic glucose model ────────────────────────────────────────
@@ -123,6 +124,7 @@ async def seed_default_data(
     genetic_adapter,
     consent_manager,
     metabolic_estimator,
+    location_adapter=None,
 ) -> Dict[str, int]:
     """Push 72 hours of realistic demo data into all adapters.
 
@@ -303,6 +305,51 @@ async def seed_default_data(
             except Exception:
                 pass
     counts["exercise_events"] = ex_count
+
+    # ── 9. Location context (2-3 per day, simulating daily routine) ─
+    loc_count = 0
+    if location_adapter is not None:
+        # Daily routine: home → office → gym → home
+        location_patterns = [
+            {"hour": 7.0, "lat": 37.5665, "lon": 126.9780, "alt": 38.0,
+             "temp": 15.0, "venue": "home"},
+            {"hour": 9.0, "lat": 37.5700, "lon": 126.9820, "alt": 42.0,
+             "temp": 18.0, "venue": "office"},
+            {"hour": 17.5, "lat": 37.5680, "lon": 126.9810, "alt": 40.0,
+             "temp": 20.0, "venue": "gym"},
+            {"hour": 20.0, "lat": 37.5665, "lon": 126.9780, "alt": 38.0,
+             "temp": 14.0, "venue": "home"},
+        ]
+        for day_offset in range(3):
+            day_base = (start + timedelta(days=day_offset)).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            for loc in location_patterns:
+                loc_time = day_base + timedelta(
+                    hours=loc["hour"] + random.uniform(-0.1, 0.1)
+                )
+                if loc_time > now:
+                    continue
+                r = BiomarkerReading(
+                    source_id="location_gps",
+                    user_id=DEMO_USER,
+                    biomarker_type=BiomarkerType.LOCATION,
+                    timestamp=loc_time,
+                    value=loc["alt"],
+                    unit="meters",
+                    confidence=0.92,
+                    metadata={
+                        "latitude": loc["lat"],
+                        "longitude": loc["lon"],
+                        "altitude_m": loc["alt"],
+                        "temperature_c": loc["temp"],
+                        "venue_type": loc["venue"],
+                        "accuracy_m": round(random.uniform(3.0, 15.0), 1),
+                    },
+                )
+                await location_adapter.push_reading(r)
+                loc_count += 1
+    counts["location"] = loc_count
 
     random.seed()  # restore true randomness
     return counts

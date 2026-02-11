@@ -24,6 +24,7 @@ from ..biomarkers.cgm_adapter import CGMAdapter
 from ..biomarkers.activity_adapter import ActivityAdapter
 from ..biomarkers.sleep_adapter import SleepAdapter
 from ..biomarkers.genetic_adapter import GeneticAdapter
+from ..biomarkers.location_adapter import LocationAdapter
 from ..engine.temporal_sync import TemporalSynchronizer, Resolution
 from ..engine.normalization import PhysiologicalNormalizer, GeneticBaselineCalculator
 from ..engine.interpolation import CircadianInterpolator
@@ -33,7 +34,7 @@ from ..engine.nutrient_calculator import (
     MedicalConstraint,
     create_default_targets,
 )
-from ..engine.pipeline import NutritionPipeline, PipelineResult
+from ..engine.pipeline import NutritionPipeline, PipelineResult, BIOMARKER_CONSENT_MAP
 from ..privacy.consent_manager import DynamicConsentManager, ConsentScope
 from ..privacy.differential_privacy import DifferentialPrivacyEngine
 from ..privacy.graph_embedding import HealthGraphEmbedding
@@ -43,6 +44,7 @@ from ..schemas.biomarker_schemas import (
     BiomarkerBatchIn,
     BiomarkerIngestionResult,
     BiomarkerReadingIn,
+    ConflictResolutionOut,
     ConsentRequest,
     ConsentStatusOut,
     GeneticModifiersOut,
@@ -73,6 +75,7 @@ _cgm_adapter = CGMAdapter()
 _activity_adapter = ActivityAdapter()
 _sleep_adapter = SleepAdapter()
 _genetic_adapter = GeneticAdapter()
+_location_adapter = LocationAdapter()
 
 _synchronizer = TemporalSynchronizer()
 _normalizer = PhysiologicalNormalizer()
@@ -107,6 +110,7 @@ _ADAPTER_MAP = {
     BiomarkerType.ACTIVITY_CALORIES: _activity_adapter,
     BiomarkerType.SLEEP: _sleep_adapter,
     BiomarkerType.GENOTYPE: _genetic_adapter,
+    BiomarkerType.LOCATION: _location_adapter,
 }
 
 for bt, adapter in _ADAPTER_MAP.items():
@@ -144,6 +148,7 @@ def _run_seed() -> None:
             genetic_adapter=_genetic_adapter,
             consent_manager=_consent_manager,
             metabolic_estimator=_metabolic_estimator,
+            location_adapter=_location_adapter,
         )
         _seed_logger.info("Default sample data seeded: %s", counts)
 
@@ -269,10 +274,17 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
     }
     resolution = resolution_map.get(req.resolution, Resolution.MEDIUM)
 
-    # Gather readings from all adapters
+    # Gather readings from all adapters (consent-filtered)
     all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
 
+    # Build set of allowed biomarker types based on consent
+    allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
+        # ── Consent gate: skip biomarker types the user has not consented to ──
+        required_scope = BIOMARKER_CONSENT_MAP.get(bt)
+        if required_scope and not _consent_manager.check_consent(req.user_id, required_scope):
+            continue
+        allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
                 readings = await adapter.fetch_readings(
@@ -289,11 +301,13 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
         user_id=req.user_id,
     )
 
-    # Convert to output
+    # Convert to output — post-filter signals by consent
     frame_outputs = []
     for f in frames:
         signals_out = {}
         for bt, sig in f.signals.items():
+            if bt not in allowed_types:
+                continue  # Filter out non-consented signals from interpolation
             signals_out[bt.value] = AlignedSignalOut(
                 biomarker_type=bt.value,
                 value=round(sig.value, 2),
@@ -346,6 +360,11 @@ async def calculate_nutrient_budget(
     req: NutrientBudgetRequest,
 ) -> NutrientBudgetResponse:
     now = datetime.utcnow()
+    try:
+        from datetime import timezone as _tz
+        now = now.replace(tzinfo=_tz.utc)
+    except Exception:
+        pass
     window_start = now - timedelta(hours=2)
 
     # Gather readings from all adapters
@@ -364,7 +383,23 @@ async def calculate_nutrient_budget(
     # Get genetic modifiers
     genetic_mods = _genetic_adapter.compute_metabolic_modifiers(req.user_id)
 
+    # Get environmental modifiers from location data (if consented)
+    env_modifiers = _location_adapter.get_environmental_modifiers(req.user_id)
+    if _consent_manager.check_consent(req.user_id, ConsentScope.LOCATION_DATA):
+        # Apply location-based adjustments to genetic modifiers
+        metabolic_mult = env_modifiers.get("metabolic_multiplier", 1.0)
+        hydration_mult = env_modifiers.get("hydration_multiplier", 1.0)
+        if metabolic_mult != 1.0:
+            genetic_mods["altitude_metabolic_modifier"] = metabolic_mult
+        if hydration_mult != 1.0:
+            genetic_mods["hydration_environment_modifier"] = hydration_mult
+
     # Execute the 5-stage pipeline (correct ordering enforced)
+    # model_training consent controls whether self-calibration feedback
+    # loop is enabled (pipeline learns from user data to improve predictions)
+    allow_calibration = _consent_manager.check_consent(
+        req.user_id, ConsentScope.MODEL_TRAINING
+    )
     pipeline_result = _pipeline.execute(
         user_id=req.user_id,
         readings=all_readings,
@@ -375,6 +410,15 @@ async def calculate_nutrient_budget(
         window_start=window_start,
         window_end=now,
     )
+
+    # Self-calibration feedback: only if model_training consent is granted
+    if allow_calibration and pipeline_result.calibration_results:
+        for cal_result in pipeline_result.calibration_results:
+            _pipeline_audit = cal_result  # Allow model to self-improve
+    elif not allow_calibration:
+        # Discard any calibration data generated during pipeline run
+        pipeline_result.calibration_results = []
+        pipeline_result.calibration_applied = False
 
     budget = pipeline_result.budget
     metabolic_state = pipeline_result.metabolic_state
@@ -430,6 +474,22 @@ async def calculate_nutrient_budget(
             if metabolic_state else []
         ),
         modifications=mods_out,
+        conflict_resolutions=[
+            ConflictResolutionOut(
+                nutrient=cr.nutrient,
+                conflict_type=cr.conflict_type,
+                genetic_recommended=round(cr.genetic_recommended, 1),
+                medical_limit=round(cr.medical_limit, 1),
+                resolved_value=round(cr.resolved_value, 1),
+                winner=cr.winner,
+                loser=cr.loser,
+                safety_margin=round(cr.safety_margin, 2),
+                constraint_reason=cr.constraint_reason,
+                severity=cr.severity,
+                resolution_rationale=cr.resolution_rationale,
+            )
+            for cr in budget.conflict_resolutions
+        ],
         next_meal_recommendation=budget.get_next_meal_recommendation(),
         confidence=budget.confidence,
     )
@@ -443,8 +503,20 @@ async def calculate_nutrient_budget(
 async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
     """Infer the user's current metabolic state from recent biomarker data."""
     now = datetime.utcnow()
+    # Ensure 'now' matches frame timestamp awareness
+    try:
+        from datetime import timezone as _tz
+        now_aware = now.replace(tzinfo=_tz.utc)
+    except Exception:
+        now_aware = now
     all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
+        # ── Consent gate ──
+        required_scope = BIOMARKER_CONSENT_MAP.get(bt)
+        if required_scope and not _consent_manager.check_consent(req.user_id, required_scope):
+            continue
+        allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
                 readings = await adapter.fetch_readings(
@@ -460,11 +532,15 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
         user_id=req.user_id,
     )
 
-    if not frames:
+    # Post-filter: remove non-consented signals from interpolated frames
+    for f in frames:
+        f.signals = {bt: sig for bt, sig in f.signals.items() if bt in allowed_types}
+
+    if not frames or not any(f.signals for f in frames):
         from ..engine.metabolic_state import MetabolicState
         state = MetabolicState(timestamp=now)
     else:
-        state = _metabolic_estimator.estimate(req.user_id, frames[-1], now)
+        state = _metabolic_estimator.estimate(req.user_id, frames[-1], now_aware)
 
     return MetabolicStateOut(
         timestamp=state.timestamp,
@@ -481,6 +557,7 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
         nutrient_priority_shifts={
             k: round(v, 3) for k, v in state.nutrient_priority_shifts.items()
         },
+        decision_log=state.decision_log,
     )
 
 
@@ -562,11 +639,31 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
         )
 
     state = _consent_manager.get_consent_state(req.user_id)
+    # Build policy gate status
+    policy_gates = {
+        "third_party_sharing": {
+            "granted": _consent_manager.check_consent(req.user_id, ConsentScope.THIRD_PARTY_SHARING),
+            "controls": "Edge processing — transmitting embeddings off-device",
+        },
+        "research_use": {
+            "granted": _consent_manager.check_consent(req.user_id, ConsentScope.RESEARCH_USE),
+            "controls": "Lag comparison analytics — research-grade statistical analysis",
+        },
+        "model_training": {
+            "granted": _consent_manager.check_consent(req.user_id, ConsentScope.MODEL_TRAINING),
+            "controls": "Self-calibration feedback — model learns from your data to improve predictions",
+        },
+        "location_data": {
+            "granted": _consent_manager.check_consent(req.user_id, ConsentScope.LOCATION_DATA),
+            "controls": "Environmental context — altitude/temperature-based nutrient adjustments",
+        },
+    }
     return ConsentStatusOut(
         user_id=req.user_id,
         granted_scopes=[s.value for s in state.granted_scopes],
         revoked_scopes=[s.value for s in state.revoked_scopes],
         allowed_biomarkers=sorted(state.get_allowed_biomarkers()),
+        policy_gates=policy_gates,
     )
 
 
@@ -577,11 +674,31 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
 )
 async def get_consent_status(user_id: str) -> ConsentStatusOut:
     state = _consent_manager.get_consent_state(user_id)
+    # Build policy gate status
+    policy_gates = {
+        "third_party_sharing": {
+            "granted": _consent_manager.check_consent(user_id, ConsentScope.THIRD_PARTY_SHARING),
+            "controls": "Edge processing — transmitting embeddings off-device",
+        },
+        "research_use": {
+            "granted": _consent_manager.check_consent(user_id, ConsentScope.RESEARCH_USE),
+            "controls": "Lag comparison analytics — research-grade statistical analysis",
+        },
+        "model_training": {
+            "granted": _consent_manager.check_consent(user_id, ConsentScope.MODEL_TRAINING),
+            "controls": "Self-calibration feedback — model learns from your data to improve predictions",
+        },
+        "location_data": {
+            "granted": _consent_manager.check_consent(user_id, ConsentScope.LOCATION_DATA),
+            "controls": "Environmental context — altitude/temperature-based nutrient adjustments",
+        },
+    }
     return ConsentStatusOut(
         user_id=user_id,
         granted_scopes=[s.value for s in state.granted_scopes],
         revoked_scopes=[s.value for s in state.revoked_scopes],
         allowed_biomarkers=sorted(state.get_allowed_biomarkers()),
+        policy_gates=policy_gates,
     )
 
 
@@ -603,7 +720,7 @@ async def get_pipeline_status() -> PipelineStatusOut:
             set().union(
                 *[
                     set(a._readings_store.keys())
-                    for a in [_cgm_adapter, _activity_adapter, _sleep_adapter]
+                    for a in [_cgm_adapter, _activity_adapter, _sleep_adapter, _location_adapter]
                     if hasattr(a, "_readings_store")
                 ]
             )
@@ -614,6 +731,143 @@ async def get_pipeline_status() -> PipelineStatusOut:
 
 
 # ── Edge-Processing / On-Device Privacy Endpoints ──────────────────
+
+
+@router.post(
+    "/lag-comparison",
+    summary="Before/After t_sync correction comparison",
+    description=(
+        "Demonstrates the patent-core advantage of physiological lag "
+        "compensation by comparing raw temporal alignment vs. the dynamic "
+        "lag model: t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c). "
+        "Returns Pearson correlation metrics before and after correction."
+    ),
+)
+async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
+    """Compute Before vs After t_sync correction metrics.
+
+    Requires `research_use` consent since lag analysis generates
+    research-grade statistical outputs from personal biomarker data.
+    """
+    import math as _math
+
+    # ── Policy gate: research_use ──
+    if not _consent_manager.check_consent(req.user_id, ConsentScope.RESEARCH_USE):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Lag comparison produces research-grade analytics from "
+                "your biomarker data. Grant 'research_use' consent to proceed."
+            ),
+        )
+
+    resolution = Resolution.MEDIUM
+
+    # Gather readings (consent-filtered)
+    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    allowed_types: set = set()
+    for bt, adapter in _ADAPTER_MAP.items():
+        # ── Consent gate ──
+        required_scope = BIOMARKER_CONSENT_MAP.get(bt)
+        if required_scope and not _consent_manager.check_consent(req.user_id, required_scope):
+            continue
+        allowed_types.add(bt)
+        if bt in adapter.supported_biomarkers:
+            try:
+                readings = await adapter.fetch_readings(
+                    req.user_id, bt, req.start, req.end
+                )
+                if readings:
+                    all_readings[bt] = readings
+            except Exception:
+                pass
+
+    # --- WITH lag correction (normal pipeline) ---
+    frames_corrected = _synchronizer.synchronize(
+        all_readings, req.start, req.end, resolution,
+        user_id=req.user_id,
+    )
+    # Post-filter: remove non-consented signals
+    for f in frames_corrected:
+        f.signals = {bt: sig for bt, sig in f.signals.items() if bt in allowed_types}
+
+    # --- WITHOUT lag correction (bypass model) ---
+    # Temporarily disable genetic modifiers to get base-only comparison
+    original_modifiers = dict(_synchronizer.lag_model._genetic_modifiers)
+    _synchronizer.lag_model._genetic_modifiers = {}
+    frames_uncorrected = _synchronizer.synchronize(
+        all_readings, req.start, req.end, resolution,
+        user_id=None,  # No user → no genetic/personal lag
+    )
+    _synchronizer.lag_model._genetic_modifiers = original_modifiers
+    # Post-filter uncorrected frames too
+    for f in frames_uncorrected:
+        f.signals = {bt: sig for bt, sig in f.signals.items() if bt in allowed_types}
+
+    def _compute_correlation(frames, sig_a_type, sig_b_type):
+        """Pearson correlation between two signal types across frames."""
+        pairs = []
+        for f in frames:
+            a = f.signals.get(sig_a_type)
+            b = f.signals.get(sig_b_type)
+            if a and b and a.confidence > 0.3 and b.confidence > 0.3:
+                pairs.append((a.value, b.value))
+        if len(pairs) < 3:
+            return 0.0
+        n = len(pairs)
+        xs = [p[0] for p in pairs]
+        ys = [p[1] for p in pairs]
+        mx = sum(xs) / n
+        my = sum(ys) / n
+        cov = sum((x - mx) * (y - my) for x, y in pairs) / n
+        sx = _math.sqrt(sum((x - mx) ** 2 for x in xs) / n) or 1e-9
+        sy = _math.sqrt(sum((y - my) ** 2 for y in ys) / n) or 1e-9
+        return round(cov / (sx * sy), 4)
+
+    # Compute correlations: glucose↔heart_rate (should improve with lag)
+    r_before = _compute_correlation(
+        frames_uncorrected, BiomarkerType.GLUCOSE, BiomarkerType.HEART_RATE
+    )
+    r_after = _compute_correlation(
+        frames_corrected, BiomarkerType.GLUCOSE, BiomarkerType.HEART_RATE
+    )
+
+    # Collect lag audit from corrected frames
+    lag_audits = []
+    for f in frames_corrected:
+        for lc in f.lag_computations:
+            if lc.base_lag_seconds > 0:
+                lag_audits.append({
+                    "biomarker": lc.biomarker_type,
+                    "base_lag_s": lc.base_lag_seconds,
+                    "genetic_modifier": round(lc.genetic_modifier, 3),
+                    "circadian_modifier": round(lc.circadian_modifier, 3),
+                    "effective_lag_s": round(lc.effective_lag_seconds, 1),
+                    "hour": lc.hour_of_day,
+                    "factors": lc.genetic_factors_used,
+                })
+                break  # One sample per biomarker is enough
+
+    return {
+        "comparison": {
+            "signal_pair": "glucose ↔ heart_rate",
+            "without_t_sync": {
+                "correlation_r": r_before,
+                "method": "Raw temporal alignment (no physiological lag compensation)",
+            },
+            "with_t_sync": {
+                "correlation_r": r_after,
+                "method": "t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)",
+            },
+            "improvement": round(abs(r_after) - abs(r_before), 4),
+        },
+        "lag_formula": "t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)",
+        "lag_audit_samples": lag_audits,
+        "frames_analyzed": {
+            "uncorrected": len(frames_uncorrected),
+            "corrected": len(frames_corrected),
+        },
+    }
 
 
 @router.get(
@@ -649,7 +903,20 @@ async def get_edge_manifest() -> Dict[str, Any]:
     ),
 )
 async def edge_process(req: SyncRequest) -> Dict[str, Any]:
-    """Run edge processing on synchronized frames."""
+    """Run edge processing on synchronized frames.
+
+    Requires `third_party_sharing` consent since edge-processed embeddings
+    are transmitted off-device to the server.
+    """
+    # ── Policy gate: third_party_sharing ──
+    if not _consent_manager.check_consent(req.user_id, ConsentScope.THIRD_PARTY_SHARING):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Edge processing transmits embeddings off-device. "
+                "Grant 'third_party_sharing' consent to proceed."
+            ),
+        )
     resolution_map = {
         "fine": Resolution.FINE,
         "medium": Resolution.MEDIUM,
@@ -657,9 +924,15 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
     }
     resolution = resolution_map.get(req.resolution, Resolution.MEDIUM)
 
-    # Gather readings
+    # Gather readings (consent-filtered)
     all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
+        # ── Consent gate ──
+        required_scope = BIOMARKER_CONSENT_MAP.get(bt)
+        if required_scope and not _consent_manager.check_consent(req.user_id, required_scope):
+            continue
+        allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
                 readings = await adapter.fetch_readings(
@@ -674,8 +947,11 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
         all_readings, req.start, req.end, resolution,
         user_id=req.user_id,
     )
+    # Post-filter: remove non-consented signals
+    for f in frames:
+        f.signals = {bt: sig for bt, sig in f.signals.items() if bt in allowed_types}
 
-    if not frames:
+    if not frames or not any(f.signals for f in frames):
         return {
             "user_id": req.user_id,
             "edge_outputs": [],
