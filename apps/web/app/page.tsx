@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   analyzeMeal,
   analyzeFoodImage,
   engineConsent,
+  getConsentStatus,
   engineGeneticProfile,
   engineIngest,
   engineSync,
   engineNutrientBudget,
   engineMetabolicState,
   engineStatus,
+  engineLagComparison,
+  engineEdgeManifest,
 } from "../lib/api";
 import type { FoodNutrition } from "../lib/types";
 import ImageFoodAnalyzer from "./components/ImageFoodAnalyzer";
@@ -20,6 +23,10 @@ import NutrientBudgetPanel from "./components/NutrientBudgetPanel";
 import PrivacyConsentPanel from "./components/PrivacyConsentPanel";
 import GeneticProfilePanel from "./components/GeneticProfilePanel";
 import SyntheaExplorer from "./components/SyntheaExplorer";
+import LagComparisonView from "./components/LagComparisonView";
+import SafetyOverrideNotice from "./components/SafetyOverrideNotice";
+import type { ConflictResolution } from "./components/SafetyOverrideNotice";
+import EdgeBoundaryBar from "./components/EdgeBoundaryBar";
 
 /* ── Types ──────────────────────────────────────────── */
 
@@ -61,9 +68,8 @@ export default function HomePage() {
   const [pipelineRunning, setPipelineRunning] = useState(false);
 
   /* Consent */
-  const [grantedScopes, setGrantedScopes] = useState<string[]>([
-    "glucose_data","activity_data","heart_rate_data","sleep_data","genetic_data","meal_data",
-  ]);
+  const [grantedScopes, setGrantedScopes] = useState<string[]>([]);
+  const [consentLoaded, setConsentLoaded] = useState(false);
 
   /* Genetic */
   const [geneticModifiers, setGeneticModifiers] = useState<Record<string, number> | null>(null);
@@ -80,6 +86,12 @@ export default function HomePage() {
   const [nutrientModifications, setNutrientModifications] = useState<string[]>([]);
   const [nutrientState, setNutrientState] = useState<string | undefined>();
 
+  /* Patent-feature state */
+  const [lagComparisonData, setLagComparisonData] = useState<any>(null);
+  const [lagLoading, setLagLoading] = useState(false);
+  const [conflictResolutions, setConflictResolutions] = useState<ConflictResolution[]>([]);
+  const [edgeManifest, setEdgeManifest] = useState<any>(null);
+
   /* Privacy budget (tracked locally) */
   const [privacyBudget, setPrivacyBudget] = useState<{
     epsilon_used: number;
@@ -89,6 +101,30 @@ export default function HomePage() {
 
   /* Engine status */
   const [engineStatusData, setEngineStatusData] = useState<any>(null);
+
+  /* ── Load edge manifest on mount ───────────────── */
+  useEffect(() => {
+    engineEdgeManifest()
+      .then(setEdgeManifest)
+      .catch(() => {});
+  }, []);
+
+  /* ── Load consent state from backend on mount ──── */
+  useEffect(() => {
+    getConsentStatus(USER_ID)
+      .then((data) => {
+        setGrantedScopes(data.granted_scopes ?? []);
+        setConsentLoaded(true);
+      })
+      .catch(() => {
+        // Backend not reachable yet — use sensible defaults
+        setGrantedScopes([
+          "glucose_data", "activity_data", "heart_rate_data",
+          "sleep_data", "genetic_data", "meal_data",
+        ]);
+        setConsentLoaded(true);
+      });
+  }, []);
 
   /* Meal */
   const [mealText, setMealText] = useState("");
@@ -112,12 +148,17 @@ export default function HomePage() {
     try {
       /* 1 ── Consent ───────────────────────────────── */
       setStageStatus("consent", "running");
-      const scopes = ["glucose_data", "activity_data", "genetic_data", "heart_rate_data", "sleep_data", "meal_data"];
-      for (const scope of scopes) {
-        await engineConsent(USER_ID, scope, true);
+      // Ensure minimum required data scopes are granted without overriding user choices
+      const requiredScopes = ["glucose_data", "activity_data", "genetic_data", "heart_rate_data", "sleep_data", "meal_data"];
+      for (const scope of requiredScopes) {
+        if (!grantedScopes.includes(scope)) {
+          await engineConsent(USER_ID, scope, true);
+        }
       }
-      setGrantedScopes(scopes);
-      setStageStatus("consent", "done", `${scopes.length} scopes granted`);
+      // Re-fetch actual consent state from backend
+      const consentState = await getConsentStatus(USER_ID);
+      setGrantedScopes(consentState.granted_scopes ?? requiredScopes);
+      setStageStatus("consent", "done", `${(consentState.granted_scopes ?? requiredScopes).length} scopes granted`);
 
       /* 2 ── Genetic Profile (8 SNPs) ──────────────── */
       setStageStatus("genetic", "running");
@@ -195,6 +236,18 @@ export default function HomePage() {
       setStageStatus("sync", "done",
         `${syncResult.frames_aligned} frames aligned · glucose μ=${syncGlucoseMean ?? "–"} · HR μ=${syncHRMean ?? "–"}`);
 
+      /* 4b ── Lag Comparison (patent visualization) ── */
+      setLagLoading(true);
+      try {
+        const lagResult = await engineLagComparison(USER_ID, 180);
+        setLagComparisonData(lagResult);
+      } catch {
+        // research_use consent may be off — silently skip
+        setLagComparisonData(null);
+      } finally {
+        setLagLoading(false);
+      }
+
       /* 5 ── Metabolic State Estimation ────────────── */
       setStageStatus("metabolic", "running");
       const metaResult = await engineMetabolicState(USER_ID, 180, false);
@@ -211,6 +264,7 @@ export default function HomePage() {
       setNutrientTargets(budgetResult.targets ?? {});
       setNutrientModifications(budgetResult.modifications ?? []);
       setNutrientState(budgetResult.metabolic_state);
+      setConflictResolutions(budgetResult.conflict_resolutions ?? []);
       const modNumBudget = (budgetResult.modifications ?? []).length;
       setStageStatus("nutrient", "done",
         `${Object.keys(budgetResult.targets ?? {}).length} nutrients · ${modNumBudget} genetic/metabolic adjustments`);
@@ -237,13 +291,19 @@ export default function HomePage() {
   const handleConsentToggle = async (scope: string, granted: boolean) => {
     await engineConsent(USER_ID, scope, granted);
     setGrantedScopes((prev) =>
-      granted ? [...prev, scope] : prev.filter((s) => s !== scope)
+      granted
+        ? prev.includes(scope) ? prev : [...prev, scope]
+        : prev.filter((s) => s !== scope)
     );
-    setPrivacyBudget((prev) => ({
-      ...prev,
-      queries_count: prev.queries_count + 1,
-      epsilon_used: prev.epsilon_used + 0.1,
-    }));
+    // Re-fetch actual privacy budget from backend
+    try {
+      const es = await engineStatus();
+      setPrivacyBudget((prev) => ({
+        ...prev,
+        epsilon_used: es.privacy?.epsilon_used ?? prev.epsilon_used,
+        queries_count: es.privacy?.queries ?? prev.queries_count,
+      }));
+    } catch { /* ignore */ }
   };
 
   /* ── Genetic Submit ──────────────────────────────── */
@@ -377,6 +437,12 @@ export default function HomePage() {
                 </div>
               </div>
             )}
+
+            {/* Patent Figure: Before/After t_sync Comparison */}
+            <LagComparisonView data={lagComparisonData} loading={lagLoading} />
+
+            {/* Patent Figure: Safety Override Notice */}
+            <SafetyOverrideNotice conflicts={conflictResolutions} />
 
             {geneticModifiers && Object.keys(geneticModifiers).length > 0 && (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -560,6 +626,12 @@ export default function HomePage() {
           <span className="mt-2 md:mt-0">Built with BioAI &middot; FastAPI &middot; Next.js 16</span>
         </div>
       </footer>
+
+      {/* Patent Figure: Edge Boundary Privacy Bar (fixed bottom) */}
+      <EdgeBoundaryBar manifest={edgeManifest} />
+
+      {/* Bottom spacer for fixed EdgeBoundaryBar */}
+      <div className="h-12" />
     </div>
   );
 }

@@ -52,6 +52,9 @@ class BiomarkerType(str, Enum):
     ALLERGY = "allergy"            # Rarely changes
     MEDICAL_CONDITION = "medical_condition"
 
+    # Context signals
+    LOCATION = "location"          # GPS / geofence (event-driven)
+
 
 class TemporalBehavior(str, Enum):
     """How the biomarker behaves over time.

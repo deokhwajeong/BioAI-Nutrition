@@ -93,6 +93,7 @@ class MetabolicState:
     energy_availability: float = 0.0
     hydration_estimate: float = 0.8
     nutrient_priority_shifts: Dict[str, float] = field(default_factory=dict)
+    decision_log: List[str] = field(default_factory=list)
 
     def to_context_string(self) -> str:
         """Convert to a context string for the normalization layer."""
@@ -295,10 +296,22 @@ class MetabolicStateEstimator:
             state.hours_since_last_meal = 12.0
             state.active_phases.add(MetabolicPhase.FASTING)
             state.phase_intensities[MetabolicPhase.FASTING] = 1.0
+            state.decision_log.append(
+                "Feeding: No meal history → default FASTING (12h assumed)"
+            )
             return
 
         last_meal = max(meals)
-        hours = (now - last_meal).total_seconds() / 3600.0
+        # Ensure timezone-awareness compatibility
+        _now = now
+        _lm = last_meal
+        if hasattr(_lm, 'tzinfo') and _lm.tzinfo is not None and _now.tzinfo is None:
+            from datetime import timezone
+            _now = _now.replace(tzinfo=timezone.utc)
+        elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(_lm, 'tzinfo') or _lm.tzinfo is None):
+            from datetime import timezone
+            _lm = _lm.replace(tzinfo=timezone.utc)
+        hours = (_now - _lm).total_seconds() / 3600.0
         state.hours_since_last_meal = hours
 
         if hours < 2:
@@ -306,18 +319,30 @@ class MetabolicStateEstimator:
             state.phase_intensities[MetabolicPhase.POSTPRANDIAL_EARLY] = (
                 1.0 - hours / 2.0
             )
+            state.decision_log.append(
+                f"Feeding: hours_since_meal={hours:.1f}h < 2h → POSTPRANDIAL_EARLY (intensity={1.0 - hours / 2.0:.2f})"
+            )
         elif hours < 4:
             state.active_phases.add(MetabolicPhase.POSTPRANDIAL_LATE)
             state.phase_intensities[MetabolicPhase.POSTPRANDIAL_LATE] = (
                 1.0 - (hours - 2) / 2.0
             )
+            state.decision_log.append(
+                f"Feeding: 2h ≤ hours_since_meal={hours:.1f}h < 4h → POSTPRANDIAL_LATE"
+            )
         elif hours < 12:
             state.active_phases.add(MetabolicPhase.POST_ABSORPTIVE)
             state.phase_intensities[MetabolicPhase.POST_ABSORPTIVE] = 0.5
+            state.decision_log.append(
+                f"Feeding: 4h ≤ hours_since_meal={hours:.1f}h < 12h → POST_ABSORPTIVE"
+            )
         else:
             state.active_phases.add(MetabolicPhase.FASTING)
             state.phase_intensities[MetabolicPhase.FASTING] = min(
                 1.0, hours / 16.0
+            )
+            state.decision_log.append(
+                f"Feeding: hours_since_meal={hours:.1f}h ≥ 12h → FASTING"
             )
 
     def _determine_exercise_phase(
@@ -337,19 +362,38 @@ class MetabolicStateEstimator:
                 state.phase_intensities[MetabolicPhase.DURING_EXERCISE] = min(
                     1.0, (hr_signal.value - 100) / 80.0
                 )
+                state.decision_log.append(
+                    f"Exercise: HR={hr_signal.value:.0f} > 100 threshold → DURING_EXERCISE"
+                )
                 return
+            else:
+                state.decision_log.append(
+                    f"Exercise: HR={hr_signal.value:.0f} < 100 threshold → not currently exercising"
+                )
 
         # Check exercise history
         exercises = self._exercise_history.get(user_id, [])
         if not exercises:
             state.hours_since_last_exercise = 48.0
+            state.decision_log.append(
+                "Exercise: No exercise history → hours_since_exercise=48h (default)"
+            )
             return
 
         last_ex = max(exercises, key=lambda e: e["timestamp"])
         end_time = last_ex["timestamp"] + timedelta(
             minutes=last_ex["duration_minutes"]
         )
-        hours = (now - end_time).total_seconds() / 3600.0
+        # Ensure timezone-awareness compatibility
+        _now = now
+        _et = end_time
+        if hasattr(_et, 'tzinfo') and _et.tzinfo is not None and _now.tzinfo is None:
+            from datetime import timezone
+            _now = _now.replace(tzinfo=timezone.utc)
+        elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(_et, 'tzinfo') or _et.tzinfo is None):
+            from datetime import timezone
+            _et = _et.replace(tzinfo=timezone.utc)
+        hours = (_now - _et).total_seconds() / 3600.0
         state.hours_since_last_exercise = max(0, hours)
 
         intensity = last_ex.get("intensity", "moderate")
@@ -358,15 +402,28 @@ class MetabolicStateEstimator:
             # Still exercising
             state.active_phases.add(MetabolicPhase.DURING_EXERCISE)
             state.phase_intensities[MetabolicPhase.DURING_EXERCISE] = 1.0
+            state.decision_log.append(
+                f"Exercise: Last exercise still ongoing (ends in {-hours:.1f}h) → DURING_EXERCISE"
+            )
         elif hours < 2:
             state.active_phases.add(MetabolicPhase.RECOVERY_IMMEDIATE)
             state.phase_intensities[MetabolicPhase.RECOVERY_IMMEDIATE] = (
                 1.0 - hours / 2.0
             )
+            state.decision_log.append(
+                f"Exercise: {hours:.1f}h since {intensity} exercise < 2h → RECOVERY_IMMEDIATE"
+            )
         elif intensity in ("high", "extreme") and hours < 48:
             state.active_phases.add(MetabolicPhase.RECOVERY_DELAYED)
             state.phase_intensities[MetabolicPhase.RECOVERY_DELAYED] = (
                 max(0, 1.0 - hours / 48.0)
+            )
+            state.decision_log.append(
+                f"Exercise: {hours:.1f}h since {intensity} exercise, 2h-48h → RECOVERY_DELAYED"
+            )
+        else:
+            state.decision_log.append(
+                f"Exercise: {hours:.1f}h since {intensity} exercise → no active exercise phase"
             )
 
     def _determine_sleep_phase(
@@ -390,13 +447,33 @@ class MetabolicStateEstimator:
         if (hour >= 23 or hour < 6) and step_rate < 5:
             state.active_phases.add(MetabolicPhase.SLEEPING)
             state.phase_intensities[MetabolicPhase.SLEEPING] = 0.8
+            state.decision_log.append(
+                f"Sleep: hour={hour:02d}:00 ∈ [23:00-06:00] AND step_rate={step_rate:.0f} < 5 → SLEEPING"
+            )
             return
+        elif hour >= 23 or hour < 6:
+            state.decision_log.append(
+                f"Sleep: hour={hour:02d}:00 ∈ [23:00-06:00] BUT step_rate={step_rate:.0f} ≥ 5 → not sleeping"
+            )
+        else:
+            state.decision_log.append(
+                f"Sleep: hour={hour:02d}:00 ∉ [23:00-06:00] → not in sleep window"
+            )
 
         # Check if recently woke up
         if sleeps:
             last_sleep = max(sleeps, key=lambda s: s["end"])
+            # Ensure timezone-awareness compatibility
+            sleep_end = last_sleep["end"]
+            _now = now
+            if hasattr(sleep_end, 'tzinfo') and sleep_end.tzinfo is not None and _now.tzinfo is None:
+                from datetime import timezone
+                _now = _now.replace(tzinfo=timezone.utc)
+            elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(sleep_end, 'tzinfo') or sleep_end.tzinfo is None):
+                from datetime import timezone
+                sleep_end = sleep_end.replace(tzinfo=timezone.utc)
             hours_since_waking = (
-                now - last_sleep["end"]
+                _now - sleep_end
             ).total_seconds() / 3600.0
             state.hours_since_waking = max(0, hours_since_waking)
 
@@ -405,12 +482,18 @@ class MetabolicStateEstimator:
                 state.phase_intensities[MetabolicPhase.POST_WAKING] = (
                     1.0 - hours_since_waking
                 )
+                state.decision_log.append(
+                    f"Sleep: {hours_since_waking:.1f}h since waking < 1h → POST_WAKING"
+                )
 
         # Check if approaching bedtime (21:00-23:00)
         if 21 <= hour < 23:
             state.active_phases.add(MetabolicPhase.PRE_SLEEP)
             state.phase_intensities[MetabolicPhase.PRE_SLEEP] = (
                 (hour - 21) / 2.0
+            )
+            state.decision_log.append(
+                f"Sleep: hour={hour:02d}:00 ∈ [21:00-23:00] → PRE_SLEEP"
             )
 
     def _detect_stress_state(
@@ -426,12 +509,26 @@ class MetabolicStateEstimator:
                 state.phase_intensities[MetabolicPhase.METABOLIC_STRESS] = (
                     max(0, 1.0 - hrv_signal.value / 30.0)
                 )
+                state.decision_log.append(
+                    f"Stress: HRV={hrv_signal.value:.1f}ms < 30ms threshold → METABOLIC_STRESS"
+                )
             # High HRV indicates parasympathetic dominance (recovery)
             elif hrv_signal.value > 60:
                 state.active_phases.add(MetabolicPhase.RECOVERY)
                 state.phase_intensities[MetabolicPhase.RECOVERY] = min(
                     1.0, (hrv_signal.value - 60) / 40.0
                 )
+                state.decision_log.append(
+                    f"Stress: HRV={hrv_signal.value:.1f}ms > 60ms → RECOVERY (parasympathetic)"
+                )
+            else:
+                state.decision_log.append(
+                    f"Stress: HRV={hrv_signal.value:.1f}ms ∈ [30-60ms] → neutral autonomic state"
+                )
+        else:
+            state.decision_log.append(
+                "Stress: HRV signal unavailable or low confidence → skipped"
+            )
 
     def _estimate_insulin_sensitivity(self, state: MetabolicState) -> None:
         """Estimate current insulin sensitivity from metabolic state.

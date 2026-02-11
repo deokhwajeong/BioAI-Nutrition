@@ -20,6 +20,7 @@ from .cgm_adapter import CGMAdapter
 from .activity_adapter import ActivityAdapter
 from .sleep_adapter import SleepAdapter
 from .genetic_adapter import GeneticAdapter
+from .location_adapter import LocationAdapter
 
 __all__ = [
     "BiomarkerReading",
@@ -30,4 +31,5 @@ __all__ = [
     "ActivityAdapter",
     "SleepAdapter",
     "GeneticAdapter",
+    "LocationAdapter",
 ]
