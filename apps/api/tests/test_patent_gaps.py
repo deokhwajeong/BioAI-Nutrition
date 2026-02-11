@@ -1174,3 +1174,300 @@ class TestSelfCalibrationFeedbackLoop:
         assert len(results) > 0
         profile = cal.get_profile("user-1")
         assert profile.observation_count == len(results)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# G12: Conflict Resolution Layer — Medical Safety vs Genetic Optimization
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConflictResolutionLayer:
+    """Tests for the hierarchical conflict resolution between genetic
+    optimization recommendations and medical safety constraints.
+
+    Patent claim: "A hierarchical conflict resolution method wherein
+    medical safety thresholds are unconditionally prioritized over
+    genetically optimized nutrient targets."
+    """
+
+    def test_genetic_vs_medical_critical_conflict(self):
+        """CKD critical constraint overrides genetic protein boost."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("conflict-user", [
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=56,
+                reason="CKD stage 3 — protein restriction",
+                severity="critical",
+                source="medical_record",
+            ),
+        ])
+
+        targets = create_default_targets(kcal=2000, weight_kg=70)
+        state = MetabolicState(timestamp=NOW)
+
+        # Genetic modifier that INCREASES protein utilization
+        # → calculator boosts protein target above 56g
+        genetic_mods = {"protein_utilization_modifier": 1.5}
+
+        budget = calc.calculate(
+            user_id="conflict-user",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers=genetic_mods,
+        )
+
+        # Medical constraint MUST win
+        assert budget.targets["protein_g"].daily_target <= 56
+        # Conflict should be documented
+        assert len(budget.conflict_resolutions) >= 1
+        resolution = budget.conflict_resolutions[0]
+        assert resolution.winner == "medical_critical"
+        assert resolution.loser == "genetic"
+        assert resolution.conflict_type == "genetic_vs_medical"
+
+    def test_genetic_vs_medical_warning_conflict(self):
+        """Hypertension warning constraint overrides metabolic adjustment."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("ht-conflict", [
+            MedicalConstraint(
+                nutrient="sodium_mg",
+                constraint_type="max",
+                value=1500,
+                reason="Hypertension — sodium restriction",
+                severity="warning",
+                source="medical_record",
+            ),
+        ])
+
+        targets = create_default_targets()
+        state = MetabolicState(timestamp=NOW)
+
+        budget = calc.calculate(
+            user_id="ht-conflict",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers={},
+        )
+
+        # Default sodium is 2300mg, should be clamped to 1500mg
+        assert budget.targets["sodium_mg"].daily_target <= 1500
+
+    def test_conflict_resolution_audit_trail(self):
+        """Conflict resolution produces complete audit trail."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("audit-user", [
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=56,
+                reason="CKD stage 3",
+                severity="critical",
+            ),
+        ])
+
+        targets = create_default_targets(kcal=2000, weight_kg=70)
+        state = MetabolicState(timestamp=NOW)
+        genetic_mods = {"protein_utilization_modifier": 1.5}
+
+        budget = calc.calculate(
+            user_id="audit-user",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers=genetic_mods,
+        )
+
+        # Should have at least one conflict resolution
+        assert len(budget.conflict_resolutions) >= 1
+        cr = budget.conflict_resolutions[0]
+
+        # Verify all audit fields are populated
+        assert cr.nutrient == "protein_g"
+        assert cr.genetic_recommended > 56  # Was higher before clamping
+        assert cr.medical_limit == 56
+        assert cr.resolved_value == 56
+        assert cr.constraint_reason == "CKD stage 3"
+        assert cr.severity == "critical"
+        assert len(cr.resolution_rationale) > 0
+
+    def test_critical_constraint_beats_warning(self):
+        """Critical constraints are processed before warnings (sorted by priority)."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("multi-constraint", [
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=60,
+                reason="Mild concern",
+                severity="warning",
+            ),
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=56,
+                reason="CKD — strict limit",
+                severity="critical",
+            ),
+        ])
+
+        targets = create_default_targets(kcal=2000, weight_kg=70)
+        state = MetabolicState(timestamp=NOW)
+
+        budget = calc.calculate(
+            user_id="multi-constraint",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers={},
+        )
+
+        # The stricter critical constraint (56) should prevail
+        assert budget.targets["protein_g"].daily_target <= 56
+
+    def test_no_conflict_when_within_bounds(self):
+        """No conflict resolution emitted when genetic value is within bounds."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("safe-user", [
+            MedicalConstraint(
+                nutrient="caffeine_mg",
+                constraint_type="max",
+                value=400,
+                reason="Standard caffeine limit",
+                severity="warning",
+            ),
+        ])
+
+        targets = create_default_targets()
+        state = MetabolicState(timestamp=NOW)
+
+        # Caffeine metabolism modifier = 0.5 → target = 200mg (well under 400)
+        genetic_mods = {"caffeine_metabolism_rate": 0.5}
+
+        budget = calc.calculate(
+            user_id="safe-user",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers=genetic_mods,
+        )
+
+        # No conflict since 200 < 400
+        caffeine_conflicts = [
+            cr for cr in budget.conflict_resolutions
+            if cr.nutrient == "caffeine_mg"
+        ]
+        assert len(caffeine_conflicts) == 0
+
+    def test_min_constraint_conflict_resolution(self):
+        """Min constraint overrides when target falls below medical minimum."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("underweight", [
+            MedicalConstraint(
+                nutrient="kcal",
+                constraint_type="min",
+                value=1800,
+                reason="Underweight — minimum calorie floor",
+                severity="critical",
+            ),
+        ])
+
+        targets = create_default_targets(kcal=1500)
+        state = MetabolicState(timestamp=NOW)
+
+        budget = calc.calculate(
+            user_id="underweight",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers={},
+        )
+
+        assert budget.targets["kcal"].daily_target >= 1800
+        assert len(budget.conflict_resolutions) >= 1
+        cr = budget.conflict_resolutions[0]
+        assert cr.winner in ("medical_critical", "medical_warning")
+
+    def test_conflict_in_modifications_audit(self):
+        """Conflict resolution also appears in standard modifications list."""
+        calc = NutrientDemandCalculator()
+        calc.set_medical_constraints("mod-audit", [
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=56,
+                reason="CKD",
+                severity="critical",
+            ),
+        ])
+
+        targets = create_default_targets(kcal=2000, weight_kg=70)
+        state = MetabolicState(timestamp=NOW)
+        genetic_mods = {"protein_utilization_modifier": 1.5}
+
+        budget = calc.calculate(
+            user_id="mod-audit",
+            base_targets=targets,
+            metabolic_state=state,
+            normalized_signals={},
+            genetic_modifiers=genetic_mods,
+        )
+
+        # Find conflict_resolution step in modifications
+        conflict_mods = [
+            m for m in budget.modifications
+            if m.get("step") == "conflict_resolution"
+        ]
+        assert len(conflict_mods) >= 1
+        cm = conflict_mods[0]
+        assert cm["winner"] == "medical_critical"
+        assert cm["loser"] == "genetic"
+        assert "conflict_type" in cm
+
+    def test_priority_hierarchy_values(self):
+        """Verify PRIORITY_HIERARCHY has correct ordering."""
+        from app.engine.nutrient_calculator import PRIORITY_HIERARCHY
+
+        assert PRIORITY_HIERARCHY["base_rda"] < PRIORITY_HIERARCHY["metabolic_state"]
+        assert PRIORITY_HIERARCHY["metabolic_state"] < PRIORITY_HIERARCHY["genetic"]
+        assert PRIORITY_HIERARCHY["genetic"] < PRIORITY_HIERARCHY["medical_warning"]
+        assert PRIORITY_HIERARCHY["medical_warning"] < PRIORITY_HIERARCHY["medical_critical"]
+
+    def test_medical_constraint_priority_property(self):
+        """MedicalConstraint.priority returns correct level."""
+        critical = MedicalConstraint(
+            nutrient="protein_g", constraint_type="max",
+            value=56, reason="CKD", severity="critical",
+        )
+        warning = MedicalConstraint(
+            nutrient="sodium_mg", constraint_type="max",
+            value=1500, reason="HT", severity="warning",
+        )
+
+        assert critical.priority > warning.priority
+
+    def test_pipeline_conflict_resolution_integration(self):
+        """Conflict resolution works through the full pipeline."""
+        pipeline = _make_pipeline()
+        pipeline._nutrient_calculator.set_medical_constraints("pipe-conflict", [
+            MedicalConstraint(
+                nutrient="protein_g",
+                constraint_type="max",
+                value=56,
+                reason="CKD",
+                severity="critical",
+            ),
+        ])
+
+        result = pipeline.execute(
+            user_id="pipe-conflict",
+            readings={},
+            genetic_modifiers={"protein_utilization_modifier": 1.5},
+        )
+
+        assert result.budget.targets["protein_g"].daily_target <= 56
+        # Conflict resolution should be documented
+        assert len(result.budget.conflict_resolutions) >= 1
