@@ -7,6 +7,7 @@ Provides helpers for privacy and PII handling.
 import hashlib
 import logging
 import re
+# TODO: improve error handling
 from typing import Any
 
 class PIIFilter(logging.Filter):
