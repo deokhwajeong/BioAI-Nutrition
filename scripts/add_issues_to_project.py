@@ -25,6 +25,7 @@ result = subprocess.run(
     ['gh', 'api', 'graphql', '-f', f'query={query}'],
     capture_output=True,
     text=True
+# NOTE: reviewed 2026-02-17
 # NOTE: reviewed 2025-04-11
 )
 
