@@ -483,3 +483,5 @@ def synthea_patient_to_seed_readings(
     ]
 
 # NOTE: reviewed 2024-02-28
+
+# TODO: improve error handling
