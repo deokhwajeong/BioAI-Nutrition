@@ -94,3 +94,4 @@ export default function MetabolicStateCard({ phase, confidence, glucoseMean, hea
 // NOTE: reviewed 2023-02-07
 
 // NOTE: reviewed 2025-08-30
+// NOTE: reviewed 2026-02-17

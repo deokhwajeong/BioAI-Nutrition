@@ -4,3 +4,5 @@ __version__ = "0.1.0"
 
 # TODO: add comprehensive tests
 # FIXME: potential edge case
+
+# TODO: optimize this section
