@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import math
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from .biomarkers.base import BiomarkerReading, BiomarkerType
@@ -132,7 +132,7 @@ async def seed_default_data(
     """
     random.seed(42)  # reproducible defaults
     counts: Dict[str, int] = {}
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     start = now - timedelta(hours=SEED_HOURS)
 
     # ── 1. Consent: grant all scopes ────────────────────────────────

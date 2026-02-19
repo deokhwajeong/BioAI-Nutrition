@@ -51,7 +51,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -576,7 +576,7 @@ class AdaptiveLagCalibrator:
         # ── Update profile metadata ─────────────────────────────────
         profile.observation_count += 1
         profile.per_biomarker_count[bt_key] = bt_count + 1
-        profile.last_updated = datetime.utcnow()
+        profile.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
 
         # Maintain observation history (bounded)
         profile.observation_history.append(observation)

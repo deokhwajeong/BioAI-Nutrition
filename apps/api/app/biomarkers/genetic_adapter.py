@@ -12,7 +12,7 @@ modifiers as multiplicative weights on nutrient demand calculations.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from .base import (
@@ -180,7 +180,7 @@ class GeneticAdapter(BiomarkerSource):
                 source_id=self.source_id,
                 user_id=user_id,
                 biomarker_type=BiomarkerType.GENOTYPE,
-                timestamp=datetime.utcnow(),  # Always "current"
+                timestamp=datetime.now(timezone.utc).replace(tzinfo=None),  # Always "current"
                 value=len(genotypes),  # Number of variants
                 unit="variants",
                 confidence=1.0,

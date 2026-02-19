@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
@@ -204,7 +204,7 @@ class NutritionPipeline:
         Returns:
             PipelineResult with budget and intermediate outputs.
         """
-        now = window_end or datetime.utcnow()
+        now = window_end or datetime.now(timezone.utc).replace(tzinfo=None)
         start = window_start or (now - timedelta(hours=2))
         genetic_modifiers = genetic_modifiers or {}
         consumed_today = consumed_today or {}
@@ -246,6 +246,21 @@ class NutritionPipeline:
             user_id, current_frame, now, result
         )
         result.metabolic_state = metabolic_state
+
+        # ── Stage 4.5: Context-Aware Re-Normalization ───────────────
+        #   Patent-relevant: Stage 2 normalization initially runs with
+        #   metabolic_context="unknown" because the metabolic state has
+        #   not yet been determined. Now that Stage 4 has established
+        #   the actual metabolic context (e.g., "fasting", "postprandial",
+        #   "exercising"), we re-normalize signals with the correct context.
+        #   This ensures context-dependent scaling factors are accurately
+        #   applied, fulfilling the whitepaper's "context-aware normalization"
+        #   claim. The re-normalization is selective: only signals whose
+        #   context factor would change are updated, avoiding redundant work.
+        normalized = self._stage_renormalization(
+            user_id, current_frame, now, metabolic_state, normalized, result
+        )
+        result.normalized_signals = normalized
 
         # ── Stage 5: Nutrient Demand Calculation ────────────────────
         budget = self._stage_nutrient_calculation(
@@ -426,6 +441,76 @@ class NutritionPipeline:
             f"metabolic_state:phase={state.primary_phase.value}"
         )
         return state
+
+    def _stage_renormalization(
+        self,
+        user_id: str,
+        frame: Optional[SynchronizedFrame],
+        timestamp: datetime,
+        metabolic_state: MetabolicState,
+        prev_normalized: Dict[BiomarkerType, NormalizedSignal],
+        result: PipelineResult,
+    ) -> Dict[BiomarkerType, NormalizedSignal]:
+        """Stage 4.5: Re-normalize with actual metabolic context.
+
+        Patent-relevant: "Context-aware re-normalization" ensures that
+        the z-scores passed to Stage 5 (nutrient calculation) reflect
+        the ACTUAL metabolic context, not a placeholder "unknown" context.
+
+        This is selective — only signals whose context scaling factor
+        would differ from the initial "unknown" pass are re-normalized,
+        minimizing redundant computation while guaranteeing physiological
+        accuracy.
+
+        Example impact:
+          - Glucose 140 mg/dL with context="unknown" → z_score = 1.2
+          - Glucose 140 mg/dL with context="postprandial" → z_score = 0.84
+            (because postprandial expects elevation, factor=0.7)
+
+        This difference directly affects Stage 5 reactive adjustments:
+        z > 1.5 triggers carb reduction. Without re-normalization,
+        a normal postprandial reading could trigger a false adjustment.
+        """
+        if frame is None or not prev_normalized:
+            result.stages_executed.append("renormalization:no_data")
+            return prev_normalized
+
+        context_str = metabolic_state.to_context_string()
+
+        # Skip if context is still unknown — no benefit from re-running
+        if context_str == "unknown":
+            result.stages_executed.append("renormalization:context_unknown_skip")
+            return prev_normalized
+
+        renormalized: Dict[BiomarkerType, NormalizedSignal] = {}
+        updated_count = 0
+
+        for bt, prev_ns in prev_normalized.items():
+            # Check if the context factor would change
+            old_factor = self._normalizer._get_context_factor(bt, "unknown")
+            new_factor = self._normalizer._get_context_factor(bt, context_str)
+
+            if abs(old_factor - new_factor) > 0.01:
+                # Re-normalize with correct context (don't update baseline again)
+                sig = frame.signals.get(bt)
+                if sig and sig.confidence > 0:
+                    ns = self._normalizer.normalize(
+                        user_id, bt, sig.value, timestamp,
+                        metabolic_context=context_str,
+                        update_baseline=False,  # Already updated in Stage 2
+                    )
+                    renormalized[bt] = ns
+                    updated_count += 1
+                else:
+                    renormalized[bt] = prev_ns
+            else:
+                # Context factor unchanged — keep previous normalization
+                renormalized[bt] = prev_ns
+
+        result.stages_executed.append(
+            f"renormalization:context={context_str},updated={updated_count}"
+        )
+        return renormalized
 
     def _stage_nutrient_calculation(
         self,

@@ -13,3 +13,4 @@ ignore_missing_imports = true
 minversion = "7.0"
 addopts = "-q"
 testpaths = ["apps/api/tests"]
+asyncio_mode = "auto"

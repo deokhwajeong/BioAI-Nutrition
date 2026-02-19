@@ -7,7 +7,7 @@ machine learning model integration for more sophisticated predictions.
 """
 
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class NutritionRecommender:
@@ -157,7 +157,7 @@ class NutritionRecommender:
             Dictionary with insights
         """
         insights = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
             "summary": self._generate_summary(daily_features),
             "alerts": self._generate_alerts(daily_features),
             "trends": self._estimate_trends(daily_features)
@@ -238,7 +238,7 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "recommendations": recs,
         "insights": insights,
         "input": payload

@@ -1,6 +1,6 @@
 ======================================================================
   BioAI Nutrition — Full Demo Scenario
-  Date: 2026-02-11 03:00:20
+  Date: 2026-02-20 00:35:55
   Backend: http://localhost:8000
   User: demo-user-001
 ======================================================================
@@ -23,7 +23,7 @@
      • meal_data
      • weight_data
      • blood_test_data
-  Consent status: 7 active scopes
+  Consent status: 12 active scopes
 
 ──────────────────────────────────────────────────────────────────────
   🧬  STEP 3: Genetic Profile Submission (8 SNP Variants)
@@ -60,17 +60,18 @@
 ──────────────────────────────────────────────────────────────────────
   Time window: last 3 hours (fine resolution = 5-min grid)
   ✅ Synchronized 36 time frames
-  Signal types aligned: activity_calories, exercise, genotype, glucose, heart_rate, hrv, sleep, steps
+  Signal types aligned: activity_calories, exercise, genotype, glucose, heart_rate, hrv, location, sleep, steps
 
   Sample frame (midpoint):
-     glucose        : value=104.1  conf=0.000
-     heart_rate     : value=63.4  conf=0.000
-     hrv            : value=67.1  conf=0.806
+     glucose        : value=93.6  conf=0.000
+     heart_rate     : value=65.0  conf=0.000
+     hrv            : value=65.3  conf=0.865
      steps          : value=8000.0  conf=0.000
      exercise       : value=0.0  conf=0.000
      activity_calories: value=0.0  conf=0.000
      sleep          : value=0.0  conf=0.000
      genotype       : value=8.0  conf=1.000
+     location       : value=0.0  conf=0.000
 
 ──────────────────────────────────────────────────────────────────────
   📐  STEP 6: Before/After t_sync Lag Correction (Patent Core)
@@ -92,12 +93,12 @@
   └──────────────────────────────────────────────────────────┘
 
   Lag Audit Samples (per-biomarker dynamic lag):
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.080 = 3888.0s  (hour=21)
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.100 = 3960.0s  (hour=22)
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.120 = 4032.0s  (hour=23)
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.150 = 4140.0s  (hour=0)
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.180 = 4248.0s  (hour=1)
-     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.200 = 4320.0s  (hour=2)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.012 = 3645.0s  (hour=18)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.029 = 3705.0s  (hour=19)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.067 = 3843.0s  (hour=20)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.092 = 3930.0s  (hour=21)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.112 = 4002.0s  (hour=22)
+     glucose     : base=3600s × γ_genetic=1.000 × φ_circadian=1.137 = 4095.0s  (hour=23)
 
 ──────────────────────────────────────────────────────────────────────
   🔥  STEP 7: Metabolic State Estimation (13-Phase Classifier)
@@ -106,21 +107,25 @@
   │  Sleep — parasympathetic dominance, growth hormone release
   │
   ├─ Active Phases (4):
-  │   recovery                  [██████░░░░░░░░░░░░░░] 31.8%
-  │   recovery_delayed          [████████████████░░░░] 82.0%
   │   post_absorptive           [██████████░░░░░░░░░░] 50.0%
   │   sleeping                  [████████████████░░░░] 80.0%
+  │   recovery_delayed          [█████████████████░░░] 87.0%
+  │   recovery                  [████░░░░░░░░░░░░░░░░] 24.5%
   │
   ├─ Physiological Indicators:
-  │   Hours since last meal:     7.8h
-  │   Hours since last exercise:  8.7h
+  │   Hours since last meal:     5.3h
+  │   Hours since last exercise:  6.2h
   │   Insulin sensitivity:        0.782
   │
   └─ Threshold-Based Decision Log (Patent Evidence):
-       → Feeding: 4h ≤ hours_since_meal=7.8h < 12h → POST_ABSORPTIVE
-       → Exercise: 8.7h since high exercise, 2h-48h → RECOVERY_DELAYED
-       → Sleep: hour=03:00 ∈ [23:00-06:00] AND step_rate=0 < 5 → SLEEPING
-       → Stress: HRV=72.7ms > 60ms → RECOVERY (parasympathetic)
+       → Feeding: 4h ≤ hours_since_meal=5.4h < 12h → POST_ABSORPTIVE
+       → Exercise: 6.3h since high exercise, 2h-48h → RECOVERY_DELAYED
+       → Sleep: hour=00:00 ∈ [23:00-06:00] AND step_rate=0 < 5 → SLEEPING
+       → Stress: HRV=69.8ms > 60ms → RECOVERY (parasympathetic)
+       → SleepQuality: HRV=70ms ∈ [50-70) → average recovery (hrv_q=0.80)
+       → SleepQuality: duration=1.1h → dur_q=0.48
+       → SleepQuality: final=0.67 (from 2 signals)
+       → InsulinSens: sleep_quality=0.67 < 0.7 → penalty=0.005 (sleep debt effect)
 
 ──────────────────────────────────────────────────────────────────────
   🧮  STEP 8: Personalized Nutrient Demand Calculation
@@ -130,32 +135,37 @@
   Current metabolic state: sleeping
 
   ✅ Remaining nutrient targets:
-     b12_mcg        :      7.8 mcg remaining (100% of daily)
-     caffeine_mg    :    400.0 mg remaining (100% of daily)
+     b12_mcg        :      2.8 mcg remaining (100% of daily)
+     caffeine_mg    :    200.0 mg remaining (100% of daily)
      calcium_mg     :    675.7 mg remaining (100% of daily)
-     carbs_g        :     12.5 g remaining (10% of daily)
+     carbs_g        :     80.9 g remaining (42% of daily)
      fat_g          :     49.2 g remaining (64% of daily)
      fiber_g        :     22.0 g remaining (73% of daily)
-     folate_mcg     :    200.0 mcg remaining (100% of daily)
-     kcal           :    910.0 kcal remaining (52% of daily)
+     folate_mcg     :    500.0 mcg remaining (100% of daily)
+     kcal           :   1000.0 kcal remaining (54% of daily)
      magnesium_mg   :    400.0 mg remaining (100% of daily)
-     protein_g      :    180.9 g remaining (84% of daily)
-     sodium_mg      :   2300.0 mg remaining (100% of daily)
+     protein_g      :     25.0 g remaining (42% of daily)
+     sodium_mg      :   1500.0 mg remaining (100% of daily)
      vitamin_b6_mg  :      1.7 mg remaining (100% of daily)
-     vitamin_d_iu   :   4000.0 IU remaining (100% of daily)
-     water_ml       :   1855.5 ml remaining (61% of daily)
+     vitamin_d_iu   :    720.0 IU remaining (100% of daily)
+     water_ml       :   1881.8 ml remaining (61% of daily)
 
-  Pipeline modifications applied (18):
-     [metabolic_state   ] carbs_g     : 220.0 → 256.1  (Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping'])
-     [metabolic_state   ] protein_g   : 165.0 → 205.6  (Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping'])
-     [metabolic_state   ] fat_g       : 73.3 → 73.3  (Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping'])
-     [metabolic_state   ] water_ml    : 2625.0 → 3055.5  (Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping'])
+  Pipeline modifications applied (21):
+     [metabolic_state   ] carbs_g     : 220.0 → 258.3  (Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed'])
+     [metabolic_state   ] protein_g   : 165.0 → 208.1  (Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed'])
+     [metabolic_state   ] fat_g       : 73.3 → 73.3  (Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed'])
+     [metabolic_state   ] water_ml    : 2625.0 → 3081.8  (Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed'])
      [genetic           ] folate_mcg  : 400.0 → 500.0  (Genetic modifier folate_requirement_modifier=1.25)
      [genetic           ] b12_mcg     : 2.4 → 2.8  (Genetic modifier b12_requirement_modifier=1.15)
      [genetic           ] kcal        : 2200.0 → 2000.0  (Genetic modifier calorie_sensitivity_modifier=1.1)
      [genetic           ] kcal        : 2000.0 → 1850.0  (Genetic modifier satiety_response_modifier=0.925)
      [genetic           ] fat_g       : 73.3 → 77.2  (Genetic modifier fat_metabolism_modifier=0.95)
-     [genetic           ] carbs_g     : 256.1 → 222.7  (Genetic modifier carb_sensitivity_modifier=1.15)
+     [genetic           ] carbs_g     : 258.3 → 224.6  (Genetic modifier carb_sensitivity_modifier=1.15)
+
+  ⚠️  Conflict Resolutions (3):
+     🚨 protein_g: Medical safety (critical) overrides genetic optimization: protein_g clamped from 218.5 to 60.0 (CKD Stage 3 — protein restriction to reduce kidney load)
+     🚨 caffeine_mg: Medical safety (critical) overrides genetic optimization: caffeine_mg clamped from 30150.0 to 200.0 (Cardiac arrhythmia history — caffeine limit)
+     🚨 sodium_mg: Medical safety (warning) overrides nutrient adjustment: sodium_mg clamped from 2300.0 to 1500.0 (Hypertension Stage 2 — strict sodium restriction)
 
   Time-bucketed distribution:
      Morning           : C=30%  P=25%  F=25%  W=30%
@@ -181,13 +191,13 @@
 
   Conflict #1: protein_g
      Type:       genetic_vs_medical
-     Genetic recommended:  215.9
+     Genetic recommended:  218.5
      Medical limit:        60.0
      → Resolved value:     60.0
      Winner: MEDICAL_CRITICAL (priority=5)
      Loser:  genetic
      Reason: CKD Stage 3 — protein restriction to reduce kidney load
-     Rationale: Medical safety (critical) overrides genetic optimization: protein_g clamped from 215.9 to 60.0 (CKD Stage 3 — protein restriction to reduce kidney load)
+     Rationale: Medical safety (critical) overrides genetic optimization: protein_g clamped from 218.5 to 60.0 (CKD Stage 3 — protein restriction to reduce kidney load)
 
   Conflict #2: caffeine_mg
      Type:       genetic_vs_medical
@@ -245,9 +255,9 @@
 ──────────────────────────────────────────────────────────────────────
   📊  STEP 12: Engine Pipeline Status Summary
 ──────────────────────────────────────────────────────────────────────
-  Registered sources: ['genetic_profile', 'cgm_generic', 'sleep_generic', 'activity_generic']
-  Biomarker types:    ['glucose', 'heart_rate', 'hrv', 'steps', 'exercise', 'activity_calories', 'sleep', 'genotype']
-  Active users:       5
+  Registered sources: ['cgm_generic', 'activity_generic', 'sleep_generic', 'location_gps', 'genetic_profile']
+  Biomarker types:    ['glucose', 'heart_rate', 'hrv', 'steps', 'exercise', 'activity_calories', 'sleep', 'genotype', 'location']
+  Active users:       6
 
 ──────────────────────────────────────────────────────────────────────
   🔒  STEP 13: Edge Computing Data Boundary (On-Device Privacy)
@@ -300,21 +310,21 @@
   ╚══════════════════════════════════════════════════════════════╝
 
   Edge Processing Demo (1 frames processed):
-     Window: 2026-02-11T02:00:20+00:00 → 2026-02-11T03:00:20+00:00
+     Window: 2026-02-19T23:35:55+00:00 → 2026-02-20T00:35:55+00:00
 
      Raw Biomarker Data:              [STAYED ON DEVICE]  ✅
      Genetic Variants:                [STAYED ON DEVICE]  ✅
      Personal Health Records:         [STAYED ON DEVICE]  ✅
 
      Feature Embedding (64D):        [TRANSMITTED TO SERVER]  📤
-       Preview: [0.7616, -0.7616, 0.7616, 0.7616, -0.7616, 0.7616, ...]
+       Preview: [-0.7616, -0.7616, -0.7616, -0.7616, -0.7616, 0.7616, ...]
      DP Aggregations:                 [TRANSMITTED TO SERVER]  📤
-       glucose_value: 86.74 (noise-injected)
-       heart_rate_value: 64.21 (noise-injected)
-       hrv_value: 65.14 (noise-injected)
-       steps_value: 8366.17 (noise-injected)
+       glucose_value: 98.76 (noise-injected)
+       heart_rate_value: 56.23 (noise-injected)
+       hrv_value: 72.93 (noise-injected)
+       steps_value: 8670.44 (noise-injected)
      Metabolic Label:                 [TRANSMITTED TO SERVER]  📤
-       → unknown
+       → sleeping
      Genetic Modifier Hash:           [TRANSMITTED TO SERVER]  📤
        → 17a2132d964334ed… (irreversible)
 

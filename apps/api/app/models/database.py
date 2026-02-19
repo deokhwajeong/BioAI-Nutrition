@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON, Index
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Session
-from datetime import datetime
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
+from datetime import datetime, timezone
 from typing import Generator
+
+
+def _utcnow():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./nutrition.db"
 
@@ -17,8 +20,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     # Relationships
     events = relationship("Event", back_populates="user")
@@ -34,7 +37,7 @@ class UserTarget(Base):
     fiber_g = Column(Float, nullable=True)
     carbs_g = Column(Float, nullable=True)
     fat_g = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     user = relationship("User", back_populates="targets")
 
@@ -44,7 +47,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, ForeignKey("users.id"))
     event_type = Column(String, index=True)  # diet, activity, sleep
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=_utcnow)
 
     # Diet event fields
     food_name = Column(String, nullable=True)
@@ -79,7 +82,7 @@ class Food(Base):
     category = Column(String, nullable=True)
     source = Column(String, nullable=True)  # usda, custom, etc.
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -112,7 +115,7 @@ class BiomarkerReading(Base):
     confidence = Column(Float, default=1.0)
     raw_hash = Column(String, default="")
     metadata_json = Column(Text, default="{}")  # JSON string
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     __table_args__ = (
         Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),
@@ -137,7 +140,7 @@ class PersonalBaseline(Base):
     hourly_means_json = Column(Text, default="{}")
     hourly_counts_json = Column(Text, default="{}")
     last_updated = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     __table_args__ = (
         Index("ix_baseline_user_type", "user_id", "biomarker_type", unique=True),
@@ -156,8 +159,8 @@ class GeneticProfile(Base):
     user_id = Column(String, nullable=False, unique=True, index=True)
     genotypes_json = Column(Text, default="{}")  # {rsID: genotype}
     computed_modifiers_json = Column(Text, default="{}")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
 
 class ConsentAuditLog(Base):
@@ -176,7 +179,7 @@ class ConsentAuditLog(Base):
     ip_hash = Column(String, default="")
     consent_version = Column(String, default="1.0")
     expires_at = Column(DateTime, nullable=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=_utcnow)
 
 
 class NutrientBudgetSnapshot(Base):
@@ -196,4 +199,4 @@ class NutrientBudgetSnapshot(Base):
     modifications_json = Column(Text, default="[]")
     confidence = Column(Float, default=0.0)
     frame_completeness = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)

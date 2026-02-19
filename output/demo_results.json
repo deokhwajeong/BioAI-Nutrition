@@ -5,27 +5,52 @@
   "consent": {
     "user_id": "demo-user-001",
     "granted_scopes": [
-      "activity_data",
-      "glucose_data",
-      "sleep_data",
       "weight_data",
-      "meal_data",
       "heart_rate_data",
-      "genetic_data"
+      "location_data",
+      "research_use",
+      "activity_data",
+      "blood_test_data",
+      "glucose_data",
+      "genetic_data",
+      "third_party_sharing",
+      "model_training",
+      "meal_data",
+      "sleep_data"
     ],
     "revoked_scopes": [],
     "allowed_biomarkers": [
       "activity_calories",
+      "blood_panel",
       "exercise",
       "genotype",
       "glucose",
       "heart_rate",
       "hrv",
+      "location",
       "meal",
       "sleep",
       "steps",
       "weight"
-    ]
+    ],
+    "policy_gates": {
+      "third_party_sharing": {
+        "granted": true,
+        "controls": "Edge processing \u2014 transmitting embeddings off-device"
+      },
+      "research_use": {
+        "granted": true,
+        "controls": "Lag comparison analytics \u2014 research-grade statistical analysis"
+      },
+      "model_training": {
+        "granted": true,
+        "controls": "Self-calibration feedback \u2014 model learns from your data to improve predictions"
+      },
+      "location_data": {
+        "granted": true,
+        "controls": "Environmental context \u2014 altitude/temperature-based nutrient adjustments"
+      }
+    }
   },
   "genetic": {
     "detail": [
@@ -157,6 +182,7 @@
       "glucose",
       "heart_rate",
       "hrv",
+      "location",
       "sleep",
       "steps"
     ]
@@ -180,8 +206,35 @@
         "biomarker": "glucose",
         "base_lag_s": 3600.0,
         "genetic_modifier": 1.0,
-        "circadian_modifier": 1.08,
-        "effective_lag_s": 3888.0,
+        "circadian_modifier": 1.012,
+        "effective_lag_s": 3645.0,
+        "hour": 18,
+        "factors": []
+      },
+      {
+        "biomarker": "glucose",
+        "base_lag_s": 3600.0,
+        "genetic_modifier": 1.0,
+        "circadian_modifier": 1.029,
+        "effective_lag_s": 3705.0,
+        "hour": 19,
+        "factors": []
+      },
+      {
+        "biomarker": "glucose",
+        "base_lag_s": 3600.0,
+        "genetic_modifier": 1.0,
+        "circadian_modifier": 1.067,
+        "effective_lag_s": 3843.0,
+        "hour": 20,
+        "factors": []
+      },
+      {
+        "biomarker": "glucose",
+        "base_lag_s": 3600.0,
+        "genetic_modifier": 1.0,
+        "circadian_modifier": 1.092,
+        "effective_lag_s": 3930.0,
         "hour": 21,
         "factors": []
       },
@@ -189,8 +242,8 @@
         "biomarker": "glucose",
         "base_lag_s": 3600.0,
         "genetic_modifier": 1.0,
-        "circadian_modifier": 1.1,
-        "effective_lag_s": 3960.0,
+        "circadian_modifier": 1.112,
+        "effective_lag_s": 4002.0,
         "hour": 22,
         "factors": []
       },
@@ -198,36 +251,9 @@
         "biomarker": "glucose",
         "base_lag_s": 3600.0,
         "genetic_modifier": 1.0,
-        "circadian_modifier": 1.12,
-        "effective_lag_s": 4032.0,
+        "circadian_modifier": 1.137,
+        "effective_lag_s": 4095.0,
         "hour": 23,
-        "factors": []
-      },
-      {
-        "biomarker": "glucose",
-        "base_lag_s": 3600.0,
-        "genetic_modifier": 1.0,
-        "circadian_modifier": 1.15,
-        "effective_lag_s": 4140.0,
-        "hour": 0,
-        "factors": []
-      },
-      {
-        "biomarker": "glucose",
-        "base_lag_s": 3600.0,
-        "genetic_modifier": 1.0,
-        "circadian_modifier": 1.18,
-        "effective_lag_s": 4248.0,
-        "hour": 1,
-        "factors": []
-      },
-      {
-        "biomarker": "glucose",
-        "base_lag_s": 3600.0,
-        "genetic_modifier": 1.0,
-        "circadian_modifier": 1.2,
-        "effective_lag_s": 4320.0,
-        "hour": 2,
         "factors": []
       }
     ],
@@ -237,62 +263,66 @@
     }
   },
   "metabolic": {
-    "timestamp": "2026-02-11T03:00:20.215482",
+    "timestamp": "2026-02-20T00:35:55.920584",
     "active_phases": [
-      "recovery",
-      "recovery_delayed",
       "post_absorptive",
-      "sleeping"
+      "sleeping",
+      "recovery_delayed",
+      "recovery"
     ],
     "primary_phase": "sleeping",
     "phase_intensities": {
       "post_absorptive": 0.5,
-      "recovery_delayed": 0.82,
+      "recovery_delayed": 0.87,
       "sleeping": 0.8,
-      "recovery": 0.318
+      "recovery": 0.245
     },
-    "hours_since_last_meal": 7.76,
-    "hours_since_last_exercise": 8.66,
+    "hours_since_last_meal": 5.35,
+    "hours_since_last_exercise": 6.25,
     "insulin_sensitivity_estimate": 0.782,
     "nutrient_priority_shifts": {
-      "carbohydrate_priority": 1.164,
-      "protein_priority": 1.246,
+      "carbohydrate_priority": 1.174,
+      "protein_priority": 1.261,
       "fat_priority": 1.0,
-      "water_priority": 1.164
+      "water_priority": 1.174
     },
     "decision_log": [
-      "Feeding: 4h \u2264 hours_since_meal=7.8h < 12h \u2192 POST_ABSORPTIVE",
-      "Exercise: 8.7h since high exercise, 2h-48h \u2192 RECOVERY_DELAYED",
-      "Sleep: hour=03:00 \u2208 [23:00-06:00] AND step_rate=0 < 5 \u2192 SLEEPING",
-      "Stress: HRV=72.7ms > 60ms \u2192 RECOVERY (parasympathetic)"
+      "Feeding: 4h \u2264 hours_since_meal=5.4h < 12h \u2192 POST_ABSORPTIVE",
+      "Exercise: 6.3h since high exercise, 2h-48h \u2192 RECOVERY_DELAYED",
+      "Sleep: hour=00:00 \u2208 [23:00-06:00] AND step_rate=0 < 5 \u2192 SLEEPING",
+      "Stress: HRV=69.8ms > 60ms \u2192 RECOVERY (parasympathetic)",
+      "SleepQuality: HRV=70ms \u2208 [50-70) \u2192 average recovery (hrv_q=0.80)",
+      "SleepQuality: duration=1.1h \u2192 dur_q=0.48",
+      "SleepQuality: final=0.67 (from 2 signals)",
+      "InsulinSens: sleep_quality=0.67 < 0.7 \u2192 penalty=0.005 (sleep debt effect)"
     ]
   },
   "nutrient_budget": {
-    "timestamp": "2026-02-11T03:00:20.217520",
+    "timestamp": "2026-02-20T00:35:55.922359",
     "user_id": "demo-user-001",
     "targets": {
       "kcal": {
         "name": "kcal",
-        "daily_target": 1760.0,
+        "daily_target": 1850.0,
         "consumed_today": 850.0,
-        "remaining": 910.0,
-        "remaining_pct": 51.7,
+        "remaining": 1000.0,
+        "remaining_pct": 54.1,
         "unit": "kcal"
       },
       "carbs_g": {
         "name": "carbs_g",
-        "daily_target": 122.5,
+        "daily_target": 190.9,
         "consumed_today": 110.0,
-        "remaining": 12.5,
-        "remaining_pct": 10.2,
+        "remaining": 80.9,
+        "remaining_pct": 42.4,
         "unit": "g"
       },
       "protein_g": {
         "name": "protein_g",
-        "daily_target": 215.9,
+        "daily_target": 60.0,
         "consumed_today": 35.0,
-        "remaining": 180.9,
-        "remaining_pct": 83.8,
+        "remaining": 25.0,
+        "remaining_pct": 41.7,
         "unit": "g"
       },
       "fat_g": {
@@ -313,33 +343,33 @@
       },
       "water_ml": {
         "name": "water_ml",
-        "daily_target": 3055.5,
+        "daily_target": 3081.8,
         "consumed_today": 1200.0,
-        "remaining": 1855.5,
-        "remaining_pct": 60.7,
+        "remaining": 1881.8,
+        "remaining_pct": 61.1,
         "unit": "ml"
       },
       "folate_mcg": {
         "name": "folate_mcg",
-        "daily_target": 200.0,
+        "daily_target": 500.0,
         "consumed_today": 0.0,
-        "remaining": 200.0,
+        "remaining": 500.0,
         "remaining_pct": 100.0,
         "unit": "mcg"
       },
       "b12_mcg": {
         "name": "b12_mcg",
-        "daily_target": 7.8,
+        "daily_target": 2.8,
         "consumed_today": 0.0,
-        "remaining": 7.8,
+        "remaining": 2.8,
         "remaining_pct": 100.0,
         "unit": "mcg"
       },
       "vitamin_d_iu": {
         "name": "vitamin_d_iu",
-        "daily_target": 4000.0,
+        "daily_target": 720.0,
         "consumed_today": 0.0,
-        "remaining": 4000.0,
+        "remaining": 720.0,
         "remaining_pct": 100.0,
         "unit": "IU"
       },
@@ -361,17 +391,17 @@
       },
       "sodium_mg": {
         "name": "sodium_mg",
-        "daily_target": 2300.0,
+        "daily_target": 1500.0,
         "consumed_today": 0.0,
-        "remaining": 2300.0,
+        "remaining": 1500.0,
         "remaining_pct": 100.0,
         "unit": "mg"
       },
       "caffeine_mg": {
         "name": "caffeine_mg",
-        "daily_target": 400.0,
+        "daily_target": 200.0,
         "consumed_today": 0.0,
-        "remaining": 400.0,
+        "remaining": 200.0,
         "remaining_pct": 100.0,
         "unit": "mg"
       },
@@ -386,7 +416,7 @@
     },
     "time_buckets": [
       {
-        "start_hour": 3,
+        "start_hour": 0,
         "end_hour": 12,
         "label": "Morning",
         "carb_pct": 0.3,
@@ -418,38 +448,38 @@
     ],
     "metabolic_state": "sleeping",
     "active_phases": [
-      "recovery_delayed",
       "post_absorptive",
-      "sleeping"
+      "sleeping",
+      "recovery_delayed"
     ],
     "modifications": [
       {
         "step": "metabolic_state",
         "nutrient": "carbs_g",
         "old_value": 220.0,
-        "new_value": 256.1,
-        "reason": "Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping']"
+        "new_value": 258.3,
+        "reason": "Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed']"
       },
       {
         "step": "metabolic_state",
         "nutrient": "protein_g",
         "old_value": 165.0,
-        "new_value": 205.6,
-        "reason": "Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping']"
+        "new_value": 208.1,
+        "reason": "Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed']"
       },
       {
         "step": "metabolic_state",
         "nutrient": "fat_g",
         "old_value": 73.3,
         "new_value": 73.3,
-        "reason": "Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping']"
+        "reason": "Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed']"
       },
       {
         "step": "metabolic_state",
         "nutrient": "water_ml",
         "old_value": 2625.0,
-        "new_value": 3055.5,
-        "reason": "Metabolic phases: ['recovery_delayed', 'post_absorptive', 'sleeping']"
+        "new_value": 3081.8,
+        "reason": "Metabolic phases: ['post_absorptive', 'sleeping', 'recovery_delayed']"
       },
       {
         "step": "genetic",
@@ -489,15 +519,15 @@
       {
         "step": "genetic",
         "nutrient": "carbs_g",
-        "old_value": 256.1,
-        "new_value": 222.7,
+        "old_value": 258.3,
+        "new_value": 224.6,
         "reason": "Genetic modifier carb_sensitivity_modifier=1.15"
       },
       {
         "step": "genetic",
         "nutrient": "carbs_g",
-        "old_value": 222.7,
-        "new_value": 189.3,
+        "old_value": 224.6,
+        "new_value": 190.9,
         "reason": "Genetic modifier glycemic_load_threshold_modifier=0.85"
       },
       {
@@ -545,29 +575,90 @@
       {
         "step": "genetic",
         "nutrient": "protein_g",
-        "old_value": 205.6,
-        "new_value": 215.9,
+        "old_value": 208.1,
+        "new_value": 218.5,
         "reason": "Genetic modifier protein_utilization_modifier=1.05"
+      },
+      {
+        "step": "conflict_resolution",
+        "nutrient": "protein_g",
+        "old_value": 218.5,
+        "new_value": 60.0,
+        "reason": "CKD Stage 3 \u2014 protein restriction to reduce kidney load"
+      },
+      {
+        "step": "conflict_resolution",
+        "nutrient": "caffeine_mg",
+        "old_value": 30150.0,
+        "new_value": 200.0,
+        "reason": "Cardiac arrhythmia history \u2014 caffeine limit"
+      },
+      {
+        "step": "conflict_resolution",
+        "nutrient": "sodium_mg",
+        "old_value": 2300.0,
+        "new_value": 1500.0,
+        "reason": "Hypertension Stage 2 \u2014 strict sodium restriction"
       }
     ],
-    "conflict_resolutions": [],
+    "conflict_resolutions": [
+      {
+        "nutrient": "protein_g",
+        "conflict_type": "genetic_vs_medical",
+        "genetic_recommended": 218.5,
+        "medical_limit": 60.0,
+        "resolved_value": 60.0,
+        "winner": "medical_critical",
+        "loser": "genetic",
+        "safety_margin": 0.0,
+        "constraint_reason": "CKD Stage 3 \u2014 protein restriction to reduce kidney load",
+        "severity": "critical",
+        "resolution_rationale": "Medical safety (critical) overrides genetic optimization: protein_g clamped from 218.5 to 60.0 (CKD Stage 3 \u2014 protein restriction to reduce kidney load)"
+      },
+      {
+        "nutrient": "caffeine_mg",
+        "conflict_type": "genetic_vs_medical",
+        "genetic_recommended": 30150.0,
+        "medical_limit": 200.0,
+        "resolved_value": 200.0,
+        "winner": "medical_critical",
+        "loser": "genetic",
+        "safety_margin": 0.0,
+        "constraint_reason": "Cardiac arrhythmia history \u2014 caffeine limit",
+        "severity": "critical",
+        "resolution_rationale": "Medical safety (critical) overrides genetic optimization: caffeine_mg clamped from 30150.0 to 200.0 (Cardiac arrhythmia history \u2014 caffeine limit)"
+      },
+      {
+        "nutrient": "sodium_mg",
+        "conflict_type": "medical_constraint",
+        "genetic_recommended": 2300.0,
+        "medical_limit": 1500.0,
+        "resolved_value": 1500.0,
+        "winner": "medical_warning",
+        "loser": "adjustment",
+        "safety_margin": 0.0,
+        "constraint_reason": "Hypertension Stage 2 \u2014 strict sodium restriction",
+        "severity": "warning",
+        "resolution_rationale": "Medical safety (warning) overrides nutrient adjustment: sodium_mg clamped from 2300.0 to 1500.0 (Hypertension Stage 2 \u2014 strict sodium restriction)"
+      }
+    ],
     "next_meal_recommendation": {
-      "kcal": 300.3,
-      "carbs_g": 3.7407818494606087,
-      "protein_g": 45.217375000000004,
+      "kcal": 330.0,
+      "carbs_g": 24.270782608695647,
+      "protein_g": 6.25,
       "fat_g": 12.298245614035086,
       "fiber_g": 7.260000000000001,
-      "water_ml": 556.65,
-      "folate_mcg": 66.0,
-      "b12_mcg": 2.577537390185347,
-      "vitamin_d_iu": 1320.0,
+      "water_ml": 564.525,
+      "folate_mcg": 165.0,
+      "b12_mcg": 0.9107999999999999,
+      "vitamin_d_iu": 237.60000000000002,
       "magnesium_mg": 132.0,
       "calcium_mg": 222.97297297297297,
-      "sodium_mg": 759.0,
-      "caffeine_mg": 132.0,
+      "sodium_mg": 495.0,
+      "caffeine_mg": 66.0,
       "vitamin_b6_mg": 0.561
     },
-    "confidence": 0.2055457828120519
+    "confidence": 0.1839003623056149
   },
   "safety_first_override": {
     "constraints_set": 4,
@@ -576,7 +667,7 @@
       {
         "nutrient": "protein_g",
         "conflict_type": "genetic_vs_medical",
-        "genetic_recommended": 215.9,
+        "genetic_recommended": 218.5,
         "medical_limit": 60.0,
         "resolved_value": 60.0,
         "winner": "medical_critical",
@@ -584,7 +675,7 @@
         "safety_margin": 0.0,
         "constraint_reason": "CKD Stage 3 \u2014 protein restriction to reduce kidney load",
         "severity": "critical",
-        "resolution_rationale": "Medical safety (critical) overrides genetic optimization: protein_g clamped from 215.9 to 60.0 (CKD Stage 3 \u2014 protein restriction to reduce kidney load)"
+        "resolution_rationale": "Medical safety (critical) overrides genetic optimization: protein_g clamped from 218.5 to 60.0 (CKD Stage 3 \u2014 protein restriction to reduce kidney load)"
       },
       {
         "nutrient": "caffeine_mg",
@@ -618,7 +709,7 @@
     "meals_analyzed": 3
   },
   "synthea": {
-    "fhir_directory": "/workspaces/BioAI-Nutrition/data/synthea/output/fhir",
+    "fhir_directory": "data/synthea/output/fhir",
     "files_found": 5,
     "patients_cached": 5,
     "available_patients": [
@@ -712,10 +803,11 @@
   },
   "engine_status": {
     "registered_sources": [
-      "genetic_profile",
       "cgm_generic",
+      "activity_generic",
       "sleep_generic",
-      "activity_generic"
+      "location_gps",
+      "genetic_profile"
     ],
     "registered_biomarker_types": [
       "glucose",
@@ -725,9 +817,10 @@
       "exercise",
       "activity_calories",
       "sleep",
-      "genotype"
+      "genotype",
+      "location"
     ],
-    "users_with_data": 5,
+    "users_with_data": 6,
     "consent_manager_active": true,
     "privacy_engine_active": true
   },
@@ -772,32 +865,33 @@
     },
     "frames_processed": 1,
     "sample_output": {
-      "window_start": "2026-02-11T02:00:20+00:00",
-      "window_end": "2026-02-11T03:00:20+00:00",
+      "window_start": "2026-02-19T23:35:55+00:00",
+      "window_end": "2026-02-20T00:35:55+00:00",
       "feature_embedding": [
-        0.7615941559557649,
+        -0.7615941559557649,
+        -0.7615941559557649,
+        -0.7615941559557649,
+        -0.7615941559557649,
         -0.7615941559557649,
         0.7615941559557649,
         0.7615941559557649,
-        -0.7615941559557649,
-        0.7615941559557649,
-        0.7615941559557649,
-        -0.7615941559557649
+        0.7615941559557649
       ],
       "embedding_dim": 64,
       "dp_aggregations": {
-        "glucose_value": 86.74358685700177,
-        "heart_rate_value": 64.21091821262625,
-        "hrv_value": 65.13996600172473,
-        "steps_value": 8366.174100337972,
-        "exercise_value": -1.6997489785429325,
-        "activity_calories_value": -0.08579490048100559,
-        "sleep_value": 1.136912897168497,
-        "genotype_value": 8.600646529345997,
-        "frame_confidence": 0.23472811973581062,
-        "frame_completeness": 0.6125050556501058
+        "glucose_value": 98.7637058487402,
+        "heart_rate_value": 56.22928532334763,
+        "hrv_value": 72.93140462353448,
+        "steps_value": 8670.441721142894,
+        "exercise_value": -1.4217329225965936,
+        "activity_calories_value": 0.22477233276349118,
+        "sleep_value": 0.019830652248329653,
+        "genotype_value": 8.163993727175638,
+        "location_value": -1.3356668141309467,
+        "frame_confidence": 0.21155815425181246,
+        "frame_completeness": 0.5648191450655545
       },
-      "metabolic_label": "unknown",
+      "metabolic_label": "sleeping",
       "confidence_scores": {
         "glucose": 7.125820413704676e-22,
         "heart_rate": 4.1894712669096847e-126,
@@ -807,7 +901,8 @@
         "activity_calories": 0.0,
         "sleep": 0.0,
         "genotype": 1.0,
-        "frame": 0.24000000000000002
+        "location": 0.0,
+        "frame": 0.21333333333333335
       },
       "genetic_modifier_hash": "17a2132d964334ed\u2026",
       "raw_data_retained_on_device": true

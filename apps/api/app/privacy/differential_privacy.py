@@ -15,7 +15,7 @@ import hashlib
 import math
 import random
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -175,7 +175,7 @@ class DynamicEpsilonAllocator:
         if user_id not in self._query_history:
             self._query_history[user_id] = []
         self._query_history[user_id].append(QueryRecord(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
             nutrient=nutrient,
             tier=self.get_tier_for_nutrient(nutrient),
             epsilon_consumed=epsilon_consumed,
@@ -212,7 +212,7 @@ class DynamicEpsilonAllocator:
         else:
             queries_remaining = int(budget.epsilon_remaining / 0.3)  # Default estimate
 
-        hours_since_reset = (datetime.utcnow() - budget.last_reset).total_seconds() / 3600
+        hours_since_reset = (datetime.now(timezone.utc).replace(tzinfo=None) - budget.last_reset).total_seconds() / 3600
         hours_remaining = max(0, budget.reset_period_hours - hours_since_reset)
 
         return PrivacyExposureReport(
@@ -251,7 +251,7 @@ class PrivacyBudget:
     epsilon_spent: float = 0.0
     delta: float = 1e-5
     reset_period_hours: int = 24
-    last_reset: datetime = field(default_factory=datetime.utcnow)
+    last_reset: datetime = field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     @property
     def epsilon_remaining(self) -> float:
@@ -270,7 +270,7 @@ class PrivacyBudget:
 
     def maybe_reset(self, now: Optional[datetime] = None) -> bool:
         """Reset budget if the period has elapsed."""
-        now = now or datetime.utcnow()
+        now = now or datetime.now(timezone.utc).replace(tzinfo=None)
         hours_elapsed = (now - self.last_reset).total_seconds() / 3600
         if hours_elapsed >= self.reset_period_hours:
             self.epsilon_spent = 0.0
