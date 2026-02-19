@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 import pytest
@@ -1121,7 +1121,7 @@ class TestDifferentialPrivacy:
         budget = PrivacyBudget(
             epsilon_total=1.0,
             epsilon_spent=0.9,
-            last_reset=datetime.utcnow() - timedelta(hours=25),
+            last_reset=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=25),
         )
         did_reset = budget.maybe_reset()
         assert did_reset is True

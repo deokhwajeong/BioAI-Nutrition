@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -178,7 +178,7 @@ class HealthGraphEmbedding:
             node_type=node.node_type,
             embedding=features,
             dimension=self._dim,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         )
         self._embeddings[node_id] = embedding
         return embedding
@@ -231,7 +231,7 @@ class HealthGraphEmbedding:
             node_type="user_subgraph",
             embedding=aggregated,
             dimension=self._dim,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         )
 
     def compute_household_embedding(
@@ -282,7 +282,7 @@ class HealthGraphEmbedding:
             node_type="household",
             embedding=aggregated,
             dimension=self._dim,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         )
 
     def compute_similarity(

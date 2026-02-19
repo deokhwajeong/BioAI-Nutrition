@@ -154,6 +154,7 @@ class TestNutritionPipeline:
             "normalization",
             "interpolation",
             "metabolic_state",
+            "renormalization",
             "nutrient_calculation",
             "dp_noise",
         ]

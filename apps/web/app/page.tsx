@@ -16,8 +16,9 @@ import {
   engineEdgeManifest,
 } from "../lib/api";
 import type { FoodNutrition } from "../lib/types";
-import ImageFoodAnalyzer from "./components/ImageFoodAnalyzer";
 import PipelineVisualizer from "./components/PipelineVisualizer";
+import MealPredictionFlow from "./components/MealPredictionFlow";
+import type { MealTotal } from "./components/MealPredictionFlow";
 import MetabolicStateCard from "./components/MetabolicStateCard";
 import NutrientBudgetPanel from "./components/NutrientBudgetPanel";
 import PrivacyConsentPanel from "./components/PrivacyConsentPanel";
@@ -34,8 +35,7 @@ type TabType =
   | "pipeline"
   | "consent"
   | "genetic"
-  | "meal"
-  | "image"
+  | "meal_predict"
   | "synthea";
 
 interface PipelineStage {
@@ -126,11 +126,8 @@ export default function HomePage() {
       });
   }, []);
 
-  /* Meal */
-  const [mealText, setMealText] = useState("");
-  const [mealLoading, setMealLoading] = useState(false);
-  const [mealResults, setMealResults] = useState<FoodNutrition[] | null>(null);
-  const [mealError, setMealError] = useState<string | null>(null);
+  /* Meal prediction modal (launched from Pipeline tab) */
+  const [showMealModal, setShowMealModal] = useState(false);
 
   /* ── Helpers ──────────────────────────────────────── */
 
@@ -318,34 +315,26 @@ export default function HomePage() {
     }
   };
 
-  /* ── Meal Analysis ───────────────────────────────── */
+  /* ── Meal Approve Handler ───────────────────────── */
 
-  const handleAnalyzeMeal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const lines = mealText.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
-    if (lines.length === 0) { setMealError("Enter at least one food item."); return; }
-    setMealLoading(true);
-    setMealError(null);
-    setMealResults(null);
-    try {
-      const res = await analyzeMeal({ items: lines.map((name) => ({ name })) });
-      setMealResults(res.items);
-    } catch (err: any) {
-      setMealError(err?.message ?? "Request failed");
-    } finally {
-      setMealLoading(false);
+  const handleMealApprove = (items: FoodNutrition[], total: MealTotal) => {
+    // Update nutrient targets with consumed meal
+    if (nutrientTargets) {
+      setNutrientModifications((prev) => [
+        ...prev,
+        `meal_record: +${Math.round(total.calories)} kcal, P+${total.protein_g.toFixed(0)}g, C+${total.carbs_g.toFixed(0)}g, F+${total.fat_g.toFixed(0)}g`,
+      ]);
     }
   };
 
   /* ── Tab Config ──────────────────────────────────── */
 
   const TABS: { id: TabType; label: string; icon: string }[] = [
-    { id: "pipeline", label: "BioSync Pipeline", icon: "⚙️" },
-    { id: "consent",  label: "Privacy & Consent", icon: "🔐" },
-    { id: "genetic",  label: "Genetic Profile",   icon: "🧬" },
-    { id: "meal",     label: "Meal Analysis",      icon: "🍽️" },
-    { id: "image",    label: "Food Image AI",      icon: "📸" },
-    { id: "synthea",  label: "Synthea FHIR",       icon: "🏥" },
+    { id: "pipeline",     label: "BioSync Pipeline",  icon: "⚙️" },
+    { id: "consent",      label: "Privacy & Consent", icon: "🔐" },
+    { id: "genetic",      label: "Genetic Profile",   icon: "🧬" },
+    { id: "meal_predict", label: "Meal Predict",       icon: "🍽️" },
+    { id: "synthea",      label: "Synthea FHIR",       icon: "🏥" },
   ];
 
   /* ── Render ──────────────────────────────────────── */
@@ -500,6 +489,40 @@ export default function HomePage() {
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-cyan-500" /> Dual-EWMA Baselines</span>
               </div>
             </div>
+
+            {/* ── Floating Meal Record Button ── */}
+            <button
+              onClick={() => setShowMealModal(true)}
+              className="fixed bottom-20 right-8 z-40 flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-600 to-violet-600 hover:from-cyan-700 hover:to-violet-700 text-white font-bold rounded-full shadow-2xl shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95"
+            >
+              <span className="text-lg">🍽️</span>
+              <span className="hidden sm:inline">Record Meal</span>
+            </button>
+
+            {/* ── Meal Prediction Modal (from Pipeline tab) ── */}
+            {showMealModal && (
+              <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMealModal(false)} />
+                <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 to-indigo-950 rounded-t-2xl sm:rounded-2xl border border-white/10 p-6 shadow-2xl animate-fade-in">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      🍽️ Meal Prediction
+                    </h3>
+                    <button onClick={() => setShowMealModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-gray-400 transition">✕</button>
+                  </div>
+                  <MealPredictionFlow
+                    modal
+                    onClose={() => setShowMealModal(false)}
+                    metabolicPhase={metabolicPhase}
+                    currentGlucose={glucoseMean}
+                    geneticModifiers={geneticModifiers}
+                    nutrientTargets={nutrientTargets}
+                    conflictResolutions={conflictResolutions}
+                    onApprove={handleMealApprove}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -538,75 +561,25 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* ── Meal Tab ─────────────────────────────── */}
-        {activeTab === "meal" && (
+        {/* ── Meal Predict Tab (unified flow) ── */}
+        {activeTab === "meal_predict" && (
           <div className="max-w-2xl mx-auto animate-fade-in">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">Meal Analysis</h2>
+              <h2 className="text-2xl font-bold">Meal Prediction & Analysis</h2>
               <p className="text-gray-400 text-sm mt-1">
-                Enter food items to analyze nutritional content with the local nutrition database.
-              </p>
-            </div>
-            <form onSubmit={handleAnalyzeMeal} className="space-y-4">
-              <textarea
-                value={mealText}
-                onChange={(e) => setMealText(e.target.value)}
-                placeholder={"apple\nchicken breast\nrice\nbroccoli"}
-                className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-cyan-500/50 transition resize-none"
-              />
-              <button
-                type="submit"
-                disabled={mealLoading}
-                className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg transition shadow-lg"
-              >
-                {mealLoading ? "Analyzing..." : "Analyze Meal"}
-              </button>
-            </form>
-
-            {mealError && (
-              <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
-                {mealError}
-              </div>
-            )}
-
-            {mealResults && (
-              <div className="mt-6 grid md:grid-cols-2 gap-3">
-                {mealResults.map((item, i) => (
-                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                    <h4 className="font-bold text-white capitalize mb-3">{item.name}</h4>
-                    <div className="space-y-1.5 text-sm">
-                      {item.calories != null && (
-                        <div className="flex justify-between"><span className="text-gray-400">Calories</span><span className="font-semibold">{item.calories} kcal</span></div>
-                      )}
-                      {item.protein_g != null && (
-                        <div className="flex justify-between"><span className="text-gray-400">Protein</span><span className="font-semibold">{item.protein_g}g</span></div>
-                      )}
-                      {item.carbs_g != null && (
-                        <div className="flex justify-between"><span className="text-gray-400">Carbs</span><span className="font-semibold">{item.carbs_g}g</span></div>
-                      )}
-                      {item.fat_g != null && (
-                        <div className="flex justify-between"><span className="text-gray-400">Fat</span><span className="font-semibold">{item.fat_g}g</span></div>
-                      )}
-                      {item.note && <p className="text-xs text-gray-500 italic mt-2">{item.note}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Image Tab ────────────────────────────── */}
-        {activeTab === "image" && (
-          <div className="max-w-2xl mx-auto animate-fade-in">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold">Food Image Analyzer</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Upload or photograph a meal for automated nutritional analysis via colour-histogram heuristics and OCR.
+                Analyze food, predict your personalized glucose response using genetic (γ) &amp; circadian (φ) modifiers,
+                verify medical safety constraints, and apply to your nutrient budget — all in one flow.
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <ImageFoodAnalyzer />
+              <MealPredictionFlow
+                metabolicPhase={metabolicPhase}
+                currentGlucose={glucoseMean}
+                geneticModifiers={geneticModifiers}
+                nutrientTargets={nutrientTargets}
+                conflictResolutions={conflictResolutions}
+                onApprove={handleMealApprove}
+              />
             </div>
           </div>
         )}

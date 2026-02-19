@@ -14,7 +14,7 @@ This router ties together all engine components into a usable API.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
@@ -153,13 +153,11 @@ def _run_seed() -> None:
         _seed_logger.info("Default sample data seeded: %s", counts)
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # Inside running loop (e.g. uvicorn startup) — create task
-            asyncio.ensure_future(_do_seed())
-        else:
-            loop.run_until_complete(_do_seed())
+        loop = asyncio.get_running_loop()
+        # Inside running loop (e.g. uvicorn startup) — create task
+        asyncio.ensure_future(_do_seed())
     except RuntimeError:
+        # No running loop — run synchronously
         asyncio.run(_do_seed())
 
 
@@ -359,12 +357,7 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
 async def calculate_nutrient_budget(
     req: NutrientBudgetRequest,
 ) -> NutrientBudgetResponse:
-    now = datetime.utcnow()
-    try:
-        from datetime import timezone as _tz
-        now = now.replace(tzinfo=_tz.utc)
-    except Exception:
-        pass
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     window_start = now - timedelta(hours=2)
 
     # Gather readings from all adapters
@@ -502,13 +495,9 @@ async def calculate_nutrient_budget(
 )
 async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
     """Infer the user's current metabolic state from recent biomarker data."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     # Ensure 'now' matches frame timestamp awareness
-    try:
-        from datetime import timezone as _tz
-        now_aware = now.replace(tzinfo=_tz.utc)
-    except Exception:
-        now_aware = now
+    now_aware = now
     all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
     allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
@@ -574,7 +563,7 @@ async def set_genetic_profile(
         source_id="genetic_profile",
         user_id=profile.user_id,
         biomarker_type=BiomarkerType.GENOTYPE,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
         value=len(profile.genotypes),
         unit="variants",
         metadata={"genotypes": profile.genotypes},
@@ -624,7 +613,7 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
     if req.action == "grant":
         expires_at = None
         if req.expires_in_hours:
-            expires_at = datetime.utcnow() + timedelta(
+            expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
                 hours=req.expires_in_hours
             )
         _consent_manager.grant_consent(

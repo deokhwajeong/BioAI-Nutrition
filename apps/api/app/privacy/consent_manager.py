@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -70,7 +70,7 @@ class ConsentRecord:
     def is_expired(self) -> bool:
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
 
 
 @dataclass
@@ -150,13 +150,13 @@ class DynamicConsentManager:
         state = self._get_or_create_state(user_id)
         state.granted_scopes.add(scope)
         state.revoked_scopes.discard(scope)
-        state.last_updated = datetime.utcnow()
+        state.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
 
         record = ConsentRecord(
             user_id=user_id,
             scope=scope,
             action=ConsentAction.GRANTED,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
             expires_at=expires_at,
             reason=reason,
         )
@@ -176,13 +176,13 @@ class DynamicConsentManager:
         state = self._get_or_create_state(user_id)
         state.revoked_scopes.add(scope)
         state.granted_scopes.discard(scope)
-        state.last_updated = datetime.utcnow()
+        state.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
 
         record = ConsentRecord(
             user_id=user_id,
             scope=scope,
             action=ConsentAction.REVOKED,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
             reason=reason,
         )
         self._audit_log.append(record)
