@@ -38,14 +38,14 @@ BioAI Nutrition is an AI-powered personalized nutrition recommendation platform 
 
 | Feature | Description |
 |---------|-------------|
-| **6-Stage BioSync Pipeline** | Consent → Genetic → Ingest → Sync → Metabolic → Nutrient calculation |
+| **7-Stage BioSync Pipeline** | Consent → Temporal Sync → Normalization → Interpolation → Metabolic State → Nutrient Calc → DP Noise (with Stage 4.5 Re-Normalization) |
 | **Genetic Nutrigenomics** | 8 SNP variant analysis for personalized metabolic modifiers |
-| **Multi-Source Sensor Fusion** | CGM (Dexcom G7), Apple Watch (HR, HRV, Steps), sleep trackers |
-| **13-Phase Metabolic Classifier** | Real-time metabolic state estimation (fasting, postprandial, exercise, sleep, etc.) |
-| **Personalized Nutrient Budget** | 14+ nutrient targets adapted to genetics, circadian rhythm, and metabolic state |
-| **GDPR-Compliant Privacy** | ε-differential privacy, on-device processing, consent management |
+| **Multi-Source Sensor Fusion** | 5 adapters: CGM (glucose), Activity (HR/HRV/steps), Sleep, Genetic (SNP), Location (GPS/geofence) |
+| **14-Phase Metabolic Classifier** | Real-time composite metabolic state: 4 dietary + 4 exercise + 3 sleep + 3 stress/recovery phases (simultaneous Multi-phase activation) |
+| **Personalized Nutrient Budget** | 14+ nutrient targets adapted to genetics, circadian rhythm, and metabolic state with hierarchical conflict resolution (6 priority levels) |
+| **Dynamic Differential Privacy** | 4-tier dynamic ε-differential privacy (ε = 0.1–0.8), on-device edge processing, TEE/Secure Enclave, Privacy Exposure Index (PEI) tracking |
 | **Meal Analysis** | Text-based and image-based food nutrition analysis (100+ foods including Korean cuisine) |
-| **Synthea FHIR Integration** | Import synthetic patient data in HL7 FHIR R4 format |
+| **Synthea FHIR Integration** | Import synthetic patient data in HL7 FHIR R4 format with LOINC/UCUM mapping |
 
 ### Architecture Overview
 
@@ -59,13 +59,21 @@ BioAI Nutrition is an AI-powered personalized nutrition recommendation platform 
          │    Proxy via rewrites     │
          └───────────────────────────┘
                     │
-    ┌───────────────┼───────────────┐
-    │               │               │
-┌───▼────┐   ┌─────▼─────┐   ┌────▼─────┐
-│ CGM    │   │ Wearable  │   │ Genetic  │
-│Adapter │   │ Adapter   │   │ Adapter  │
-└────────┘   └───────────┘   └──────────┘
+    ┌───────┬───────┼───────┬──────────┐
+    │       │       │       │          │
+┌───▼──┐ ┌──▼───┐ ┌─▼────┐ ┌▼───────┐ ┌▼────────┐
+│ CGM  │ │ Act. │ │Sleep │ │Genetic │ │Location │
+│Adapt.│ │Adapt.│ │Adapt.│ │Adapt.  │ │Adapt.   │
+└──────┘ └──────┘ └──────┘ └────────┘ └─────────┘
+              │
+    ┌─────────▼──────────────────────────────────┐
+    │ 7-Stage Engine Pipeline (Stage 0 → 6)      │
+    │ Consent → Sync → Norm → Interp → Metabolic │
+    │ → Re-Norm → Nutrient → DP Noise            │
+    └────────────────────────────────────────────┘
 ```
+
+> **Note:** The Web UI displays a simplified 6-step view (Consent → Genetic → Ingest → Sync → Metabolic → Nutrient). The underlying engine executes a 7-stage pipeline (Stage 0–6) with Stage 4.5 Re-Normalization.
 
 ---
 
@@ -137,16 +145,18 @@ This is the core feature that runs the full personalized nutrition pipeline.
 #### How to Use
 
 1. Click the **"Run Full Pipeline"** button
-2. Watch the 6-stage pipeline execute sequentially:
+2. Watch the 6-step UI pipeline execute sequentially:
 
-| Stage | Name | What It Does |
-|-------|------|-------------|
-| 1 | **Privacy Consent** | Grants 6 data access scopes under GDPR compliance |
-| 2 | **Genetic Profile** | Submits 8 SNP variants and computes metabolic modifiers |
-| 3 | **Biomarker Ingest** | Ingests real-time sensor data (CGM, HR, HRV, Steps) |
-| 4 | **Temporal Sync** | Aligns multi-resolution data to a unified time grid |
-| 5 | **Metabolic State** | Classifies current metabolic phase (13 possible phases) |
-| 6 | **Nutrient Calc** | Computes personalized nutrient budget with genetic modifiers |
+| UI Step | Name | What It Does |
+|---------|------|-------------|
+| 1 | **Privacy Consent** | Grants data access scopes under ε-differential privacy (14 consent categories) |
+| 2 | **Genetic Profile** | Submits 8 SNP variants and computes metabolic modifiers (γ_genetic) |
+| 3 | **Biomarker Ingest** | Ingests real-time sensor data from 5 adapters (CGM, Activity, Sleep, Genetic, Location) |
+| 4 | **Temporal Sync** | Aligns multi-resolution data using Dynamic Physiological Lag Model (t_sync = t_event + Δt × γ × φ) |
+| 5 | **Metabolic State** | Classifies current metabolic phase (14 simultaneous phases across 4 categories) |
+| 6 | **Nutrient Calc** | Computes personalized nutrient budget with genetic modifiers + hierarchical conflict resolution |
+
+> **Engine Detail:** Internally, the engine runs a 7-stage pipeline (Stage 0: Consent → Stage 1: Temporal Sync → Stage 2: Normalization → Stage 3: Interpolation → Stage 4: Metabolic State → Stage 4.5: Re-Normalization → Stage 5: Nutrient Calc → Stage 6: DP Noise). The UI consolidates these into 6 visible steps.
 
 3. After completion, view:
    - **Metabolic State Card**: Shows current phase (e.g., "postprandial_early"), confidence score, glucose and heart rate means
@@ -154,23 +164,43 @@ This is the core feature that runs the full personalized nutrition pipeline.
 
 #### Understanding the Metabolic State Card
 
-The 13 metabolic phases and their meanings:
+The 14 metabolic phases across 4 categories (multiple phases can be active simultaneously):
 
-| Phase | Description | Typical Trigger |
-|-------|-------------|----------------|
-| `fasting` | Extended fasting, gluconeogenesis active | >4 hours without food |
-| `postprandial_early` | Early post-meal glucose absorption | 0-60 min after eating |
-| `postprandial_late` | Late post-meal insulin-driven uptake | 60-180 min after eating |
-| `post_absorptive` | Transitioning to fat oxidation | 3-6 hours after eating |
-| `pre_exercise` | Sympathetic nervous system activation | Just before workout |
-| `during_exercise` | Elevated HR, glucose consumption | Active exercise |
-| `recovery_immediate` | EPOC (excess post-exercise O₂) | 0-30 min after exercise |
-| `recovery_delayed` | Glycogen replenishment | 30-120 min after exercise |
-| `pre_sleep` | Melatonin onset, HR declining | Winding down for bed |
-| `sleeping` | Parasympathetic dominance | During sleep |
-| `post_waking` | Cortisol awakening response | Just after waking up |
-| `metabolic_stress` | Elevated glucose + HR | Stress/illness |
-| `circadian_low` | Minimum metabolic rate | 2-5 AM |
+**Dietary Phases (4)**
+
+| Phase | Description | Trigger |
+|-------|-------------|--------|
+| `postprandial_early` | Early post-meal glucose absorption | 0–2 hours after eating |
+| `postprandial_late` | Late post-meal insulin-driven uptake | 2–4 hours after eating |
+| `post_absorptive` | Transitioning to fat oxidation | 4–12 hours after eating |
+| `fasting` | Extended fasting, gluconeogenesis active | ≥12 hours without food |
+
+**Exercise Phases (4)**
+
+| Phase | Description | Trigger |
+|-------|-------------|--------|
+| `pre_exercise` | Sympathetic nervous system activation | Before planned workout (extension point) |
+| `during_exercise` | Elevated HR, glucose consumption | Heart rate > 100 bpm |
+| `recovery_immediate` | EPOC (excess post-exercise O₂) | 0–2 hours after exercise |
+| `recovery_delayed` | Glycogen replenishment | 2–48 hours after high/extreme intensity |
+
+**Sleep Phases (3)**
+
+| Phase | Description | Trigger |
+|-------|-------------|--------|
+| `pre_sleep` | Melatonin onset, HR declining | 1–2 hours before typical bedtime |
+| `sleeping` | Parasympathetic dominance | Step count < 5 (inactive) |
+| `post_waking` | Cortisol awakening response | 0–1 hour after waking |
+
+**Stress / Recovery Phases (3)**
+
+| Phase | Description | Trigger |
+|-------|-------------|--------|
+| `metabolic_stress` | Elevated cortisol indicators | HRV < 30 ms |
+| `recovery` | High parasympathetic recovery | HRV > 60 ms |
+| `circadian_low` | Minimum metabolic rate | Circadian nadir (extension point) |
+
+> **Composite State:** Multiple phases from different categories can be simultaneously active (e.g., `fasting` + `sleeping` + `recovery`). Each phase contributes multiplicative nutrient priority modifiers.
 
 #### Understanding the Nutrient Budget Panel
 
@@ -217,10 +247,17 @@ Manage which types of data the system can access and process.
 
 #### Privacy Guarantees
 
-- **ε-differential privacy** with configurable epsilon (default: ε = 1.0)
-- Raw data is **never transmitted** to the server (on-device processing)
+- **Dynamic ε-differential privacy** with 4 sensitivity tiers:
+  - **CRITICAL** (ε = 0.1): Genetic data, rare medical conditions
+  - **HIGH** (ε = 0.3): Glucose, blood tests, medications
+  - **MEDIUM** (ε = 0.5): Heart rate, HRV, sleep patterns
+  - **LOW** (ε = 0.8): Steps, exercise, general activity
+- **Privacy Exposure Index (PEI)**: Real-time tracking of cumulative privacy budget consumption (0.0–1.0)
+- Daily budget reset: ε_total = 1.0, δ = 10⁻⁵ per 24-hour cycle
+- Raw data is **never transmitted** to the server (on-device edge processing with TEE/Secure Enclave)
 - Only non-invertible feature embeddings (64-dim) are transmitted
 - Genetic data: only SHA-256 hashes are sent, never raw alleles
+- Hardware-enforced cryptographic privacy boundary between edge device and cloud
 
 ### 3.3 Genetic Profile
 
@@ -526,7 +563,7 @@ curl -H "X-API-Key: dev-api-key" http://localhost:8000/engine/status
 | **Transport** | HTTPS in production (TLS 1.3) |
 | **Authentication** | API key header (`X-API-Key`) |
 | **Consent** | Per-scope opt-in (GDPR Article 7) |
-| **Privacy** | ε-differential privacy (Laplace/Gaussian noise) |
+| **Privacy** | 4-tier dynamic ε-differential privacy (Laplace/Gaussian noise) with PEI tracking |
 | **Edge Computing** | Raw data stays on-device |
 | **Genetic Data** | SHA-256 hash only; never transmitted raw |
 | **PII Filtering** | Structured log scrubbing for personal data |
@@ -557,21 +594,27 @@ The BioAI edge manifest defines what stays on your device:
 
 | Term | Definition |
 |------|------------|
-| **BioSync Pipeline** | The 6-stage data processing pipeline from raw biomarkers to personalized nutrition |
+| **BioSync Pipeline** | The 7-stage data processing pipeline (Stage 0–6 + Stage 4.5) from raw biomarkers to personalized nutrition |
 | **Biomarker** | A measurable indicator of biological state (glucose, heart rate, HRV, etc.) |
 | **CGM** | Continuous Glucose Monitor — a device worn on the body that measures blood glucose every 5 minutes |
 | **Circadian Rhythm** | The ~24-hour biological cycle affecting metabolism, hormone levels, and sleep |
-| **Differential Privacy (DP)** | A mathematical framework (ε-privacy) that adds calibrated noise to data to protect individual privacy |
+| **Differential Privacy (DP)** | A mathematical framework (ε-privacy) that adds calibrated noise to data to protect individual privacy. BioAI uses 4-tier dynamic epsilon (0.1–0.8) with Privacy Exposure Index (PEI) tracking and 24-hour budget reset |
 | **FHIR** | Fast Healthcare Interoperability Resources — a standard for exchanging healthcare data electronically |
 | **Genotype** | The specific allele combination at a given genetic locus (e.g., CT for heterozygous) |
 | **HRV** | Heart Rate Variability — variation in time between heartbeats, indicating autonomic nervous system health |
 | **LOINC** | Logical Observation Identifiers Names and Codes — a universal standard for identifying medical lab observations |
-| **Metabolic Phase** | One of 13 classified states of metabolism (fasting, postprandial, exercise, sleep, etc.) |
-| **Nutrient Budget** | Personalized daily nutrition targets adjusted for genetics, metabolic state, and circadian rhythm |
+| **Metabolic Phase** | One of 14 classified states of metabolism across 4 categories (dietary, exercise, sleep, stress/recovery); multiple phases can be simultaneously active |
+| **Nutrient Budget** | Personalized daily nutrition targets adjusted for genetics, metabolic state, circadian rhythm, and hierarchical conflict resolution (6 priority levels) |
 | **Nutrigenomics** | The study of how genetic variation affects nutritional requirements and metabolism |
 | **SNP** | Single Nucleotide Polymorphism — a single base-pair variation in DNA that may affect protein function |
 | **Synthea** | An open-source synthetic patient data generator producing realistic FHIR bundles |
 | **TCF7L2** | A gene strongly associated with type 2 diabetes risk; variants affect glucose clearance rate |
+| **Temporal Synchronization** | The process of aligning multi-source biomarker readings to a unified time grid using the Dynamic Physiological Lag Model (t_sync = t_event + Δt_base × γ_genetic × φ_circadian) |
+| **Circadian Lag Modifier (φ)** | A 24-hour lookup value (0.82–1.20) representing time-of-day metabolic efficiency; 0.82 at 08:00 (fastest response), 1.20 at 02:00 (slowest response) |
+| **Self-Calibration** | Adaptive feedback loop with 3 correction channels (δ_base, κ_genetic, δ_circ) that learns from detected peak events to improve lag prediction accuracy over time |
+| **Edge Computing** | On-device processing architecture where raw biomarker data stays on the user's device (TEE/Secure Enclave); only privacy-protected embeddings cross the network boundary |
+| **PEI (Privacy Exposure Index)** | A real-time metric (0.0–1.0) tracking cumulative differential privacy budget consumption; resets every 24 hours |
+| **Conflict Resolution** | Hierarchical system with 6 priority levels (0: Base RDA → 5: Medical Critical) that resolves contradictions between genetic, biomarker, and medical recommendations |
 
 ---
 

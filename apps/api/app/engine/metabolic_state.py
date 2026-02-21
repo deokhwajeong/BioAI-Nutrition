@@ -36,7 +36,7 @@ class MetabolicPhase(str, Enum):
     """Individual metabolic phases that can combine."""
 
     # Feeding-related phases
-    FASTING = "fasting"                    # >4h since last meal
+    FASTING = "fasting"                    # ≥12h since last meal
     POSTPRANDIAL_EARLY = "postprandial_early"  # 0-2h after meal
     POSTPRANDIAL_LATE = "postprandial_late"    # 2-4h after meal
     POST_ABSORPTIVE = "post_absorptive"    # 4-12h after meal
