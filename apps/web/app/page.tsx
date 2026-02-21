@@ -54,7 +54,7 @@ const INITIAL_STAGES: PipelineStage[] = [
   { id: "genetic",  label: "Genetic Profile",              icon: "🧬", description: "SNP variant analysis → metabolic modifiers",          status: "idle" },
   { id: "ingest",   label: "Biomarker Ingest",             icon: "📡", description: "Heterogeneous sensor fusion (CGM, HR, HRV, steps)",  status: "idle" },
   { id: "sync",     label: "Temporal Synchronization",     icon: "⏱️", description: "Multi-resolution alignment with circadian correction", status: "idle" },
-  { id: "metabolic",label: "Metabolic State Estimation",   icon: "🔥", description: "13-phase classifier (fasting → exercise → sleep)",    status: "idle" },
+  { id: "metabolic",label: "Metabolic State Estimation",   icon: "🔥", description: "14-phase classifier (fasting → exercise → sleep → stress)",    status: "idle" },
   { id: "nutrient", label: "Nutrient Demand Calculation",  icon: "🧮", description: "7-stage personalized budget with genetic modifiers",  status: "idle" },
 ];
 
