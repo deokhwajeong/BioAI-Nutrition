@@ -155,6 +155,7 @@ class MetabolicStateOut(BaseModel):
 # ── Consent ─────────────────────────────────────────────────────────
 
 class ConsentRequest(BaseModel):
+# TODO: improve error handling
     user_id: str
     scope: str
     action: str = Field(
