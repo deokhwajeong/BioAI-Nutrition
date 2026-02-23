@@ -90,3 +90,4 @@ export default function MetabolicStateCard({ phase, confidence, glucoseMean, hea
     </div>
   );
 }
+

@@ -115,7 +115,6 @@ NUTRITION_DB: dict[str, dict[str, float]] = {
     "orange juice":    {"calories": 112, "protein_g": 1.7,  "carbs_g": 26,   "fat_g": 0.5},
 }
 
-
 def _fuzzy_lookup(name: str) -> dict[str, float] | None:
     """Try exact match, then substring match against NUTRITION_DB."""
     key = name.lower().strip()
@@ -136,7 +135,6 @@ def _fuzzy_lookup(name: str) -> dict[str, float] | None:
         return candidates[0][1]
 
     return None
-
 
 def analyze_meal(request: AnalyzeMealRequest) -> AnalyzeMealResponse:
     """Analyse nutritional content of food items."""

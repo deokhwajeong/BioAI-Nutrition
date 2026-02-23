@@ -1,6 +1,17 @@
 """
 Circadian-Aware Interpolation.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01 — Probabilistic graphical models
+
+Defensive Scope (G06N 7/01):
+    Circadian rhythm probabilistic prediction for gap filling uses
+    biological oscillation models (circadian + ultradian) with adaptive
+    blending controlled by sigmoid gap-duration weighting. This is
+    a probabilistic estimation technique distinct from naive linear or
+    spline interpolation.
+
 Patent-core module: Fills gaps in biomarker data using biological rhythm
 models rather than naive linear interpolation.
 
@@ -29,7 +40,6 @@ from typing import Dict, List, Optional, Tuple
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType, TemporalBehavior
 
-
 # Ultradian and circadian rhythm parameters
 # These model multi-scale biological oscillations
 RHYTHM_MODELS = {
@@ -53,7 +63,6 @@ RHYTHM_MODELS = {
     },
 }
 
-
 @dataclass
 class InterpolationResult:
     """Result of circadian-aware interpolation.
@@ -75,7 +84,6 @@ class InterpolationResult:
     circadian_component: float
     neighbor_component: float
     blend_ratio: float
-
 
 class CircadianInterpolator:
     """Fills biomarker data gaps using circadian rhythm models.
@@ -427,3 +435,4 @@ class CircadianInterpolator:
         """Find earliest reading after target."""
         candidates = [r for r in readings if r.timestamp > target]
         return min(candidates, key=lambda r: r.timestamp) if candidates else None
+

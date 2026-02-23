@@ -24,3 +24,4 @@ class SleepEvent(BaseModel):
     timestamp: str
     duration_minutes: float
     quality: Optional[str] = None
+

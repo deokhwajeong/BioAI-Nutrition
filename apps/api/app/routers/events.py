@@ -42,7 +42,6 @@ from ..services.tasks import process_event
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-
 @router.post("/diet", response_model=DietEvent)
 async def ingest_diet(event: DietEvent, db: Session = Depends(get_db) if use_db else None) -> DietEvent:
     """Ingest a diet event and store it in the database."""
@@ -70,7 +69,6 @@ async def ingest_diet(event: DietEvent, db: Session = Depends(get_db) if use_db 
     process_event.delay("diet", event.model_dump())
     return event
 
-
 @router.post("/activity", response_model=ActivityEvent)
 async def ingest_activity(event: ActivityEvent, db: Session = Depends(get_db) if use_db else None) -> ActivityEvent:
     """Ingest an activity event and store it in the database."""
@@ -96,7 +94,6 @@ async def ingest_activity(event: ActivityEvent, db: Session = Depends(get_db) if
     process_event.delay("activity", event.model_dump())
     return event
 
-
 @router.post("/sleep", response_model=SleepEvent)
 async def ingest_sleep(event: SleepEvent, db: Session = Depends(get_db) if use_db else None) -> SleepEvent:
     """Ingest a sleep event and store it in the database."""
@@ -120,7 +117,6 @@ async def ingest_sleep(event: SleepEvent, db: Session = Depends(get_db) if use_d
 
     process_event.delay("sleep", event.model_dump())
     return event
-
 
 @router.get("/{user_id}")
 async def get_user_events(user_id: str, db: Session = Depends(get_db) if use_db else None) -> List[dict]:

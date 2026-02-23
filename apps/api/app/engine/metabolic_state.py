@@ -1,6 +1,22 @@
 """
 Metabolic State Estimator.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01  — Probabilistic graphical models
+               G06N 20/00 — Machine learning
+
+Defensive Scope (G06N 7/01):
+    Multi-factor metabolic state inference using probabilistic combination
+    of heterogeneous biomarker signals (HRV amplitude, glucose trends,
+    activity patterns). Sleep quality estimation uses probabilistic scoring
+    (0-1 continuous) from multiple uncertain inputs.
+
+Defensive Scope (G06N 20/00):
+    Insulin sensitivity estimation integrates sleep quality, exercise
+    history, and circadian phase via learned multiplicative factors —
+    an adaptive model that improves with accumulated user data.
+
 Patent-core module: Infers the user's current metabolic state from
 synchronized and normalized biomarker signals.
 
@@ -31,7 +47,6 @@ from typing import Any, Dict, List, Optional, Set
 from ..biomarkers.base import BiomarkerType
 from .temporal_sync import SynchronizedFrame, AlignedSignal
 
-
 class MetabolicPhase(str, Enum):
     """Individual metabolic phases that can combine."""
 
@@ -56,7 +71,6 @@ class MetabolicPhase(str, Enum):
     METABOLIC_STRESS = "metabolic_stress"  # High cortisol indicators
     RECOVERY = "recovery"                  # High parasympathetic
     CIRCADIAN_LOW = "circadian_low"        # Afternoon energy dip
-
 
 @dataclass
 class MetabolicState:
@@ -109,7 +123,6 @@ class MetabolicState:
         if MetabolicPhase.RECOVERY_IMMEDIATE in self.active_phases:
             return "recovery"
         return "unknown"
-
 
 # Nutrient priority modifiers per metabolic phase
 # >1.0 = increased need, <1.0 = decreased need
@@ -169,7 +182,6 @@ PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
         "electrolyte_priority": 1.8,
     },
 }
-
 
 class MetabolicStateEstimator:
     """Estimates current metabolic state from synchronized biomarker frames.
@@ -783,3 +795,4 @@ class MetabolicStateEstimator:
                     combined[nutrient] = scaled
 
         return {k: round(v, 3) for k, v in combined.items()}
+

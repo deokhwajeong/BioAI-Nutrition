@@ -1,6 +1,18 @@
 """
 Dynamic Consent Manager.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 21/62 — Protecting access to data via access control rules
+
+Defensive Scope (G06F 21/62):
+    Implements 12 granular consent scopes + 6 sharing/research scopes with
+    real-time consent propagation. When consent is revoked, associated
+    graph edges are severed instantly, cached calculations are invalidated,
+    and downstream pipeline stages are notified via callbacks. This goes
+    beyond simple access control — it is a dynamic, reactive consent
+    architecture with automatic expiry-based withdrawal.
+
 Manages fine-grained, revocable consent for health data sharing.
 When consent is revoked, associated graph edges are severed in real-time.
 
@@ -47,11 +59,9 @@ class ConsentScope(str, Enum):
     RESEARCH_USE = "research_use"
     MODEL_TRAINING = "model_training"
 
-
 class ConsentAction(str, Enum):
     GRANTED = "granted"
     REVOKED = "revoked"
-
 
 @dataclass
 class ConsentRecord:
@@ -71,7 +81,6 @@ class ConsentRecord:
         if self.expires_at is None:
             return False
         return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
-
 
 @dataclass
 class ConsentState:
@@ -106,7 +115,6 @@ class ConsentState:
             if scope not in self.revoked_scopes:
                 allowed.update(scope_to_biomarkers.get(scope, set()))
         return allowed
-
 
 class DynamicConsentManager:
     """Manages real-time consent with propagation to the data pipeline.
@@ -269,3 +277,4 @@ class DynamicConsentManager:
                 self.revoke_consent(
                     user_id, scope, reason="Consent expired automatically"
                 )
+

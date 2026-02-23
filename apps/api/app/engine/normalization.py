@@ -1,6 +1,16 @@
 """
 Physiological-Aware Normalization Layer.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01 — Probabilistic graphical models
+
+Defensive Scope (G06N 7/01):
+    Anomaly scoring uses probabilistic formula: anomaly = 1 − exp(−0.5×z²),
+    providing continuous anomaly probability rather than binary thresholds.
+    Genetic-baseline z-scores use genotype-adjusted reference distributions
+    (μ_genetic = μ_pop × Π modifier_i) for probabilistic deviation assessment.
+
 Core module: Transforms raw biomarker values into physiologically
 meaningful normalized signals by accounting for:
 
@@ -36,7 +46,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..biomarkers.base import BiomarkerType
-
 
 # Circadian rhythm profiles for key biomarkers
 # Values represent typical deviation from 24h personal mean at each hour
@@ -77,7 +86,6 @@ POPULATION_RANGES = {
     BiomarkerType.SLEEP: {"mean": 7.5, "std": 1.0, "unit": "hours"},
 }
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Genetic Baseline Profile
 # ═══════════════════════════════════════════════════════════════════════
@@ -116,7 +124,6 @@ GENETIC_BASELINE_EFFECTS: Dict[str, Dict[BiomarkerType, Tuple[str, float]]] = {
     },
 }
 
-
 @dataclass
 class GeneticBaselineAdjustment:
     """Record of how a single genetic modifier shifted a biomarker's baseline.
@@ -134,7 +141,6 @@ class GeneticBaselineAdjustment:
     biomarker_type: str
     mean_shift: float
     direction: str
-
 
 @dataclass
 class GeneticBaselineProfile:
@@ -211,7 +217,6 @@ class GeneticBaselineProfile:
                 for a in self.adjustments
             ],
         }
-
 
 class GeneticBaselineCalculator:
     """Computes genotype-adjusted reference ranges for biomarkers.
@@ -328,7 +333,6 @@ class GeneticBaselineCalculator:
 
         return profile
 
-
 @dataclass
 class PersonalBaseline:
     """Learned personal baseline for a biomarker.
@@ -409,7 +413,6 @@ class PersonalBaseline:
         """Whether enough data has been collected for reliable baseline."""
         return self.sample_count >= 50
 
-
 @dataclass
 class NormalizedSignal:
     """Result of physiological normalization.
@@ -433,7 +436,6 @@ class NormalizedSignal:
     genetic_modified: float
     context: str
     anomaly_score: float
-
 
 class PhysiologicalNormalizer:
     """Normalizes biomarker values with biological context awareness.
@@ -724,3 +726,5 @@ class PhysiologicalNormalizer:
             return 1.0
 
         return sum(applicable) / len(applicable)
+
+

@@ -1,6 +1,22 @@
 """
 Health Graph Embedding.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: H04L 9/32  — Security protocols for protecting data
+               G06N 7/01  — Probabilistic graphical models
+
+Defensive Scope (H04L 9/32):
+    Transforms raw health data into dense 64-dimensional vector
+    representations on-device using SHA-256 hash projection + tanh
+    activation. Only these irreversible embeddings traverse the
+    network boundary — raw biomarker values never leave the device.
+
+Defensive Scope (G06N 7/01):
+    Health knowledge graph with probabilistic node relationships;
+    subgraph embedding via weighted aggregation of neighbor features;
+    consent-based edge severance/restoration for dynamic graph topology.
+
 Simulates on-device graph embedding computation for privacy preservation.
 Raw health data is transformed into dense vector representations locally,
 and only the embeddings are transmitted to the server.
@@ -19,7 +35,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-
 @dataclass
 class GraphNode:
     """A node in the health knowledge graph.
@@ -32,7 +47,6 @@ class GraphNode:
     properties: Dict[str, Any] = field(default_factory=dict)
     owner_id: str = ""  # Which user owns this node
     is_shared: bool = False  # Household-shared or private
-
 
 @dataclass
 class GraphEdge:
@@ -50,7 +64,6 @@ class GraphEdge:
     is_active: bool = True  # Can be severed by consent revocation
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class NodeEmbedding:
     """Dense vector representation of a graph node.
@@ -67,7 +80,6 @@ class NodeEmbedding:
     timestamp: datetime
     is_differential_private: bool = False
     epsilon_used: float = 0.0
-
 
 class HealthGraphEmbedding:
     """Computes privacy-preserving graph embeddings.

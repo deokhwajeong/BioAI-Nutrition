@@ -84,3 +84,5 @@ export default function NutrientBudgetPanel({ targets, modifications, metabolicS
     </div>
   );
 }
+
+

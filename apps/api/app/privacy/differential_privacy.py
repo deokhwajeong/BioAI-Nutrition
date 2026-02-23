@@ -1,6 +1,18 @@
 """
 Differential Privacy Engine.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 21/62 — Protecting access to data via access control rules
+
+Defensive Scope (G06F 21/62):
+    Implements ε-differential privacy with sensitivity-tiered allocation:
+    CRITICAL (genetic) = ε 0.1, HIGH (glucose) = ε 0.3, MEDIUM (HR) = ε 0.5,
+    LOW (activity) = ε 0.8. The tiered allocation based on biomarker
+    sensitivity is novel — existing DP implementations use uniform ε.
+    Dynamic epsilon budget tracking with adaptive ε reduction at
+    threshold levels (warning=75%, critical=50%) prevents budget exhaustion.
+
 Adds calibrated noise to aggregated health data before server transmission,
 ensuring individual privacy while preserving statistical utility.
 
@@ -19,7 +31,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 # ── Sensitivity Tiers ───────────────────────────────────────────────
 # Data types are classified by privacy sensitivity. More sensitive data
 # receives a SMALLER ε (more noise), consuming less total budget per
@@ -37,7 +48,6 @@ class SensitivityTier(Enum):
     HIGH = "high"              # Glucose, blood tests, medications
     MEDIUM = "medium"          # Heart rate, HRV, sleep
     LOW = "low"                # Steps, exercise, activity calories
-
 
 # Per-tier ε allocation: more sensitive → smaller ε → more noise
 TIER_EPSILON_MAP: Dict[SensitivityTier, float] = {
@@ -70,7 +80,6 @@ NUTRIENT_SENSITIVITY_TIERS: Dict[str, SensitivityTier] = {
     "calcium_mg": SensitivityTier.LOW,
 }
 
-
 @dataclass
 class QueryRecord:
     """Records a single privacy-consuming query."""
@@ -79,7 +88,6 @@ class QueryRecord:
     tier: SensitivityTier
     epsilon_consumed: float
     noise_scale: float
-
 
 @dataclass
 class PrivacyExposureReport:
@@ -99,7 +107,6 @@ class PrivacyExposureReport:
     risk_level: str              # "low", "moderate", "high", "critical"
     queries_until_exhaustion: int  # Estimated remaining queries
     period_hours_remaining: float
-
 
 class DynamicEpsilonAllocator:
     """Allocates per-query epsilon based on data sensitivity tier.
@@ -231,7 +238,6 @@ class DynamicEpsilonAllocator:
         """Clear query history for a user (on budget reset)."""
         self._query_history.pop(user_id, None)
 
-
 @dataclass
 class PrivacyBudget:
     """Tracks cumulative privacy expenditure per user.
@@ -277,7 +283,6 @@ class PrivacyBudget:
             self.last_reset = now
             return True
         return False
-
 
 class DifferentialPrivacyEngine:
     """Applies differential privacy to biomarker data and aggregations.
@@ -438,3 +443,5 @@ class DifferentialPrivacyEngine:
         if n_users == 0:
             return value_range
         return value_range / n_users
+
+

@@ -20,7 +20,6 @@ results = {}
 total_tests = 0
 passed_tests = 0
 
-
 def test(name, condition, detail=""):
     global total_tests, passed_tests
     total_tests += 1
@@ -31,7 +30,6 @@ def test(name, condition, detail=""):
     else:
         results[name] = f"FAIL: {detail}"
         print(f"  ❌ {name} — {detail}")
-
 
 # ============================================================
 # TEST 1: Health Check (Manual §2.2)

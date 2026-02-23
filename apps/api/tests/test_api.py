@@ -45,7 +45,6 @@ with patch('app.services.tasks.process_event') as mock_process:
 client = TestClient(app)
 headers = {"X-API-Key": settings.api_key}
 
-
 # ==================== Health Checks ====================
 
 def test_health() -> None:
@@ -54,7 +53,6 @@ def test_health() -> None:
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
-
 def test_metrics() -> None:
     """Test metrics endpoint."""
     response = client.get("/api/metrics", headers=headers)
@@ -62,14 +60,13 @@ def test_metrics() -> None:
     data = response.json()
     assert isinstance(data, dict)
 
-
 # ==================== Event Endpoints ====================
 
 @patch('app.services.tasks.process_event')
 def test_diet_event(mock_process) -> None:
     """Test diet event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
@@ -85,12 +82,11 @@ def test_diet_event(mock_process) -> None:
     assert data["user_id"] == "test-user"
     assert data["food"] == "Apple"
 
-
 @patch('app.services.tasks.process_event')
 def test_activity_event(mock_process) -> None:
     """Test activity event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
@@ -104,12 +100,11 @@ def test_activity_event(mock_process) -> None:
     assert data["user_id"] == "test-user"
     assert data["activity_type"] == "running"
 
-
 @patch('app.services.tasks.process_event')
 def test_sleep_event(mock_process) -> None:
     """Test sleep event submission."""
     mock_process.delay = MagicMock(return_value=None)
-    
+
     payload = {
         "user_id": "test-user",
         "timestamp": "2024-01-01T00:00:00Z",
@@ -121,7 +116,6 @@ def test_sleep_event(mock_process) -> None:
     data = response.json()
     assert data["user_id"] == "test-user"
     assert data["sleep_quality"] == 4
-
 
 # ==================== Meal Analysis ====================
 
@@ -136,7 +130,6 @@ def test_analyze_meal() -> None:
     response = client.post("/analyze/meal", json=payload, headers=headers)
     # This endpoint may not be implemented yet, so we check for either 200 or 404
     assert response.status_code in [200, 404]
-
 
 # ==================== Recommendations ====================
 
@@ -154,14 +147,12 @@ def test_get_recommendations() -> None:
     # This endpoint may not be implemented yet, so we check for either 200 or 404
     assert response.status_code in [200, 404]
 
-
 # ==================== User Management ====================
 
 def test_user_delete() -> None:
     """Test user deletion endpoint."""
     response = client.delete("/users/test-user", headers=headers)
     assert response.status_code in [204, 404]
-
 
 # ==================== Security Tests ====================
 
@@ -179,14 +170,12 @@ def test_unauthorized_access() -> None:
     response = client.post("/events/diet", json=payload)
     assert response.status_code == 401
 
-
 def test_invalid_api_key() -> None:
     """Test that invalid API key is rejected."""
     payload = {"user_id": "test-user", "timestamp": "2024-01-01T00:00:00Z"}
     bad_headers = {"X-API-Key": "wrong-key"}
     response = client.post("/events/diet", json=payload, headers=bad_headers)
     assert response.status_code == 401
-
 
 # ==================== Cleanup ====================
 
@@ -197,3 +186,4 @@ def cleanup():
     # Clean up
     if os.path.exists("./test_nutrition.db"):
         os.remove("./test_nutrition.db")
+

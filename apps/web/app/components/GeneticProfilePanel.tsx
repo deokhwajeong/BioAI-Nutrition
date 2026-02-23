@@ -123,3 +123,9 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
     </div>
   );
 }
+
+
+
+
+
+

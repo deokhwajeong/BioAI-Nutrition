@@ -1,7 +1,7 @@
 # 🛠️ Development Environment Setup Guide
 
-**Target Audience**: New team members  
-**Last Updated**: 2026-01-15  
+**Target Audience**: New team members
+**Last Updated**: 2026-01-15
 **Estimated Setup Time**: 30 minutes
 
 ---
@@ -367,7 +367,7 @@ docker-compose down -v
 
 1. **Open Project**
    - File → Open → Select BioAI-Nutrition folder
-   
+
 2. **Configure Python Interpreter**
    - Settings → Project → Python Interpreter
    - Click gear icon → Add
@@ -807,4 +807,5 @@ pnpm list
 - PostgreSQL: https://www.postgresql.org/docs/
 - Docker: https://docs.docker.com/
 - Git: https://git-scm.com/doc
+
 

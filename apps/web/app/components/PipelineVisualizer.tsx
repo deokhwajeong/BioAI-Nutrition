@@ -127,3 +127,6 @@ export default function PipelineVisualizer({ stages, onRunAll, running }: Props)
     </div>
   );
 }
+
+
+

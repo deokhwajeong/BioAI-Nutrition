@@ -23,7 +23,6 @@ from .base import (
     TemporalBehavior,
 )
 
-
 # Known nutrigenomics SNP effects on nutrient metabolism
 # Maps SNP ID → risk allele → metabolic effect
 NUTRIGENOMIC_VARIANTS = {
@@ -113,7 +112,6 @@ NUTRIGENOMIC_VARIANTS = {
         },
     },
 }
-
 
 class GeneticAdapter(BiomarkerSource):
     """Adapter for genetic/genomic data.
@@ -273,3 +271,4 @@ class GeneticAdapter(BiomarkerSource):
                 result[name] = round(product ** (1.0 / len(values)), 3)
 
         return result
+

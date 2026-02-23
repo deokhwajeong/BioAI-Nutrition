@@ -34,7 +34,6 @@ DEFAULT_FHIR_DIR = Path("data/synthea/output/fhir")
 # Cache loaded patients to avoid re-parsing on every call
 _patient_cache: Dict[str, SyntheaPatient] = {}
 
-
 # ── Schemas ─────────────────────────────────────────────────────────
 
 class PatientSummary(BaseModel):
@@ -49,11 +48,9 @@ class PatientSummary(BaseModel):
     conditions: int
     medications: int
 
-
 class LoadPatientRequest(BaseModel):
     patient_id: str
     override_user_id: Optional[str] = None
-
 
 class LoadPatientResponse(BaseModel):
     patient_id: str
@@ -63,13 +60,11 @@ class LoadPatientResponse(BaseModel):
     conditions: List[Dict[str, str]]
     medications: List[Dict[str, str]]
 
-
 class SyntheaStatusResponse(BaseModel):
     fhir_directory: str
     files_found: int
     patients_cached: int
     available_patients: List[PatientSummary]
-
 
 # ── Helpers ─────────────────────────────────────────────────────────
 
@@ -85,7 +80,6 @@ def _resolve_fhir_dir() -> Path:
             return candidate
     return DEFAULT_FHIR_DIR
 
-
 def _ensure_cache() -> None:
     """Load patients into cache if not already loaded."""
     if _patient_cache:
@@ -96,7 +90,6 @@ def _ensure_cache() -> None:
     patients = load_synthea_patients(str(fhir_dir))
     for p in patients:
         _patient_cache[p.patient_id] = p
-
 
 # ── Endpoints ───────────────────────────────────────────────────────
 
@@ -118,7 +111,6 @@ async def synthea_status():
         patients_cached=len(_patient_cache),
         available_patients=summaries,
     )
-
 
 @router.post("/load", response_model=LoadPatientResponse)
 async def load_synthea_patient(req: LoadPatientRequest):
@@ -199,7 +191,6 @@ async def load_synthea_patient(req: LoadPatientRequest):
         medications=[m for m in patient.medications],
     )
 
-
 @router.get("/patient/{patient_id}")
 async def get_patient_detail(patient_id: str):
     """Get detailed information about a specific Synthea patient."""
@@ -237,7 +228,6 @@ async def get_patient_detail(patient_id: str):
         },
     }
 
-
 @router.post("/reload")
 async def reload_synthea_data(
     directory: Optional[str] = Query(None, description="Custom FHIR directory path"),
@@ -262,3 +252,4 @@ async def reload_synthea_data(
         "total_readings": sum(len(p.readings) for p in patients),
         "patients": [p.patient_id for p in patients],
     }
+

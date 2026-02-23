@@ -18,7 +18,6 @@ except ImportError:
     _HAS_TESSERACT = False
     logger.warning("pytesseract not available – OCR disabled, using fallback analysis")
 
-
 def _estimate_food_from_image(image: Image.Image) -> str:
     """Heuristic food estimation from image colour profile.
 
@@ -53,7 +52,6 @@ def _estimate_food_from_image(image: Image.Image) -> str:
 
     return "\n".join(items)
 
-
 def analyze_food_image(image_bytes: bytes) -> str:
     """Extract text or identify food from an uploaded image.
 
@@ -78,3 +76,4 @@ def analyze_food_image(image_bytes: bytes) -> str:
 
     except Exception as e:
         raise Exception(f"Image analysis failed: {e!s}")
+

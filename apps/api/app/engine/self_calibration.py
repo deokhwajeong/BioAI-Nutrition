@@ -1,6 +1,24 @@
 """
 Adaptive Self-Calibration Engine (Feedback Loop).
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 11/34 — Performance analysis; Monitoring
+               G06N 20/00 — Machine learning
+
+Defensive Scope (G06F 11/34):
+    This module continuously monitors prediction accuracy by comparing
+    predicted vs. actual biomarker peak times, computing convergence scores,
+    and triggering re-calibration when accuracy degrades. This constitutes
+    a computational system self-monitoring innovation.
+
+Defensive Scope (G06N 20/00):
+    The error back-propagation loop decomposes prediction error ε_k into
+    three channels — δ_base(b), δ_circ(h), κ_genetic — and updates each
+    via adaptive EMA with learning rate α(k) = α_0 / (1 + k/τ). This
+    constitutes a novel online learning algorithm for physiological lag
+    model refinement.
+
 Patent-critical module: Implements an adaptive learning algorithm that
 back-propagates the error between predicted and actual biomarker peak
 times to fine-tune individual lag coefficients.
@@ -57,11 +75,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Data structures
 # ═══════════════════════════════════════════════════════════════════════
-
 
 @dataclass
 class CalibrationObservation:
@@ -90,7 +106,6 @@ class CalibrationObservation:
     hour_of_day: int
     relative_error: float
     confidence: float = 1.0
-
 
 @dataclass
 class PersonalCalibrationProfile:
@@ -141,7 +156,6 @@ class PersonalCalibrationProfile:
         """
         return self.observation_count >= 10 and self.convergence_score > 0.8
 
-
 @dataclass
 class DetectedPeak:
     """A detected peak in a biomarker time series.
@@ -157,7 +171,6 @@ class DetectedPeak:
     value: float
     prominence: float
     confidence: float
-
 
 @dataclass
 class CalibrationResult:
@@ -175,11 +188,9 @@ class CalibrationResult:
     updated_profile: PersonalCalibrationProfile
     improvement_estimate: float
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Peak Detection
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class PeakDetector:
     """Detects biomarker response peaks in time-series data.
@@ -313,11 +324,9 @@ class PeakDetector:
             smoothed.append(alpha * v + (1 - alpha) * smoothed[-1])
         return smoothed
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # Adaptive Self-Calibration Engine
 # ═══════════════════════════════════════════════════════════════════════
-
 
 class AdaptiveLagCalibrator:
     """Self-calibrating feedback loop for the Physiological Lag Model.

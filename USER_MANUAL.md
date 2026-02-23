@@ -1,7 +1,7 @@
 # BioAI Nutrition — User Manual
 
-> **Version:** 0.1.0  
-> **Date:** February 2026  
+> **Version:** 0.1.0
+> **Date:** February 2026
 > **Platform:** Web Application (Next.js + FastAPI)
 
 ---
@@ -619,3 +619,5 @@ The BioAI edge manifest defines what stays on your device:
 ---
 
 *© 2026 BioAI Nutrition. All rights reserved.*
+
+
