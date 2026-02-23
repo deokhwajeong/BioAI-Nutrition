@@ -1,6 +1,26 @@
 """
 NutritionPipeline — 5-Stage Patent-Core Orchestrator.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 16/27 — Data synchronization (Stage 1)
+               G06F 11/34 — Performance monitoring (Self-Calibration loop)
+               G06N 20/00 — Machine learning (Adaptive calibration)
+               G06N 7/01  — Probabilistic models (Gaussian weighting, interpolation)
+               G06F 21/62 — Access control (Consent filtering, DP noise)
+               H04L 9/32  — Security protocols (Edge-cloud boundary)
+
+    This pipeline integrates ALL patent classification scopes into a
+    unified processing chain. The ordering constraint (sync → normalize
+    → interpolate → state → nutrient) is itself a patent claim, as it
+    is dictated by physiological dependency relationships.
+
+    Technology Center Strategy:
+    The pipeline architecture demonstrates that this is a DATA PROCESSING
+    SYSTEM innovation (targeting TC 2100/3600), not merely health advice
+    (TC 1600). Each stage performs a distinct computational transformation
+    that improves the functioning of the computing system.
+
 Encapsulates the complete data processing pipeline described in the
 technical whitepaper and patent claims:
 

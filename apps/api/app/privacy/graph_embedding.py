@@ -1,11 +1,26 @@
 """
 Health Graph Embedding.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: H04L 9/32  — Security protocols for protecting data
+               G06N 7/01  — Probabilistic graphical models
+
+Defensive Scope (H04L 9/32):
+    Transforms raw health data into dense 64-dimensional vector
+    representations on-device using SHA-256 hash projection + tanh
+    activation. Only these irreversible embeddings traverse the
+    network boundary — raw biomarker values never leave the device.
+
+Defensive Scope (G06N 7/01):
+    Health knowledge graph with probabilistic node relationships;
+    subgraph embedding via weighted aggregation of neighbor features;
+    consent-based edge severance/restoration for dynamic graph topology.
+
 Simulates on-device graph embedding computation for privacy preservation.
 Raw health data is transformed into dense vector representations locally,
 and only the embeddings are transmitted to the server.
 
-# TODO: add comprehensive tests
 Patent-relevant: The server never sees raw biomarker values — only
 fixed-dimensional embeddings that cannot be reverse-engineered to
 individual readings. This is the "on-device processing" component

@@ -1,6 +1,25 @@
 """
 On-Device Edge Processing Simulator.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: H04L 9/32 — Security protocols for protecting data
+               G06F 21/62 — Protecting access to data via access control rules
+
+Defensive Scope (H04L 9/32):
+    Implements edge-cloud boundary security architecture where raw biomarker
+    data is processed entirely on-device. Only irreversible feature embeddings
+    (SHA-256 hash projection + tanh activation → 64-dim vector), DP-protected
+    aggregations, and categorical metabolic state labels traverse the network
+    boundary. The EdgeProcessingManifest provides auditable proof of data
+    locality — a multi-layer privacy guarantee exceeding HIPAA requirements.
+
+Defensive Scope (G06F 21/62):
+    The combination of on-device temporal sync + local normalization +
+    differential privacy aggregation creates a layered access control
+    architecture that ensures individual health signals cannot be
+    reconstructed from transmitted data.
+
 Demonstrates the privacy-preserving architecture where sensitive biomarker
 data is processed LOCALLY on the user's device (edge), and only
 derived embeddings/aggregations are transmitted to the server.

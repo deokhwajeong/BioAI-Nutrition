@@ -1,6 +1,24 @@
 """
 Adaptive Self-Calibration Engine (Feedback Loop).
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 11/34 — Performance analysis; Monitoring
+               G06N 20/00 — Machine learning
+
+Defensive Scope (G06F 11/34):
+    This module continuously monitors prediction accuracy by comparing
+    predicted vs. actual biomarker peak times, computing convergence scores,
+    and triggering re-calibration when accuracy degrades. This constitutes
+    a computational system self-monitoring innovation.
+
+Defensive Scope (G06N 20/00):
+    The error back-propagation loop decomposes prediction error ε_k into
+    three channels — δ_base(b), δ_circ(h), κ_genetic — and updates each
+    via adaptive EMA with learning rate α(k) = α_0 / (1 + k/τ). This
+    constitutes a novel online learning algorithm for physiological lag
+    model refinement.
+
 Patent-critical module: Implements an adaptive learning algorithm that
 back-propagates the error between predicted and actual biomarker peak
 times to fine-tune individual lag coefficients.

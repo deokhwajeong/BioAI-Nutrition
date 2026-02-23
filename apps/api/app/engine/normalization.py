@@ -1,6 +1,16 @@
 """
 Physiological-Aware Normalization Layer.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01 — Probabilistic graphical models
+
+Defensive Scope (G06N 7/01):
+    Anomaly scoring uses probabilistic formula: anomaly = 1 − exp(−0.5×z²),
+    providing continuous anomaly probability rather than binary thresholds.
+    Genetic-baseline z-scores use genotype-adjusted reference distributions
+    (μ_genetic = μ_pop × Π modifier_i) for probabilistic deviation assessment.
+
 Core module: Transforms raw biomarker values into physiologically
 meaningful normalized signals by accounting for:
 

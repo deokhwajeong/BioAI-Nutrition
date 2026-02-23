@@ -1,6 +1,18 @@
 """
 Dynamic Consent Manager.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 21/62 — Protecting access to data via access control rules
+
+Defensive Scope (G06F 21/62):
+    Implements 12 granular consent scopes + 6 sharing/research scopes with
+    real-time consent propagation. When consent is revoked, associated
+    graph edges are severed instantly, cached calculations are invalidated,
+    and downstream pipeline stages are notified via callbacks. This goes
+    beyond simple access control — it is a dynamic, reactive consent
+    architecture with automatic expiry-based withdrawal.
+
 Manages fine-grained, revocable consent for health data sharing.
 When consent is revoked, associated graph edges are severed in real-time.
 

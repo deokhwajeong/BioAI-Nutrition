@@ -1,6 +1,17 @@
 """
 Circadian-Aware Interpolation.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01 — Probabilistic graphical models
+
+Defensive Scope (G06N 7/01):
+    Circadian rhythm probabilistic prediction for gap filling uses
+    biological oscillation models (circadian + ultradian) with adaptive
+    blending controlled by sigmoid gap-duration weighting. This is
+    a probabilistic estimation technique distinct from naive linear or
+    spline interpolation.
+
 Patent-core module: Fills gaps in biomarker data using biological rhythm
 models rather than naive linear interpolation.
 

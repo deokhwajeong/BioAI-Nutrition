@@ -1,6 +1,22 @@
 """
 Metabolic State Estimator.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06N 7/01  — Probabilistic graphical models
+               G06N 20/00 — Machine learning
+
+Defensive Scope (G06N 7/01):
+    Multi-factor metabolic state inference using probabilistic combination
+    of heterogeneous biomarker signals (HRV amplitude, glucose trends,
+    activity patterns). Sleep quality estimation uses probabilistic scoring
+    (0-1 continuous) from multiple uncertain inputs.
+
+Defensive Scope (G06N 20/00):
+    Insulin sensitivity estimation integrates sleep quality, exercise
+    history, and circadian phase via learned multiplicative factors —
+    an adaptive model that improves with accumulated user data.
+
 Patent-core module: Infers the user's current metabolic state from
 synchronized and normalized biomarker signals.
 

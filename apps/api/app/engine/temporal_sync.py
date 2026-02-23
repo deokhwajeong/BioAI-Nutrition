@@ -1,6 +1,23 @@
 """
 Temporal Synchronization Engine.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 16/27 — Query processing; Data synchronization
+               G06N 7/01 — Probabilistic graphical models (Gaussian kernel weighting)
+
+Defensive Scope (G06F 16/27):
+    This module implements biologically-motivated data synchronization that
+    goes beyond conventional time-series resampling. The physiological lag
+    compensation with genetic and circadian modifiers constitutes the
+    algorithmic novelty defended under this classification.
+
+Defensive Scope (G06N 7/01):
+    Gaussian kernel weighted aggregation (weight = exp(-0.5×(dt/σ)²)×confidence)
+    and staleness decay (decay = exp(-0.693×gap/half_life)) provide
+    probabilistic estimation under uncertainty, differentiating from
+    deterministic interpolation methods.
+
 Core module: Aligns heterogeneous biomarker data streams with
 different sampling rates onto a unified multi-resolution temporal grid.
 

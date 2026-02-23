@@ -1,6 +1,18 @@
 """
 Real-Time Nutrient Demand Calculator.
 
+USPTO/IPC Classifications:
+    Primary:   G16H 20/60 — ICT for nutrition control
+    Secondary: G06F 16/27 — Query processing (multi-source data integration)
+               G06N 20/00 — Machine learning (adaptive nutrient optimization)
+
+Defensive Scope (G16H 20/60):
+    This is the final pipeline stage producing actionable nutrient budgets.
+    The conflict resolution layer (medical safety > genetic optimization >
+    biomarker response > metabolic state > RDA baseline) and temporal
+    distribution of nutrients based on metabolic windows constitute the
+    core patent claims for personalized nutrition control.
+
 Patent-core module: Computes instantaneous and time-budgeted nutrient
 requirements by integrating all upstream engine outputs:
 
