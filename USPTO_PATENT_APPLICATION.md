@@ -1,6 +1,60 @@
-# UNITED STATES PATENT APPLICATION
+# UNITED STATES PROVISIONAL PATENT APPLICATION
 
-## UTILITY PATENT APPLICATION
+---
+
+## PTO/SB/16 — PROVISIONAL APPLICATION FOR PATENT COVER SHEET
+
+*This is a request for filing a PROVISIONAL APPLICATION FOR PATENT under 37 CFR § 1.53(c).*
+
+| Field | Value |
+|---|---|
+| **INVENTOR(S)** | |
+| Given Name | Deokhwa |
+| Family Name | Jeong (정덕화) |
+| Residence (City, State/Country) | Republic of Korea |
+| | |
+| **TITLE OF THE INVENTION** | SYSTEM AND METHOD FOR DYNAMIC PHYSIOLOGICAL LAG-COMPENSATED TEMPORAL SYNCHRONIZATION OF HETEROGENEOUS BIOMARKER SIGNALS FOR PERSONALIZED NUTRITION RECOMMENDATION |
+| **(max 500 characters)** | |
+| | |
+| **CORRESPONDENCE ADDRESS** | |
+| Name | Deokhwa Jeong |
+| Address | [Address to be provided] |
+| City / State / ZIP | [To be provided] |
+| Country | Republic of Korea |
+| Telephone | [To be provided] |
+| Email | deokhwa@gmail.com |
+| | |
+| **ENTITY STATUS** | ☐ Large Entity · ☐ Small Entity · ☑ Micro Entity |
+| | |
+| **DOCKET NUMBER** | BIOAI-PROV-2026-001 |
+| | |
+| **FILING FEE** | |
+| Micro Entity Filing Fee (37 CFR § 1.16(d)) | $80 USD |
+| | |
+| **SPECIFICATION** | Attached (pages 1–[XX]) |
+| **DRAWING(S)** | 10 Sheets (FIG. 1 through FIG. 10) — formal drawings to be prepared per 37 CFR § 1.84 |
+| | |
+| **APPLICATION FILED UNDER** | 35 U.S.C. § 111(b) |
+| **APPLICABLE REGULATIONS** | 37 CFR § 1.53(c) |
+
+### Warnings / Declarations
+
+> **WARNING:** Provisional application patent filings are NOT examined on their merits. A non-provisional application under 35 U.S.C. § 111(a) claiming the benefit of this provisional application under 35 U.S.C. § 119(e) must be filed no later than **12 months** from the filing date of this provisional application. Failure to timely file a non-provisional application will result in abandonment of this provisional application and loss of the benefit of the filing date.
+
+> **CERTIFICATION UNDER 37 CFR § 1.4(d)(4):** The undersigned hereby certifies that this correspondence is being filed via the USPTO Patent Center electronic filing system.
+
+| Signature | Date |
+|---|---|
+| /Deokhwa Jeong/ | [Filing Date] |
+| Deokhwa Jeong — Applicant / Pro Se | |
+
+---
+
+---
+
+## PROVISIONAL PATENT APPLICATION SPECIFICATION
+
+*Filed under 35 U.S.C. § 111(b), 37 CFR § 1.53(c)*
 
 ---
 
@@ -12,7 +66,9 @@
 
 ## CROSS-REFERENCE TO RELATED APPLICATIONS
 
-This application claims priority to Korean Patent Application No. [TO BE ASSIGNED], filed [DATE], the entire contents of which are incorporated herein by reference.
+Not Applicable.
+
+*This provisional application establishes a priority date under 35 U.S.C. § 119(e). A non-provisional application claiming the benefit of this provisional application will be filed within 12 months of the filing date hereof.*
 
 ---
 
@@ -1285,6 +1341,8 @@ The system does not diagnose any disease or medical condition. It computes nutri
 ---
 ## CLAIMS
 
+*Note: Claims are included in this provisional application for completeness and to establish clear claim support in the specification. Per 35 U.S.C. § 111(b), claims are not required for provisional applications but are strongly recommended to define the scope of the invention and facilitate subsequent non-provisional filing under 35 U.S.C. § 111(a).*
+
 What is claimed is:
 
 ### Independent Claim 1 — Dynamic Physiological Lag Model
@@ -1513,40 +1571,85 @@ such that short gaps weight measured neighbors and long gaps weight the circadia
 
 ## ABSTRACT OF THE DISCLOSURE
 
-A computer-implemented system and method for personalized nutrition recommendation based on dynamic physiological lag-compensated temporal synchronization of heterogeneous biomarker signals. The system computes personalized lag durations by multiplying three independent biological axes: biomarker-specific intrinsic lag (e.g., 60 minutes for glucose, 30 seconds for heart rate), genetic metabolic rate derived from SNP profiles, and circadian rhythm metabolic efficiency. An adaptive self-calibration feedback loop continuously refines lag predictions by back-propagating prediction-versus-actual peak timing errors through three independent correction channels with decaying learning rates. A seven-stage processing pipeline transforms raw biomarker readings into real-time personalized nutrient budgets through consent filtering, temporal synchronization, genotype-aware normalization, circadian-aware interpolation, composite metabolic state estimation with 14 simultaneous phases, context-aware re-normalization, nutrient demand calculation with hierarchical conflict resolution between genetic optimization and medical safety constraints, and dynamic differential privacy noise injection with four-tier sensitivity classification. The system operates on edge devices to ensure raw health data never leaves the user's device, with triple-layer privacy protection comprising edge computing, dynamic differential privacy, and granular consent management.
+*[150 words maximum per MPEP § 608.01(b)]*
+
+A computer-implemented system and method for personalized nutrition recommendation using dynamic physiological lag-compensated temporal synchronization of heterogeneous biomarker signals. The system computes personalized lag durations by multiplying three biological axes: biomarker-specific intrinsic lag, genetic metabolic rate from SNP profiles, and circadian rhythm efficiency. An adaptive self-calibration feedback loop refines lag predictions through three correction channels with decaying learning rates. A seven-stage edge-device pipeline transforms raw biomarker readings into real-time nutrient budgets via consent filtering, temporal synchronization, genotype-aware normalization, circadian interpolation, composite metabolic state estimation across 14 simultaneous phases, hierarchical conflict resolution between genetic optimization and medical safety, and dynamic differential privacy with four-tier sensitivity classification. The system improves meal-to-glucose temporal correlation from r≈0.15 to r≈0.78 (+420%) while ensuring raw health data never leaves the user's device through triple-layer privacy protection.
 
 ---
 
 ## INVENTOR(S)
 
 **Name:** Deokhwa Jeong (정덕화)
+**Residence:** Republic of Korea
 
 ---
 
 ## ASSIGNEE
 
-[To be determined]
+[To be determined — may be assigned prior to non-provisional filing]
 
 ---
 
 ## FILING INFORMATION
 
-**Application Type:** Utility Patent Application (Non-Provisional)
+**Application Type:** Provisional Patent Application under 35 U.S.C. § 111(b)
+**Filing Regulation:** 37 CFR § 1.53(c)
+**Entity Status:** Micro Entity (37 CFR § 1.29)
+**Docket Number:** BIOAI-PROV-2026-001
 **Filing Date:** [To be filed]
-**Technology Center:** 3600 (Transportation, Construction, Electronic Commerce, Agriculture, National Security, and License & Review) or 2100 (Computer Architecture, Software, and Information Security)
+**Provisional Application Duration:** 12 months from filing date (35 U.S.C. § 119(e))
+**Non-Provisional Deadline:** [Filing Date + 12 months]
+
+**Suggested Technology Center:** TC 2100 (Computer Architecture, Software, and Information Security) or TC 3600 (Transportation, Construction, Electronic Commerce, Agriculture, National Security, and License & Review)
+
 **Suggested CPC Classifications:**
-- G16H 50/30 — ICT specially adapted for medical diagnosis, medical simulation or medical data mining; ICT specially adapted for detecting, monitoring or modelling epidemics or pandemics for calculating health indices; for individual health risk assessment
-- G16H 20/60 — ICT specially adapted for therapies or health-improving plans, e.g. for handling prescriptions, for steering therapy or for monitoring patient compliance relating to nutrition control
-- G16H 50/20 — ICT specially adapted for medical diagnosis, medical simulation or medical data mining; ICT specially adapted for detecting, monitoring or modelling epidemics or pandemics for computer-aided diagnosis, e.g. based on medical expert systems
-- G06N 20/00 — Machine learning
-- G06F 21/62 — Protecting access to data via a platform, e.g. using keys or access control rules
+- **G16H 20/60** — ICT specially adapted for therapies or health-improving plans relating to nutrition control
+- **G16H 50/30** — ICT specially adapted for medical diagnosis; calculating health indices; individual health risk assessment
+- **G06F 16/27** — Replication, distribution, or synchronisation of data — *Temporal synchronization of heterogeneous biomarker streams*
+- **G06F 11/34** — Recording or statistical evaluation of computer activity — *Self-calibration feedback loop with adaptive learning*
+- **G06N 20/00** — Machine learning — *Adaptive self-calibration with EMA-based error back-propagation*
+- **G06N 7/01** — Probabilistic classifiers — *Circadian rhythm probabilistic interpolation model*
+- **G06F 21/62** — Protecting access to data via a platform — *Dynamic differential privacy with four-tier sensitivity classification*
+- **H04L 9/32** — Cryptographic mechanisms or protocols — *Edge-cloud cryptographic privacy boundary enforcement*
+- **G16H 50/20** — ICT for computer-aided diagnosis based on medical expert systems
+
+**International Patent Classification (IPC):**
+- **G16H 20/60** (Primary)
+- **G06F 16/27**
+- **G06N 20/00**
+- **G06F 21/62**
+
+---
+
+## PROVISIONAL APPLICATION CHECKLIST
+
+Per 37 CFR § 1.51(c), this provisional application includes:
+
+- [x] **Cover Sheet (PTO/SB/16)** — Identifying the application as a provisional application for patent
+- [x] **Specification** — Written description of the invention (Sections: Field, Background, Summary, Brief Description of Drawings, Detailed Description)
+- [x] **Claims** — 25 claims (5 independent + 20 dependent) included for completeness and to establish claim support; claims are NOT required for provisional applications but are recommended
+- [x] **Abstract** — Summary of the disclosure
+- [x] **Drawings** — Detailed specifications for 10 figures (FIG. 1 through FIG. 10); formal drawings to be prepared per 37 CFR § 1.84 prior to non-provisional filing
+- [ ] **Filing Fee** — $80 USD Micro Entity fee per 37 CFR § 1.16(d) — to be paid upon electronic filing
+- [ ] **Micro Entity Certification** — PTO/SB/15A to be filed concurrently
+
+---
+
+## RELATED NON-PROVISIONAL FILING STRATEGY
+
+Upon filing this provisional application, the following non-provisional strategy is recommended:
+
+1. **Within 10 months:** Conduct prior art search; refine claims based on search results
+2. **Within 11 months:** Prepare formal patent drawings per 37 CFR § 1.84
+3. **Within 12 months:** File non-provisional application under 35 U.S.C. § 111(a) claiming benefit under 35 U.S.C. § 119(e), with:
+   - Reference to this provisional application number
+   - Formal drawings
+   - Updated claims incorporating any new embodiments developed during the 12-month period
+   - Any continuation-in-part (CIP) material if substantial new matter has been added
+4. **PCT Filing Option:** Alternatively, file PCT application under Patent Cooperation Treaty within 12 months, designating US and other target jurisdictions
 
 ---
 
 *© 2026 Deokhwa Jeong. All Rights Reserved.*
-*This document constitutes a patent application specification. Unauthorized reproduction prohibited.*
-
-<!-- reviewed: 2023-03-10 -->
-
-<!-- reviewed: 2024-05-28 -->
-<!-- reviewed: 2024-08-14 -->
+*This document constitutes a provisional patent application specification filed under 35 U.S.C. § 111(b).*
+*Unauthorized reproduction prohibited.*
