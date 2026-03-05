@@ -1,16 +1,16 @@
 # 🛡️ Privacy-Preserving Graph Architecture & Compliance
 
 ### A. Privacy-Preserving Graph Architecture
-- **Knowledge Graph Isolation**: 전체 그래프에서 가구별/개인별 서브그래프(Subgraph)를 격리하고, 허가된 관계만 연결되도록 설계합니다. 데이터 접근 및 연결은 권한 기반(Access Control)으로 제한되어야 하며, 외부 노출을 최소화합니다.
-- **On-device / Edge Processing**: 민감한 건강 신호(예: 바이탈, 생체 데이터)는 사용자의 기기(모바일/IoT)에서 1차적으로 처리하고, 서버에는 비식별화된 그래프 임베딩(Embedding)만 전달하는 구조를 채택합니다. 이를 통해 개인정보 노출을 최소화하고, 프라이버시를 강화할 수 있습니다.
+- **Knowledge Graph Isolation**: Isolate household/individual subgraphs from the full graph, ensuring only authorized relationships are connected. Data access and connections must be restricted through access control, minimizing external exposure.
+- **On-device / Edge Processing**: Sensitive health signals (e.g., vitals, biometric data) are primarily processed on the user's device (mobile/IoT), and only de-identified graph embeddings are transmitted to the server. This minimizes personal information exposure and strengthens privacy.
 
-### B. 가구 단위 모델링 (Household Health Signals)
-- **Shared vs Private Nodes**: 그래프 내에서 가구 공통 데이터(예: 주방 식재료, 거주 지역 환경)와 개인 데이터(예: 혈당, 복용 약물)를 명확히 구분하여 노드를 설계합니다. 각 노드는 소유권(Ownership) 및 접근 권한이 메타데이터로 명시됩니다.
-- **Relational Reasoning**: 예시) "A가 고혈압이 있고 B가 요리를 전담한다면, 가구 전체의 나트륨 섭취를 제한해야 한다"와 같은 복합 추론 로직을 그래프 위에서 구현할 수 있습니다. 이를 위해 관계(Edge) 타입과 조건부 추론 규칙을 그래프 엔진에 정의합니다.
+### B. Household-Level Modeling (Household Health Signals)
+- **Shared vs Private Nodes**: Design nodes by clearly separating household-shared data (e.g., kitchen ingredients, residential environment) from personal data (e.g., blood glucose, medications) within the graph. Each node has ownership and access permissions explicitly specified in metadata.
+- **Relational Reasoning**: Example: Complex reasoning logic such as "if A has hypertension and B is the primary cook, sodium intake for the entire household should be restricted" can be implemented on the graph. Relationship (Edge) types and conditional reasoning rules are defined in the graph engine.
 
-### C. 정책 및 규제 엔진 (Compliance as Code)
-- **Dynamic Consent**: 사용자가 특정 데이터(예: 수면 기록)의 공유를 철회하면, 그래프의 해당 연결(Edge)이 실시간으로 끊기도록 설계합니다. 동적 동의(Consent) 관리가 핵심입니다.
-- **Regional Compliance**: 국가별 의료법/개인정보보호법 등 다양한 규제를 정책 엔진(Policy Engine)으로 분리 관리합니다. 정책은 코드(Compliance as Code)로 정의되어, 지역/국가별로 동적으로 적용 및 변경이 가능합니다.
+### C. Policy and Compliance Engine (Compliance as Code)
+- **Dynamic Consent**: When a user revokes sharing of specific data (e.g., sleep records), the corresponding graph edges are severed in real time. Dynamic consent management is the key.
+- **Regional Compliance**: Various regulations such as medical laws and privacy laws by country are managed separately through a Policy Engine. Policies are defined as code (Compliance as Code), enabling dynamic application and modification per region/country.
 
 ---
 

@@ -1,96 +1,96 @@
-# BioAI Nutrition: 실시간 바이오마커–영양소 상관관계 엔진
+# BioAI Nutrition: Real-Time Biomarker–Nutrient Correlation Engine
 
-## 기술 백서 v2.0
+## Technical Whitepaper v2.0
 
-**저자:** 정덕화
-**일자:** 2026년 2월
-**분류:** 기술 백서 / 특허 기반 아키텍처 사양서
-
----
-
-## 목차
-
-1. [요약](#1-요약)
-2. [문제 정의: 기존 앱이 실패하는 이유](#2-문제-정의-기존-앱이-실패하는-이유)
-3. [핵심 발명: 생리학적 지연 시간 알고리즘](#3-핵심-발명-생리학적-지연-시간-알고리즘)
-4. [데이터 표준화: HL7 FHIR 기반 아키텍처](#4-데이터-표준화-hl7-fhir-기반-아키텍처)
-5. [시스템 아키텍처](#5-시스템-아키텍처)
-6. [특허 핵심 파이프라인: 7단계 처리 엔진](#6-특허-핵심-파이프라인-7단계-처리-엔진)
-7. [유전체 개인화](#7-유전체-개인화)
-8. [프라이버시 보호 아키텍처](#8-프라이버시-보호-아키텍처)
-9. [검증: Synthea 합성 임상 데이터 통합](#9-검증-synthea-합성-임상-데이터-통합)
-10. [데이터 전략: Small & Deep Data 패러다임](#10-데이터-전략-small--deep-data-패러다임)
-11. [기술 스택 및 구현 현황](#11-기술-스택-및-구현-현황)
-12. [경쟁 차별화](#12-경쟁-차별화)
-13. [향후 로드맵](#13-향후-로드맵)
-14. [국제 특허 출원 전략 (PCT)](#135-국제-특허-출원-전략-pct)
-15. [결론](#14-결론)
+**Author:** Deokhwa Jeong
+**Date:** February 2026
+**Classification:** Technical Whitepaper / Patent-Based Architecture Specification
 
 ---
 
-## 1. 요약
+## Table of Contents
 
-BioAI Nutrition은 **실시간 생체 데이터와 영양소 섭취 간의 시간적 상관관계를 정량화**하는 세계 최초의 개인 맞춤 영양 추천 엔진입니다.
+1. [Summary](#1-summary)
+2. [Problem Definition: Why Existing Apps Fail](#2-problem-definition-why-existing-apps-fail)
+3. [Core Invention: Physiological Lag Time Algorithm](#3-core-invention-physiological-lag-time-algorithm)
+4. [Data Standardization: HL7 FHIR-Based Architecture](#4-data-standardization-hl7-fhir-based-architecture)
+5. [System Architecture](#5-system-architecture)
+6. [Patent Core Pipeline: 7-Stage Processing Engine](#6-patent-core-pipeline-7-stage-processing-engine)
+7. [Genomic Personalization](#7-genomic-personalization)
+8. [Privacy-Preserving Architecture](#8-privacy-preserving-architecture)
+9. [Validation: Synthea Synthetic Clinical Data Integration](#9-validation-synthea-synthetic-clinical-data-integration)
+10. [Data Strategy: Small & Deep Data Paradigm](#10-data-strategy-small--deep-data-paradigm)
+11. [Tech Stack and Implementation Status](#11-tech-stack-and-implementation-status)
+12. [Competitive Differentiation](#12-competitive-differentiation)
+13. [Future Roadmap](#13-future-roadmap)
+14. [International Patent Filing Strategy (PCT)](#135-international-patent-filing-strategy-pct)
+15. [Conclusion](#14-conclusion)
 
-기존 영양 관리 앱(MyFitnessPal, Noom, Lose It! 등)은 공통된 근본적 한계를 공유합니다: **"식사를 했다"와 "혈당이 올랐다"를 독립적인 이벤트로만 기록할 뿐, 둘 사이의 인과적 시간 지연(Lag Time)을 계산하지 않습니다.** 식후 혈당 반응은 30~120분의 지연을 나타내며, 이 지연은 유전형, 시간대(일주기 리듬), 개인 대사율에 따라 동적으로 변합니다.
+---
 
-BioAI Nutrition은 **동적 생리학적 지연 모델(Dynamic Physiological Lag Model)**을 발명하여 이 문제를 해결합니다:
+## 1. Summary
+
+BioAI Nutrition is the world's first personalized nutrition recommendation engine that **quantifies the temporal correlation between real-time biometric data and nutrient intake**.
+
+Existing nutrition management apps (MyFitnessPal, Noom, Lose It!, etc.) share a common fundamental limitation: **they only record "a meal was consumed" and "blood glucose rose" as independent events, without calculating the causal time delay (Lag Time) between them.** Post-meal blood glucose response exhibits a delay of 30–120 minutes, and this delay dynamically varies based on genotype, time of day (circadian rhythm), and individual metabolic rate.
+
+BioAI Nutrition invented the **Dynamic Physiological Lag Model** to solve this problem:
 
 $$t_{sync} = t_{event} + \Delta t_{base}(b) \times \gamma_{genetic}(g) \times \varphi_{circadian}(c)$$
 
-이 수식은 세 개의 독립적인 생물학적 축(신호 생물학, 개인 유전체학, 일주기 리듬)을 곱하여 **개인화된, 시간 적응적 지연 시간**을 산출합니다. 이를 통해 서로 다른 샘플링 속도를 가진 이질적인 바이오마커 데이터(5분 간격 CGM, 1일 1회 수면 요약, 1회성 유전자 검사)를 하나의 통합 시간 그리드 위에 정렬할 수 있습니다.
+This formula multiplies three independent biological axes (signal biology, individual genomics, circadian rhythm) to produce a **personalized, time-adaptive lag time**. This enables the alignment of heterogeneous biomarker data with different sampling rates (5-minute interval CGM, once-daily sleep summary, one-time genetic test) onto a single unified temporal grid.
 
-나아가, **적응형 자가 교정 피드백 루프(Adaptive Self-Calibration Feedback Loop)**를 통해 이 정적 수식이 **사용자 데이터로부터 스스로 진화하는 모델**로 확장됩니다:
+Furthermore, through an **Adaptive Self-Calibration Feedback Loop**, this static formula is extended into a **model that self-evolves from user data**:
 
 $$t_{sync\_cal} = t_{event} + (\Delta t_{base}(b) + \delta_{base}(b)) \times (\gamma_{genetic}(g) \times \kappa_{genetic}) \times (\varphi_{circadian}(c) + \delta_{circ}(h))$$
 
-세 개의 독립적인 교정 채널($\delta_{base}$, $\kappa_{genetic}$, $\delta_{circ}$)이 예측–실측 오차를 역전파하여 개인별 지연 계수를 미세 조정합니다. 이는 특허 관점에서 "자기 진화하는 생리학적 모델"이라는 독창적 청구항을 구성합니다.
+Three independent calibration channels ($\delta_{base}$, $\kappa_{genetic}$, $\delta_{circ}$) back-propagate prediction-versus-actual errors to fine-tune per-user lag coefficients. From a patent perspective, this constitutes the novel claim of a "self-evolving physiological model."
 
-또한 **HL7 FHIR R4 국제 의료 데이터 표준**을 전면 채택하여, Apple Health, Google Health Connect, 병원 EMR 시스템과의 즉각적 상호운용성을 보장합니다.
+Additionally, the system fully adopts the **HL7 FHIR R4 international medical data standard**, ensuring immediate interoperability with Apple Health, Google Health Connect, and hospital EMR systems.
 
 ---
 
-## 2. 문제 정의: 기존 앱이 실패하는 이유
+## 2. Problem Definition: Why Existing Apps Fail
 
-### 2.1 현재 시장의 한계
+### 2.1 Current Market Limitations
 
-| 앱 | 수집 데이터 | 할 수 없는 것 |
+| App | Collected Data | What It Cannot Do |
 |---|---|---|
-| MyFitnessPal | 칼로리, 영양소 | 혈당과 식사의 시간적 상관관계 파악 |
-| Noom | 행동 변화 로깅 | 실시간 생체 반응 측정 |
-| Levels (CGM) | 연속 혈당 | 유전자 기반 개인화, 다중 바이오마커 통합 |
-| Apple Health | 다중 소스 집계 | 인과적 시간 지연 계산, 영양소 예산 산출 |
+| MyFitnessPal | Calories, nutrients | Determine temporal correlation between blood glucose and meals |
+| Noom | Behavioral change logging | Measure real-time biometric responses |
+| Levels (CGM) | Continuous glucose | Gene-based personalization, multi-biomarker integration |
+| Apple Health | Multi-source aggregation | Compute causal time delays, calculate nutrient budgets |
 
-### 2.2 근본 원인: 시간 정렬 부재
+### 2.2 Root Cause: Absence of Temporal Alignment
 
-기존 앱들은 바이오마커를 타임스탬프 기준 단순 정렬합니다. 이는 **생물학적 인과 지연**이 존재하기 때문에 근본적으로 잘못된 접근입니다:
+Existing apps simply sort biomarkers by timestamp. This is a fundamentally flawed approach because **biological causal delays** exist:
 
-- 포도당: 식후 30~120분 후 반응
-- 인슐린: 식후 15~30분 후 분비
-- 코르티솔: 스트레스 20~40분 후 피크
-- 이 지연 시간은 개인마다 다르며, 같은 사람도 아침과 저녁에 다릅니다
+- Glucose: responds 30–120 minutes after a meal
+- Insulin: secreted 15–30 minutes after a meal
+- Cortisol: peaks 20–40 minutes after stress
+- These delay times differ between individuals, and even for the same person between morning and evening
 
 ---
 
-## 3. 핵심 발명: 생리학적 지연 시간 알고리즘
+## 3. Core Invention: Physiological Lag Time Algorithm
 
-### 3.1 핵심 수식
+### 3.1 Core Formula
 
 $$t_{sync} = t_{event} + \Delta t_{base}(b) \times \gamma_{genetic}(g) \times \varphi_{circadian}(c)$$
 
-각 항의 의미:
+Meaning of each term:
 
-| 항 | 의미 | 범위 | 결정 요인 |
+| Term | Meaning | Range | Determining Factor |
 |---|---|---|---|
-| $\Delta t_{base}(b)$ | 바이오마커별 기본 지연 | 0~120분 | 생물학적 신호 특성 |
-| $\gamma_{genetic}(g)$ | 유전적 대사율 계수 | 0.5~2.0 | SNP 유전형 |
-| $\varphi_{circadian}(c)$ | 일주기 효율 함수 | 0.7~1.3 | 시간대 |
+| $\Delta t_{base}(b)$ | Base delay per biomarker | 0–120 min | Biological signal characteristics |
+| $\gamma_{genetic}(g)$ | Genetic metabolic rate coefficient | 0.5–2.0 | SNP genotype |
+| $\varphi_{circadian}(c)$ | Circadian efficiency function | 0.7–1.3 | Time of day |
 
-### 3.2 구현
+### 3.2 Implementation
 
-**파일:** `engine/temporal_sync.py` (712줄)
+**File:** `engine/temporal_sync.py` (712 lines)
 
-`PhysiologicalLagModel` 클래스가 핵심 수식을 구현합니다:
+The `PhysiologicalLagModel` class implements the core formula:
 
 ```python
 def compute_lag(self, biomarker_type, genetic_modifiers, timestamp):
@@ -100,358 +100,358 @@ def compute_lag(self, biomarker_type, genetic_modifiers, timestamp):
     return base_lag * genetic_factor * circadian_factor
 ```
 
-**기본 지연 시간 테이블:**
+**Base Lag Time Table:**
 
-| 바이오마커 | 기본 지연 | 근거 |
+| Biomarker | Base Lag | Rationale |
 |---|---|---|
-| GLUCOSE | 45분 | 소화 및 흡수 시간 |
-| HEART_RATE | 2분 | 자율신경 반응 |
-| HRV | 5분 | 부교감신경 조절 |
-| STEPS | 0분 | 즉각 이벤트 |
-| SLEEP_STAGE | 0분 | 상태 관찰 |
+| GLUCOSE | 45 min | Digestion and absorption time |
+| HEART_RATE | 2 min | Autonomic nervous response |
+| HRV | 5 min | Parasympathetic regulation |
+| STEPS | 0 min | Immediate event |
+| SLEEP_STAGE | 0 min | State observation |
 
-### 3.3 검증
+### 3.3 Validation
 
-27개 이상의 단위 테스트가 이 모델의 모든 측면을 검증합니다:
-- **기본 지연 모델:** 15개 테스트(`test_engine.py::TestPhysiologicalLagModel`) — 기본 지연, 유전적 계수(CYP1A2 AC → 0.5배), 일주기 변동(오전 7시 vs 새벽 3시), 안전 폴백
-- **자가 교정 피드백 루프:** 12개 테스트(`test_patent_gaps.py::TestSelfCalibrationFeedbackLoop`) — 피크 검출, 적응형 학습률 감쇠, 수렴성, 교정된 지연 적용, 파이프라인 통합, 배치 교정
+Over 27 unit tests validate all aspects of this model:
+- **Base lag model:** 15 tests (`test_engine.py::TestPhysiologicalLagModel`) — base lag, genetic coefficients (CYP1A2 AC → 0.5×), circadian variation (7 AM vs 3 AM), safety fallback
+- **Self-calibration feedback loop:** 12 tests (`test_patent_gaps.py::TestSelfCalibrationFeedbackLoop`) — peak detection, adaptive learning rate decay, convergence, calibrated lag application, pipeline integration, batch calibration
 
-### 3.4 적응형 자가 교정 피드백 루프
+### 3.4 Adaptive Self-Calibration Feedback Loop
 
-**파일:** `engine/self_calibration.py` (~500줄) — **신규 모듈**
+**File:** `engine/self_calibration.py` (~500 lines) — **New module**
 
-**핵심 아이디어:** 정적 수식은 유사 특허가 나올 위험이 있습니다. "사용자 데이터를 통해 스스로 진화하는 모델"은 독창성을 인정받기 훨씬 쉽습니다. 예측된 피크 시점과 실제 측정된 피크 시점의 오차(ε)를 역전파하여 개인별 지연 계수를 미세 조정하는 적응형 학습 알고리즘입니다.
+**Core Idea:** Static formulas risk similar patents being filed. A "model that self-evolves from user data" is far more likely to be recognized as novel. This is an adaptive learning algorithm that back-propagates the error (ε) between predicted peak time and actual measured peak time to fine-tune per-user lag coefficients.
 
-#### 3.4.1 교정된 수식
+#### 3.4.1 Calibrated Formula
 
 $$t_{sync\_cal} = t_{event} + (\Delta t_{base}(b) + \delta_{base}(b)) \times (\gamma_{genetic}(g) \times \kappa_{genetic}) \times (\varphi_{circadian}(c) + \delta_{circ}(h))$$
 
-| 교정 채널 | 기호 | 의미 | 범위 제한 |
+| Calibration Channel | Symbol | Meaning | Range Constraint |
 |---|---|---|---|
-| 기본 지연 오프셋 | $\delta_{base}(b)$ | 바이오마커별 누적 기본 지연 보정 | ±1,800초 (±30분) |
-| 유전적 계수 보정 | $\kappa_{genetic}$ | 유전적 대사율 계수의 곱셈 보정 | ±0.5 (0.5~1.5) |
-| 일주기 위상 보정 | $\delta_{circ}(h)$ | 시간대별(0~23시) 일주기 위상 미세 조정 | ±0.3 |
+| Base lag offset | $\delta_{base}(b)$ | Cumulative per-biomarker base lag correction | ±1,800 seconds (±30 min) |
+| Genetic coefficient correction | $\kappa_{genetic}$ | Multiplicative correction of genetic metabolic rate coefficient | ±0.5 (0.5–1.5) |
+| Circadian phase correction | $\delta_{circ}(h)$ | Per-hour (0–23) circadian phase fine-tuning | ±0.3 |
 
-#### 3.4.2 적응형 학습률
+#### 3.4.2 Adaptive Learning Rate
 
-초기 관측에서는 빠르게 학습하고, 데이터가 축적되면 점진적으로 안정화되는 지수 감쇠 학습률:
+Exponential decay learning rate that learns rapidly from initial observations and progressively stabilizes as data accumulates:
 
 $$\alpha(k) = \frac{\alpha_0}{1 + k / \tau}$$
 
-| 파라미터 | 기본값 | 의미 |
+| Parameter | Default | Meaning |
 |---|---|---|
-| $\alpha_0$ (기본 지연) | 0.3 | 초기 기본 학습률 |
-| $\alpha_0$ (일주기) | 0.2 | 초기 일주기 학습률 |
-| $\alpha_0$ (유전적) | 0.1 | 초기 유전적 학습률 (보수적) |
-| $\tau$ | 20 | 수렴 시간 상수 (관측 수) |
+| $\alpha_0$ (base lag) | 0.3 | Initial base learning rate |
+| $\alpha_0$ (circadian) | 0.2 | Initial circadian learning rate |
+| $\alpha_0$ (genetic) | 0.1 | Initial genetic learning rate (conservative) |
+| $\tau$ | 20 | Convergence time constant (observation count) |
 
-#### 3.4.3 피크 검출 알고리즘
+#### 3.4.3 Peak Detection Algorithm
 
-`PeakDetector` 클래스는 바이오마커 시계열에서 실제 반응 피크를 자동 검출합니다:
+The `PeakDetector` class automatically detects actual response peaks in biomarker time series:
 
-1. **EMA 평활화** (α=0.3) — 센서 노이즈 제거
-2. **극대값 탐색** — 이전·이후 값 모두보다 큰 시점 식별
-3. **현저성 필터링** — 최소 현저성 > 진폭의 10%인 피크만 선택
-4. **신뢰도 산출** — 현저성 기반 0~1 스코어
+1. **EMA smoothing** (α=0.3) — Remove sensor noise
+2. **Local maximum search** — Identify points greater than both preceding and following values
+3. **Prominence filtering** — Select only peaks with minimum prominence > 10% of amplitude range
+4. **Confidence scoring** — Prominence-based 0–1 score
 
-#### 3.4.4 오차 역전파 프로세스
+#### 3.4.4 Error Back-Propagation Process
 
 ```
-1. 식사 이벤트 발생 → 지연 모델이 피크 시점 예측
-2. 식후 바이오마커 리딩 수집 (30분~4시간)
-3. PeakDetector가 실제 피크 시점 검출
-4. 오차 계산: ε = 실제_피크 - 예측_피크
-5. 오차 분해 및 3채널 역전파:
-   a) δ_base(b) += α_base(k) × ε        (기본 지연 보정)
-   b) δ_circ(h) += α_circ(k) × ε/lag     (일주기 보정)
-   c) κ_genetic += α_genetic(k) × ε/lag   (유전적 보정)
-6. 범위 클램핑 적용
-7. 수렴 추적: MAE 히스토리 업데이트
+1. Meal event occurs → Lag model predicts peak time
+2. Post-meal biomarker readings collected (30 min–4 hours)
+3. PeakDetector detects actual peak time
+4. Error calculation: ε = actual_peak - predicted_peak
+5. Error decomposition and 3-channel back-propagation:
+   a) δ_base(b) += α_base(k) × ε        (base lag correction)
+   b) δ_circ(h) += α_circ(k) × ε/lag     (circadian correction)
+   c) κ_genetic += α_genetic(k) × ε/lag   (genetic correction)
+6. Range clamping applied
+7. Convergence tracking: MAE history updated
 ```
 
-#### 3.4.5 수렴 판정
+#### 3.4.5 Convergence Determination
 
-`PersonalCalibrationProfile`은 교정이 충분히 수렴했는지 자동 판정합니다:
-- **최소 관측 수:** 10회 이상
-- **수렴 점수:** MAE 히스토리의 앞/뒤 절반 비교, 후반 MAE가 전반보다 낮으면 수렴 중
-- **완전 수렴:** 수렴 점수 > 0.8 AND 관측 수 ≥ 10
+`PersonalCalibrationProfile` automatically determines whether calibration has sufficiently converged:
+- **Minimum observations:** 10 or more
+- **Convergence score:** Comparison of first and second halves of MAE history; converging if latter MAE is lower than former
+- **Full convergence:** Convergence score > 0.8 AND observations ≥ 10
 
-#### 3.4.6 특허 청구항 (자가 교정)
+#### 3.4.6 Patent Claims (Self-Calibration)
 
-> *"생리학적 지연 예측 모델의 적응형 교정 방법으로서, (a) 실제 바이오마커 반응 피크를 검출하는 단계; (b) 예측된 피크와 실제 피크 사이의 시간 오차를 산출하는 단계; (c) 오차를 기본 지연, 일주기, 유전적 교정 채널로 분해하는 단계; (d) 적응형 학습률을 갖는 지수이동평균(EMA)을 사용하여 사용자별 교정 파라미터를 갱신하는 단계; (e) 후속 예측에 교정을 적용하여 자기 진화를 가능하게 하는 단계를 포함하는 방법."*
+> *"A method for adaptive calibration of a physiological lag prediction model, comprising the steps of: (a) detecting actual biomarker response peaks; (b) computing the timing error between predicted and actual peaks; (c) decomposing the error into base lag, circadian, and genetic calibration channels; (d) updating per-user calibration parameters using exponential moving average (EMA) with adaptive learning rates; and (e) applying calibrations to subsequent predictions to enable self-evolution."*
 
 ---
 
-## 4. 데이터 표준화: HL7 FHIR 기반 아키텍처
+## 4. Data Standardization: HL7 FHIR-Based Architecture
 
-### 4.1 FHIR R4 채택 이유
+### 4.1 Rationale for FHIR R4 Adoption
 
-| 측면 | 독자 포맷 | FHIR R4 |
+| Aspect | Proprietary Format | FHIR R4 |
 |---|---|---|
-| 상호운용성 | 앱별 고유 포맷 | 전 세계 의료 시스템 호환 |
-| 확장성 | 새 데이터 추가 시 재설계 | `Observation` 리소스로 통합 |
-| 규제 적합성 | 증명 불가 | FDA, CE 인증 근거 |
+| Interoperability | App-specific unique format | Compatible with global healthcare systems |
+| Extensibility | Redesign needed for new data types | Unified via `Observation` resource |
+| Regulatory compliance | Unprovable | FDA, CE certification basis |
 
-### 4.2 BiomarkerReading — 통합 데이터 모델
+### 4.2 BiomarkerReading — Unified Data Model
 
 ```python
 @dataclass
 class BiomarkerReading:
-    source_id: str           # 데이터 출처 (CGM, 워치 등)
-    user_id: str             # 사용자 식별자
-    biomarker_type: BiomarkerType  # GLUCOSE, HEART_RATE, HRV 등
-    timestamp: datetime      # 측정 시각
-    value: float             # 측정값
-    unit: str                # 단위 (mg/dL, bpm 등)
-    confidence: float        # 신뢰도 (0-1)
-    metadata: Dict           # FHIR 호환 메타데이터
-    raw_hash: str            # 무결성 검증용 해시
+    source_id: str           # Data source (CGM, watch, etc.)
+    user_id: str             # User identifier
+    biomarker_type: BiomarkerType  # GLUCOSE, HEART_RATE, HRV, etc.
+    timestamp: datetime      # Measurement time
+    value: float             # Measured value
+    unit: str                # Unit (mg/dL, bpm, etc.)
+    confidence: float        # Confidence (0-1)
+    metadata: Dict           # FHIR-compatible metadata
+    raw_hash: str            # Integrity verification hash
 ```
 
 ---
 
-## 5. 시스템 아키텍처
+## 5. System Architecture
 
-### 5.1 전체 구조
+### 5.1 Overall Structure
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│  사용자 디바이스 (Edge)                                             │
+│  User Device (Edge)                                               │
 │                                                                   │
 │  CGM ──┐                                                          │
-│  워치 ──┼─→ [BiomarkerSource 어댑터]                                │
+│  Watch ─┼─→ [BiomarkerSource Adapters]                            │
 │  DNA ──┘    (CGM, Activity, Sleep, Genetic)                       │
 │                    │                                               │
 │                    ▼                                               │
 │  ┌─────────────────────────────────────────────────────────────┐  │
-│  │  특허 핵심 엔진 파이프라인 (NutritionPipeline)                  │  │
+│  │  Patent Core Engine Pipeline (NutritionPipeline)            │  │
 │  │                                                             │  │
-│  │  Stage 0: 동의 필터링 (동적 범위 강제)                         │  │
+│  │  Stage 0: Consent Filtering (dynamic scope enforcement)     │  │
 │  │       ↓                                                     │  │
-│  │  Stage 1: 시간 동기화 (지연 보상)                              │  │
+│  │  Stage 1: Temporal Synchronization (lag compensation)       │  │
 │  │       ↓                                                     │  │
-│  │  Stage 2: 생리학적 정규화 (유전적 기준선)                       │  │
+│  │  Stage 2: Physiological Normalization (genetic baseline)    │  │
 │  │       ↓                                                     │  │
-│  │  Stage 3: 일주기 보간 (데이터 갭 채우기)                        │  │
+│  │  Stage 3: Circadian Interpolation (data gap filling)        │  │
 │  │       ↓                                                     │  │
-│  │  Stage 4: 대사 상태 추정 (복합 상태)                            │  │
+│  │  Stage 4: Metabolic State Estimation (composite state)      │  │
 │  │       ↓                                                     │  │
-│  │  Stage 5: 영양소 수요 계산 (실시간 예산)                        │  │
+│  │  Stage 5: Nutrient Demand Calculation (real-time budget)    │  │
 │  │       ↓                                                     │  │
-│  │  Stage 6: 차분 프라이버시 노이즈 주입 (ε-DP)                    │  │
+│  │  Stage 6: Differential Privacy Noise Injection (ε-DP)       │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 │                    │                                               │
-│           [엣지 처리 — 프라이버시 안전 출력]                         │
+│           [Edge Processing — Privacy-Safe Output]                  │
 │                    │                                               │
-│  ── ── ── ── ── ── ▼ ── ── ── ── ── 프라이버시 경계 ── ── ── ──  │
-│            [64차원 임베딩 + DP 통계만 전송]                         │
+│  ── ── ── ── ── ── ▼ ── ── ── ── ── Privacy Boundary ── ── ──   │
+│            [Only 64-dim embedding + DP stats transmitted]          │
 └───────────────────────────────────────────────────────────────────┘
                      │
                      ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│  서버 (클라우드) — FHIR R4 기반                                     │
-│  [영양 추천 API] → [개인 맞춤 식이 조언]                             │
-│  (원시 건강 데이터는 서버에 도달하지 않음)                             │
+│  Server (Cloud) — FHIR R4 Based                                   │
+│  [Nutrition Recommendation API] → [Personalized Dietary Advice]   │
+│  (Raw health data never reaches the server)                       │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-### 5.2 데이터 흐름 요약
+### 5.2 Data Flow Summary
 
-1. **수집:** 이질적 소스 어댑터가 CGM, 웨어러블, 유전자 데이터를 통합 `BiomarkerReading` 형식으로 변환
-2. **동의 필터 (Stage 0):** 동적 동의 강제 — 미승인 바이오마커 유형 제거, `GENETIC_DATA` 동의 미부여 시 유전적 수정자 초기화
-3. **동기화 (Stage 1):** 동적 지연 보상으로 모든 신호를 공통 시간 그리드에 매핑
-4. **정규화 (Stage 2):** 유전형 조정 기준선 대비 Z-점수 산출 (모집단 평균이 아닌 개인 기준)
-5. **보간 (Stage 3):** 일주기 리듬 모델을 활용한 데이터 갭 채우기 (단순 선형 보간이 아님)
-6. **추정 (Stage 4):** 복합 대사 상태 분류 (예: "공복 + 수면" ≠ "공복 + 운동 후 회복")
-7. **계산 (Stage 5):** 시간 버킷 분배가 포함된 실시간 영양소 예산 (14개 타겟: 매크로 6 + 마이크로 8)
-8. **DP 노이즈 (Stage 6):** 민감도 계층 기반 동적 ε 할당 — 유전자 데이터(ε=0.1) vs 활동 데이터(ε=0.8)
+1. **Collection:** Heterogeneous source adapters convert CGM, wearable, and genetic data into unified `BiomarkerReading` format
+2. **Consent Filter (Stage 0):** Dynamic consent enforcement — removes non-consented biomarker types; initializes genetic modifiers when `GENETIC_DATA` consent is not granted
+3. **Synchronization (Stage 1):** Dynamic lag compensation maps all signals onto a common temporal grid
+4. **Normalization (Stage 2):** Z-scores computed against genotype-adjusted baselines (not population averages)
+5. **Interpolation (Stage 3):** Circadian rhythm model fills data gaps (not simple linear interpolation)
+6. **Estimation (Stage 4):** Composite metabolic state classification (e.g., "fasting + sleep" ≠ "fasting + post-exercise recovery")
+7. **Calculation (Stage 5):** Real-time nutrient budget with temporal bucket distribution (14 targets: 6 macro + 8 micro)
+8. **DP Noise (Stage 6):** Dynamic ε allocation based on sensitivity tiers — genetic data (ε=0.1) vs activity data (ε=0.8)
 
 ---
 
-## 6. 특허 핵심 파이프라인: 7단계 처리 엔진
+## 6. Patent Core Pipeline: 7-Stage Processing Engine
 
-### Stage 0: 동적 동의 필터링
+### Stage 0: Dynamic Consent Filtering
 
-**파일:** `engine/pipeline.py` (494줄) — `_stage_consent_filter()`
+**File:** `engine/pipeline.py` (494 lines) — `_stage_consent_filter()`
 
-**목적:** 세밀한 사용자 동의를 **데이터 처리 시작 전에** 강제합니다. 이 단계는 프라이버시 게이트웨이로, 사용자가 동의하지 않은 데이터 유형은 물리적으로 파이프라인 입력에서 제거됩니다.
+**Purpose:** Enforces granular user consent **before data processing begins**. This stage acts as a privacy gateway — data types the user has not consented to are physically removed from the pipeline input.
 
-**동의-바이오마커 매핑:**
+**Consent-Biomarker Mapping:**
 
-| BiomarkerType | 필수 ConsentScope |
+| BiomarkerType | Required ConsentScope |
 |---|---|
 | GLUCOSE | `GLUCOSE_DATA` |
 | HEART_RATE, HRV | `HEART_RATE_DATA` |
 | STEPS, EXERCISE | `ACTIVITY_DATA` |
 | SLEEP_STAGE, SLEEP_DURATION | `SLEEP_DATA` |
 
-**핵심 동작:**
-- `GENETIC_DATA` 동의 미부여 시 → 모든 `genetic_modifiers` 초기화 (모집단 기본값으로 진행)
-- 세션 중 동의 철회 시 → **같은 요청 주기 내** 즉시 반영
-- 감사 추적 기록: `consent_filtered: [제거된 유형 목록]`
+**Key Behavior:**
+- When `GENETIC_DATA` consent is not granted → all `genetic_modifiers` are initialized (proceeds with population defaults)
+- When consent is revoked mid-session → reflects **immediately within the same request cycle**
+- Audit trail recorded: `consent_filtered: [list of removed types]`
 
-**특허 관련성:** 바이오마커 기반 개인화가 API 계층이 아닌 **알고리즘 수준에서 동의 게이트**됨을 입증 — GDPR 제7조 및 HIPAA §164.508 준수 요건.
+**Patent Relevance:** Demonstrates that biomarker-based personalization is consent-gated at the **algorithm level**, not just the API layer — GDPR Article 7 and HIPAA §164.508 compliance.
 
 ---
 
-### Stage 1: 시간 동기화
+### Stage 1: Temporal Synchronization
 
-**파일:** `engine/temporal_sync.py` (712줄)
+**File:** `engine/temporal_sync.py` (712 lines)
 
-**목적:** 서로 다른 샘플링 속도를 가진 바이오마커 데이터를 통합 다중 해상도 시간 프레임에 정렬합니다.
+**Purpose:** Aligns biomarker data with different sampling rates onto a unified multi-resolution temporal frame.
 
-**핵심 알고리즘:**
+**Core Algorithm:**
 
-각 시간 창 $[t, t+\Delta]$에 대해:
-1. 각 바이오마커 $b$의 `SamplingCharacteristics` 조회
-2. 지연 보정된 쿼리 윈도우 계산: $[t - lag(b), t + \Delta - lag(b)]$
-3. 해당 윈도우 내 원시 리딩 수집
-4. 없으면 → 신선도 확인 → 보간 또는 신뢰도 0 설정
-5. `TemporalBehavior`에 따른 집계:
-   - **CONTINUOUS:** 거리 가중 평균 (가우시안 커널)
-   - **EVENT:** 윈도우 내 합계
-   - **PERIODIC:** 최근 값 + 감쇠
-   - **STATIC:** 항상 현재 값 (감쇠 없음)
+For each time window $[t, t+\Delta]$:
+1. Look up `SamplingCharacteristics` for each biomarker $b$
+2. Calculate lag-compensated query window: $[t - lag(b), t + \Delta - lag(b)]$
+3. Collect raw readings within the window
+4. If none → check freshness → interpolate or set confidence to 0
+5. Aggregate according to `TemporalBehavior`:
+   - **CONTINUOUS:** Distance-weighted average (Gaussian kernel)
+   - **EVENT:** Sum within window
+   - **PERIODIC:** Most recent value + decay
+   - **STATIC:** Always current value (no decay)
 
-**다중 해상도:**
+**Multi-Resolution:**
 
-| 해상도 | 윈도우 크기 | 용도 |
+| Resolution | Window Size | Use Case |
 |---|---|---|
-| FINE | 5분 | 실시간 대시보드, CGM 모니터링 |
-| MEDIUM | 1시간 | 시간별 영양 분석 |
-| COARSE | 24시간 | 일간 요약, 추세 보고서 |
+| FINE | 5 min | Real-time dashboard, CGM monitoring |
+| MEDIUM | 1 hour | Hourly nutrition analysis |
+| COARSE | 24 hours | Daily summary, trend reports |
 
-**출력:** `SynchronizedFrame` — 모든 신호가 정렬된 단일 시간 스냅샷
+**Output:** `SynchronizedFrame` — a single time snapshot with all signals aligned
 
-**신선도 감쇠:**
+**Freshness Decay:**
 
-이진 신선/오래됨 판단 대신, 지수 감쇠 함수로 **연속적 신뢰도 저하**를 구현:
+Instead of binary fresh/stale determination, **continuous confidence degradation** via exponential decay function:
 
 $$decay = e^{-0.693 \times \frac{gap}{half\_life}}$$
 
 ---
 
-### Stage 2: 생리학적 정규화
+### Stage 2: Physiological Normalization
 
-**파일:** `engine/normalization.py` (727줄)
+**File:** `engine/normalization.py` (727 lines)
 
-**목적:** 원시 바이오마커 값을 **생리학적 맥락이 반영된 정규화 신호**로 변환합니다.
+**Purpose:** Transforms raw biomarker values into **physiologically contextualized normalized signals**.
 
-**이것은 표준 Z-점수 정규화가 아닙니다.** 생물학적 맥락 인식과 유전적 기준선 산출의 결합이 발명적 단계입니다.
+**This is not standard Z-score normalization.** The combination of biological context awareness and genetic baseline computation constitutes the inventive step.
 
-**5단계 정규화:**
+**5-Step Normalization:**
 
-1. **일주기 교정:** 시간대별 예상 변동분 제거
-2. **개인 Z-점수:** 유전적 기준선 대비 산출 (모집단 평균이 아님)
-3. **맥락 의존 스케일링:** 동일 수치도 대사 상태에 따라 다르게 해석
-4. **유전적 수정자 가중:** SNP 기반 대사 효율 계수 적용
-5. **이상 지수:** 이 사람에게 얼마나 비정상적인 수치인지 0-1 스코어
+1. **Circadian correction:** Remove expected time-of-day variation
+2. **Personal Z-score:** Computed against genetic baseline (not population average)
+3. **Context-dependent scaling:** Same value interpreted differently depending on metabolic state
+4. **Genetic modifier weighting:** SNP-based metabolic efficiency coefficient applied
+5. **Anomaly index:** 0-1 score indicating how abnormal the value is for this individual
 
-**예시:**
-- TCF7L2 T/T 보유자 — 유전적 공복 혈당 기준선 ~106 mg/dL
-- 혈당 108 mg/dL 측정:
-  - 모집단 z-점수: (108 − 100) / 15 = **+0.53** → "약간 높음"
-  - 유전적 기준선 z-점수: (108 − 106) / 12 = **+0.17** → "유전형 기준 정상"
+**Example:**
+- TCF7L2 T/T carrier — genetic fasting glucose baseline ~106 mg/dL
+- Measured glucose 108 mg/dL:
+  - Population z-score: (108 − 100) / 15 = **+0.53** → "slightly elevated"
+  - Genetic baseline z-score: (108 − 106) / 12 = **+0.17** → "normal for genotype"
 
 ---
 
-### Stage 3: 일주기 보간
+### Stage 3: Circadian Interpolation
 
-**파일:** `engine/interpolation.py` (430줄)
+**File:** `engine/interpolation.py` (430 lines)
 
-**목적:** 일주기 리듬 모델을 활용하여 바이오마커 데이터 갭을 과학적으로 채웁니다.
+**Purpose:** Scientifically fills biomarker data gaps using a circadian rhythm model.
 
-**모델:**
+**Model:**
 
 $$c(t) = baseline \times (1 + A_c \times \cos(2\pi(t - \varphi_c)/24) + A_u \times \cos(2\pi t / T_u))$$
 
-| 파라미터 | 의미 |
+| Parameter | Meaning |
 |---|---|
-| $A_c$ | 일주기 진폭 |
-| $\varphi_c$ | 일주기 위상 + 개인 오프셋 |
-| $A_u$ | 초일주기 진폭 |
-| $T_u$ | 초일주기 주기 (통상 90분) |
+| $A_c$ | Circadian amplitude |
+| $\varphi_c$ | Circadian phase + personal offset |
+| $A_u$ | Ultradian amplitude |
+| $T_u$ | Ultradian period (typically 90 min) |
 
-**검증:** 5개 테스트(`test_patent_gaps.py::TestCircadianPredictionAccuracy`)가 확인:
-- 포도당 7AM 예측 > 19:00 예측 (일주기 피크/나디르)
-- 심박수 오후 > 야간
-- HRV 수면 시 최고
-- 예측값이 ±30% 생리학적 범위 내
-- 90분 초일주기 진동 존재
+**Validation:** 5 tests (`test_patent_gaps.py::TestCircadianPredictionAccuracy`) confirm:
+- Glucose prediction at 7 AM > 7 PM (circadian peak/nadir)
+- Heart rate afternoon > nighttime
+- HRV highest during sleep
+- Predicted values within ±30% physiological range
+- 90-minute ultradian oscillation present
 
 ---
 
-### Stage 4: 대사 상태 추정
+### Stage 4: Metabolic State Estimation
 
-**파일:** `engine/metabolic_state.py`
+**File:** `engine/metabolic_state.py`
 
-**목적:** 동기화되고 정규화된 바이오마커 신호로부터 사용자의 현재 **복합 대사 상태**를 추론합니다.
+**Purpose:** Infers the user's current **composite metabolic state** from synchronized and normalized biomarker signals.
 
-**핵심 발명: 복합 대사 상태**
+**Core Invention: Composite Metabolic State**
 
-기존 시스템은 "공복 vs 식후" 같은 **단일 축** 분류만 수행합니다. BioAI는 **14개 개별 대사 위상을 동시에 식별**하고 그 **조합**으로 영양소 수요를 결정합니다:
+Existing systems only perform **single-axis** classification like "fasting vs postprandial." BioAI simultaneously **identifies 14 individual metabolic phases** and determines nutrient demand from their **combinations**:
 
-| 카테고리 | 위상 | 감지 기준 |
+| Category | Phase | Detection Criteria |
 |---|---|---|
-| 식이 관련 | `FASTING`, `POSTPRANDIAL_EARLY/LATE`, `POST_ABSORPTIVE` | 마지막 식사 후 경과 시간 |
-| 운동 관련 | `PRE/DURING_EXERCISE`, `RECOVERY_IMMEDIATE/DELAYED` | 심박수 + 최근 운동 이벤트 |
-| 수면 관련 | `PRE_SLEEP`, `SLEEPING`, `POST_WAKING` | 시간대 + 활동 수준 |
-| 스트레스/회복 | `METABOLIC_STRESS`, `RECOVERY`, `CIRCADIAN_LOW` | HRV + 코르티솔 지표 |
+| Dietary | `FASTING`, `POSTPRANDIAL_EARLY/LATE`, `POST_ABSORPTIVE` | Time elapsed since last meal |
+| Exercise | `PRE/DURING_EXERCISE`, `RECOVERY_IMMEDIATE/DELAYED` | Heart rate + recent exercise events |
+| Sleep | `PRE_SLEEP`, `SLEEPING`, `POST_WAKING` | Time of day + activity level |
+| Stress/Recovery | `METABOLIC_STRESS`, `RECOVERY`, `CIRCADIAN_LOW` | HRV + cortisol indicators |
 
-**"공복 + 수면"과 "공복 + 운동 후 회복"은 완전히 다른 영양소 요구를 생성:**
+**"Fasting + sleep" and "fasting + post-exercise recovery" generate completely different nutrient requirements:**
 
-| 복합 상태 | 탄수화물 우선순위 | 단백질 우선순위 | 수분 우선순위 |
+| Composite State | Carbohydrate Priority | Protein Priority | Hydration Priority |
 |---|---|---|---|
-| 공복 + 수면 | 0.8× (불필요) | 1.0× | 0.7× (야간뇨 방지) |
-| 공복 + 운동 후 회복 | 1.5× (글리코겐 보충) | 1.4× (근육 회복) | 1.5× (재수분) |
-| 식후 초기 + 스트레스 | 0.6× (이미 식사) | 0.8× | 1.2× |
+| Fasting + Sleep | 0.8× (unnecessary) | 1.0× | 0.7× (prevent nocturia) |
+| Fasting + Post-Exercise Recovery | 1.5× (glycogen replenishment) | 1.4× (muscle recovery) | 1.5× (rehydration) |
+| Early Postprandial + Stress | 0.6× (already eaten) | 0.8× | 1.2× |
 
 ---
 
-### Stage 4.5: 수면 품질 추정 및 문맥 재정규화 (G-1/G-2 보완)
+### Stage 4.5: Sleep Quality Estimation and Context-Aware Re-Normalization (G-1/G-2 Supplement)
 
-**파일:** `engine/metabolic_state.py` (sleep quality), `engine/pipeline.py` (re-normalization)
+**File:** `engine/metabolic_state.py` (sleep quality), `engine/pipeline.py` (re-normalization)
 
-**목적:** Stage 4에서 추정된 대사 상태를 활용하여 (1) **HRV 기반 수면 품질을 정량화**하고 인슐린 감수성에 반영하며, (2) Stage 2의 정규화 결과를 **문맥 인식 재정규화**로 보정합니다.
+**Purpose:** Uses the metabolic state estimated in Stage 4 to (1) **quantify HRV-based sleep quality** and reflect it in insulin sensitivity, and (2) correct Stage 2 normalization results through **context-aware re-normalization**.
 
-#### 4.5-A: HRV 기반 수면 품질 추정 (G-1 해결)
+#### 4.5-A: HRV-Based Sleep Quality Estimation (G-1 Resolution)
 
-**문제:** 기존 `_estimate_insulin_sensitivity()`의 수면 관련 로직이 `pass` 플레이스홀더로 미구현 상태였습니다.
+**Problem:** The sleep-related logic in `_estimate_insulin_sensitivity()` was an unimplemented `pass` placeholder.
 
-**해결 — 3-신호 가중 앙상블:**
+**Solution — 3-Signal Weighted Ensemble:**
 
 ```
 sleep_quality = w_hrv × HRV_contribution + w_dur × Duration_contribution
 ```
 
-| 신호 | 가중치 | 계산 방법 |
+| Signal | Weight | Calculation Method |
 |---|---|---|
-| HRV 진폭 | 0.6 | `min(hrv_mean / 60.0, 1.0)` — 평균 HRV가 60ms 이상이면 최대 품질 |
-| 수면 시간 | 0.4 | `1.0 - abs(duration_hours - 7.5) / 3.5` — 7.5시간이 최적, 편차에 따라 감소 |
-| HRV 추세 | 보정 | 3일 이동 평균 대비 현재 HRV; 하락 시 -0.1 페널티 |
+| HRV amplitude | 0.6 | `min(hrv_mean / 60.0, 1.0)` — max quality when average HRV ≥ 60ms |
+| Sleep duration | 0.4 | `1.0 - abs(duration_hours - 7.5) / 3.5` — 7.5 hours optimal, decreases with deviation |
+| HRV trend | Correction | Current HRV vs 3-day moving average; -0.1 penalty on decline |
 
-**인슐린 감수성 페널티:**
+**Insulin Sensitivity Penalty:**
 
-수면 품질이 0.7 미만일 때 작동:
+Activates when sleep quality falls below 0.7:
 
 $$\text{penalty} = 0.12 \times \left(1 - \frac{\text{sleep\_quality}}{0.7}\right)$$
 
-- 최대 페널티: -0.12 (수면 품질 = 0일 때)
-- 임계값: 0.7 이상이면 페널티 없음
+- Maximum penalty: -0.12 (when sleep quality = 0)
+- Threshold: no penalty above 0.7
 
-**특허 강화:** "수면 부채 → 대사 영향" 청구항이 구체적 수치 알고리즘으로 뒷받침됩니다.
+**Patent Strengthening:** The "sleep debt → metabolic impact" claim is now supported by specific numerical algorithms.
 
-#### 4.5-B: 문맥 인식 재정규화 (G-2 해결)
+#### 4.5-B: Context-Aware Re-Normalization (G-2 Resolution)
 
-**문제:** Stage 2 정규화 시점에는 대사 상태가 미지(`metabolic_context="unknown"`)이므로, "공복 vs 식후" 등의 문맥이 반영되지 않습니다.
+**Problem:** At Stage 2 normalization time, metabolic state is unknown (`metabolic_context="unknown"`), so context like "fasting vs postprandial" is not reflected.
 
-**해결 — 선택적 재정규화:**
+**Solution — Selective Re-Normalization:**
 
-Stage 4 추정 완료 후, `MetabolicState.to_context_string()`으로 정확한 문맥을 획득하고:
+After Stage 4 estimation completes, the exact context is obtained via `MetabolicState.to_context_string()`:
 
-1. 각 바이오마커 타입별로 `old_factor`(unknown 문맥)와 `new_factor`(추정된 문맥) 비교
-2. `|old_factor - new_factor| > 0.01`인 신호만 선택적으로 재정규화
-3. `update_baseline=False`로 이중 카운팅 방지
+1. For each biomarker type, compare `old_factor` (unknown context) with `new_factor` (estimated context)
+2. Selectively re-normalize only signals where `|old_factor - new_factor| > 0.01`
+3. Set `update_baseline=False` to prevent double-counting
 
 ```python
 # pipeline.py - Stage 4.5
@@ -460,215 +460,215 @@ for biomarker_type in frame.signals:
     old_factor = normalizer._get_context_factor(biomarker_type, "unknown")
     new_factor = normalizer._get_context_factor(biomarker_type, context_str)
     if abs(old_factor - new_factor) > 0.01:
-        # 해당 신호만 재정규화
+        # Re-normalize only this signal
 ```
 
-**특허 강화:** "문맥 인식 정규화" 청구항의 순환 논증 문제가 해결됩니다.
+**Patent Strengthening:** Resolves the circular reasoning problem in the "context-aware normalization" claim.
 
 ---
 
-### Stage 5: 실시간 영양소 수요 계산
+### Stage 5: Real-Time Nutrient Demand Calculation
 
-**파일:** `engine/nutrient_calculator.py` (773줄)
+**File:** `engine/nutrient_calculator.py` (773 lines)
 
-**목적:** 모든 상류 결과를 통합하여 **실시간 개인 맞춤 영양소 예산**을 산출합니다.
+**Purpose:** Integrates all upstream results to produce a **real-time personalized nutrient budget**.
 
-**특허 청구항:**
+**Patent Claim:**
 
-> *"동적으로 조정된 매크로 및 마이크로영양소 타겟으로 구성되며, 예측된 대사 상태 윈도우에 걸쳐 시간적으로 분배되고, 개인화된 의료 경계로 제약되며, 유전형별 대사 계수로 가중된 실시간 영양소 예산."*
+> *"A real-time nutrient budget composed of dynamically adjusted macro- and micro-nutrient targets, temporally distributed across predicted metabolic state windows, constrained by personalized medical boundaries, and weighted by genotype-specific metabolic coefficients."*
 
-**8단계 계산 알고리즘:**
+**8-Step Calculation Algorithm:**
 
 ```
-1. 기본 일일 타겟 설정 (RDA 기반: 매크로 6 + 마이크로 8 = 14개 타겟)
-2. 대사 상태 수정자 적용 (위상별 곱셈)
-3. 유전적 수정자 적용 (SNP 기반 영양소 효율 계수 — 17개 수정자→타겟 매핑)
-4. 바이오마커 반응형 조정 적용 (실시간 z-점수 기반)
-5. 이미 섭취한 양 차감
-6. ⚠️ 충돌 해결 계층 (Conflict Resolution Layer) — 의료 안전 임계값 우선
-7. 남은 예산을 시간 버킷에 분배
-8. NutrientBudget 출력 (완전한 감사 추적 + 충돌 해결 기록 포함)
+1. Set base daily targets (RDA-based: 6 macro + 8 micro = 14 targets)
+2. Apply metabolic state modifiers (phase-specific multiplication)
+3. Apply genetic modifiers (SNP-based nutrient efficiency coefficients — 17 modifier→target mappings)
+4. Apply biomarker-reactive adjustments (real-time z-score based)
+5. Deduct already consumed amounts
+6. ⚠️ Conflict Resolution Layer — medical safety thresholds take priority
+7. Distribute remaining budget across time buckets
+8. Output NutrientBudget (with complete audit trail + conflict resolution records)
 ```
 
-**14개 기본 영양소 타겟:**
+**14 Base Nutrient Targets:**
 
-| 카테고리 | 영양소 |
+| Category | Nutrients |
 |---|---|
-| 매크로영양소 (6) | kcal, carbs_g, protein_g, fat_g, fiber_g, water_ml |
-| 마이크로영양소 (8) | folate_mcg, b12_mcg, vitamin_d_iu, magnesium_mg, calcium_mg, sodium_mg, caffeine_mg, vitamin_b6_mg |
+| Macronutrients (6) | kcal, carbs_g, protein_g, fat_g, fiber_g, water_ml |
+| Micronutrients (8) | folate_mcg, b12_mcg, vitamin_d_iu, magnesium_mg, calcium_mg, sodium_mg, caffeine_mg, vitamin_b6_mg |
 
-**바이오마커 반응형 조정 예시:**
+**Biomarker-Reactive Adjustment Examples:**
 
-| 조건 | 동작 | 최대 조정 |
+| Condition | Action | Max Adjustment |
 |---|---|---|
-| 포도당 z > 1.5 | 탄수화물 타겟 감소 | -25% |
-| 포도당 z < -1.0 | 탄수화물 타겟 증가 | +20% |
-| HRV z < -1.0 (스트레스) | 마그네슘 & 비타민 B 증가 | +15% |
-| 심박수 z > 1.0 (탈수 의심) | 수분 타겟 증가 | +30% |
-| 인슐린 감수성 < 0.5 | 저GI 탄수화물 권장 (정성적) | — |
+| Glucose z > 1.5 | Reduce carbohydrate target | -25% |
+| Glucose z < -1.0 | Increase carbohydrate target | +20% |
+| HRV z < -1.0 (stress) | Increase magnesium & vitamin B | +15% |
+| Heart rate z > 1.0 (suspected dehydration) | Increase hydration target | +30% |
+| Insulin sensitivity < 0.5 | Recommend low-GI carbohydrates (qualitative) | — |
 
-7개 전용 단위 테스트(`test_patent_gaps.py::TestReactiveBiomarkerAdjustments`)가 비례 조정, 25% 상한 강제, 유전+반응 조합, 감사 추적 완전성을 모두 검증합니다.
+7 dedicated unit tests (`test_patent_gaps.py::TestReactiveBiomarkerAdjustments`) verify proportional adjustments, 25% cap enforcement, genetic+reactive combination, and audit trail completeness.
 
-#### 충돌 해결 계층 (Conflict Resolution Layer)
+#### Conflict Resolution Layer
 
-**핵심 문제:** 유전적 최적화(Step 3)와 의학적 금기 사항이 충돌할 때 어떻게 해결하는가?
+**Core Problem:** How to resolve conflicts between genetic optimization (Step 3) and medical contraindications?
 
-**예시:** TCF7L2 T/T 보유자의 유전적 프로필은 탄수화물 감수성 ×1.3으로 탄수화물 타겟을 낮추지만, MTHFR CT 변이는 엽산 ×1.5 증가를 권장합니다. 동시에 이 환자가 신장 질환(CKD stage 3)이 있어 단백질 최대 56g 제약이 있다면, 유전적으로 권장하는 단백질 증가 vs 의료 안전 상한이 충돌합니다.
+**Example:** A TCF7L2 T/T carrier's genetic profile lowers the carbohydrate target with carbohydrate sensitivity ×1.3, while MTHFR CT variant recommends folate increase ×1.5. If this patient also has kidney disease (CKD stage 3) with a protein maximum of 56g, the genetically recommended protein increase conflicts with the medical safety ceiling.
 
-**계층적 우선순위 구조:**
+**Hierarchical Priority Structure:**
 
-| 우선순위 | 계층 | 설명 | 재정의 가능? |
+| Priority | Layer | Description | Overridable? |
 |---|---|---|---|
-| 5 (최고) | 의료 위험 (Critical) | 생명 위험 — CKD, 중증 알레르기 | ❌ 절대 불가 |
-| 4 | 의료 경고 (Warning) | 임상적 중요 — 고혈압, 당뇨 | ❌ |
-| 3 | 유전적 최적화 | SNP 기반 영양소 효율 | ✅ 의료 제약에 의해 |
-| 2 | 바이오마커 반응형 | 실시간 z-점수 기반 | ✅ |
-| 1 | 대사 상태 | 위상별 수정자 | ✅ |
-| 0 | 기본 RDA | 인구 수준 기본값 | ✅ |
+| 5 (highest) | Medical Critical | Life-threatening — CKD, severe allergies | ❌ Never |
+| 4 | Medical Warning | Clinically significant — hypertension, diabetes | ❌ |
+| 3 | Genetic Optimization | SNP-based nutrient efficiency | ✅ By medical constraints |
+| 2 | Biomarker Reactive | Real-time z-score based | ✅ |
+| 1 | Metabolic State | Phase-specific modifiers | ✅ |
+| 0 | Base RDA | Population-level defaults | ✅ |
 
-**알고리즘:**
+**Algorithm:**
 
 ```python
 def _resolve_conflicts_and_apply_constraints(...):
-    # 1. 유전적 수정이 어떤 영양소에 적용되었는지 추적
-    # 2. 의료 제약을 우선순위로 정렬 (Critical > Warning)
-    # 3. 각 제약에 대해:
-    #    a) 타겟이 의료 한계를 초과하는지 확인
-    #    b) 초과 시: 의료 한계로 클램핑
-    #    c) 유전적 수정과의 충돌 여부 판별
-    #    d) ConflictResolution 감사 기록 생성
-    #    e) 해결 근거(rationale) 문서화
+    # 1. Track which nutrients have genetic modifications applied
+    # 2. Sort medical constraints by priority (Critical > Warning)
+    # 3. For each constraint:
+    #    a) Check if target exceeds medical limit
+    #    b) If exceeded: clamp to medical limit
+    #    c) Determine if conflict with genetic modification exists
+    #    d) Generate ConflictResolution audit record
+    #    e) Document resolution rationale
 ```
 
-**충돌 해결 감사 기록 (`ConflictResolution`):**
+**Conflict Resolution Audit Record (`ConflictResolution`):**
 
 ```python
 @dataclass
 class ConflictResolution:
-    nutrient: str               # 충돌 영양소
+    nutrient: str               # Conflicting nutrient
     conflict_type: str          # "genetic_vs_medical"
-    genetic_recommended: float  # 유전적 권장값
-    medical_limit: float        # 의료 안전 한계
-    resolved_value: float       # 최종 해결값 (= medical_limit)
+    genetic_recommended: float  # Genetically recommended value
+    medical_limit: float        # Medical safety limit
+    resolved_value: float       # Final resolved value (= medical_limit)
     winner: str                 # "medical_critical" | "medical_warning"
     loser: str                  # "genetic" | "metabolic_state" | ...
-    safety_margin: float        # 안전 여유
-    constraint_reason: str      # 의학적 근거
-    resolution_rationale: str   # 사람이 읽을 수 있는 해결 설명
+    safety_margin: float        # Safety margin
+    constraint_reason: str      # Medical rationale
+    resolution_rationale: str   # Human-readable resolution explanation
 ```
 
-**구체적 충돌 시나리오:**
+**Specific Conflict Scenarios:**
 
-| 시나리오 | 유전적 권장 | 의료 제약 | 해결 | 승자 |
+| Scenario | Genetic Recommendation | Medical Constraint | Resolution | Winner |
 |---|---|---|---|---|
-| CKD + 운동 후 회복 | 단백질 126g (×1.5 유전 부스트) | 단백질 ≤56g (CKD) | 56g | 의료 (Critical) |
-| 고혈압 + 전해질 보충 | 나트륨 2300mg | 나트륨 ≤1500mg | 1500mg | 의료 (Warning) |
-| MTHFR 변이 + 보충제 | 엽산 600μg | 엽산 ≤1000μg (UL) | 600μg | 충돌 없음 |
-| 저체중 + 칼로리 민감 | 에너지 1500kcal | 에너지 ≥1800kcal | 1800kcal | 의료 (Critical) |
+| CKD + Post-Exercise Recovery | Protein 126g (×1.5 genetic boost) | Protein ≤56g (CKD) | 56g | Medical (Critical) |
+| Hypertension + Electrolyte Replenishment | Sodium 2300mg | Sodium ≤1500mg | 1500mg | Medical (Warning) |
+| MTHFR Variant + Supplements | Folate 600μg | Folate ≤1000μg (UL) | 600μg | No conflict |
+| Underweight + Calorie Sensitivity | Energy 1500kcal | Energy ≥1800kcal | 1800kcal | Medical (Critical) |
 
-**특허 청구항 (충돌 해결):**
+**Patent Claim (Conflict Resolution):**
 
-> *"생리학적 지연 모델에서 유전적으로 최적화된 영양소 타겟과 의학적 안전 임계값이 충돌할 때, 의료 안전 임계값을 무조건적으로 우선시하는 계층적 충돌 해결 방법으로서, 충돌 유형 분류, 승패 결정, 안전 여유 계산 및 해결 근거 문서화를 포함하는 완전한 감사 추적을 생성하는 방법."*
+> *"A hierarchical conflict resolution method that unconditionally prioritizes medical safety thresholds when genetically-optimized nutrient targets conflict with medical safety limits in a physiological lag model, generating a complete audit trail including conflict type classification, winner/loser determination, safety margin calculation, and resolution rationale documentation."*
 
-10개 전용 단위 테스트(`test_patent_gaps.py::TestConflictResolutionLayer`)가 검증:
-- 유전적 권장 vs 의료 Critical 충돌 해결
-- 의료 Warning 충돌 해결
-- 충돌 감사 추적 완전성
-- Critical > Warning 우선순위
-- 충돌 없는 경우 기록 미생성
-- 최소 제약 (min) 충돌 해결
-- 수정 이력에 충돌 단계 기록
-- 우선순위 계층 값 검증
-- 파이프라인 통합 테스트
+10 dedicated unit tests (`test_patent_gaps.py::TestConflictResolutionLayer`) verify:
+- Genetic recommendation vs Medical Critical conflict resolution
+- Medical Warning conflict resolution
+- Conflict audit trail completeness
+- Critical > Warning priority
+- No record generated when no conflict exists
+- Minimum constraint (min) conflict resolution
+- Conflict stage recorded in modification history
+- Priority hierarchy values validation
+- Pipeline integration test
 
 ---
 
-### Stage 6: 동적 ε 차분 프라이버시 노이즈 주입
+### Stage 6: Dynamic ε Differential Privacy Noise Injection
 
-**파일:** `engine/pipeline.py` — `_stage_dp_noise()`, `privacy/differential_privacy.py` — `DynamicEpsilonAllocator`
+**File:** `engine/pipeline.py` — `_stage_dp_noise()`, `privacy/differential_privacy.py` — `DynamicEpsilonAllocator`
 
-**목적:** 바이오마커 데이터의 민감도에 따라 프라이버시 예산(ε)을 **차등 할당**하고, 누적 프라이버시 노출 지수를 관리하는 동적 노이즈 제어 시스템입니다.
+**Purpose:** A dynamic noise control system that **differentially allocates** privacy budgets (ε) based on biomarker data sensitivity and manages cumulative privacy exposure indices.
 
-**핵심 혁신: 고정 ε → 민감도 기반 동적 ε**
+**Core Innovation: Static ε → Sensitivity-Based Dynamic ε**
 
-기존 접근법(모든 쿼리에 고정 ε=0.5)과 달리, BioAI는 데이터 유형별 민감도 계층에 따라 ε를 차등 할당합니다:
+Unlike conventional approaches (fixed ε=0.5 for all queries), BioAI differentially allocates ε according to per-data-type sensitivity tiers:
 
-| 민감도 계층 | ε 할당 | 노이즈 강도 | 해당 영양소 | 원천 데이터 |
+| Sensitivity Tier | ε Allocation | Noise Intensity | Applicable Nutrients | Source Data |
 |---|---|---|---|---|
-| **CRITICAL** | 0.1 | 최고 (강한 보호) | folate, B12, vitamin D, caffeine | 유전자 데이터 |
-| **HIGH** | 0.3 | 높음 | carbs, kcal | 혈당 (CGM) |
-| **MEDIUM** | 0.5 | 보통 | water, magnesium, B6, sodium | 심박수, HRV, 수면 |
-| **LOW** | 0.8 | 낮음 (약한 보호) | protein, fat, fiber, calcium | 활동/걸음수 |
+| **CRITICAL** | 0.1 | Highest (strong protection) | folate, B12, vitamin D, caffeine | Genetic data |
+| **HIGH** | 0.3 | High | carbs, kcal | Blood glucose (CGM) |
+| **MEDIUM** | 0.5 | Moderate | water, magnesium, B6, sodium | Heart rate, HRV, sleep |
+| **LOW** | 0.8 | Low (weak protection) | protein, fat, fiber, calcium | Activity/steps |
 
-**수학적 정의:**
+**Mathematical Definition:**
 
-각 영양소 타겟 $n$과 해당 민감도 계층 $\tau(n)$에 대해:
+For each nutrient target $n$ and its sensitivity tier $\tau(n)$:
 
 $$\tilde{v}_n = v_n + \text{Lap}\left(\frac{\Delta_n}{\epsilon_{\tau(n)} \cdot \alpha(B)}\right)$$
 
-여기서 $\alpha(B)$는 예산 적응 계수:
+Where $\alpha(B)$ is the budget adaptation coefficient:
 
 $$\alpha(B) = \begin{cases} 1.0 & \text{if } B_{spent}/B_{total} < 0.7 \\ 0.75 & \text{if } 0.7 \leq B_{spent}/B_{total} < 0.9 \\ 0.5 & \text{if } B_{spent}/B_{total} \geq 0.9 \end{cases}$$
 
-**누적 프라이버시 노출 지수 (PEI):**
+**Cumulative Privacy Exposure Index (PEI):**
 
 $$PEI = \frac{\sum_{i} \epsilon_i^{consumed}}{B_{total}}$$
 
-| PEI 범위 | 위험 수준 | 시스템 조치 |
+| PEI Range | Risk Level | System Action |
 |---|---|---|
-| 0.0 – 0.39 | Low | 정상 운영 |
-| 0.4 – 0.69 | Moderate | 모니터링 강화 |
-| 0.7 – 0.89 | High | ε 25% 감소 (예산 보존) |
-| 0.9 – 1.0 | Critical | ε 50% 감소 → 예산 소진 시 원본 값 유지 |
+| 0.0 – 0.39 | Low | Normal operation |
+| 0.4 – 0.69 | Moderate | Enhanced monitoring |
+| 0.7 – 0.89 | High | ε reduced by 25% (budget conservation) |
+| 0.9 – 1.0 | Critical | ε reduced by 50% → retain original values when budget exhausted |
 
-**감사 추적:** `dp_noise:dynamic_eps,tiers=[critical=4,high=2,low=4,medium=4]`
+**Audit Trail:** `dp_noise:dynamic_eps,tiers=[critical=4,high=2,low=4,medium=4]`
 
 ---
 
-### 교차 단계: 적응형 자가 교정 피드백 루프
+### Cross-Stage: Adaptive Self-Calibration Feedback Loop
 
-**파일:** `engine/self_calibration.py` (~500줄)
+**File:** `engine/self_calibration.py` (~500 lines)
 
-**목적:** 7단계 파이프라인의 Stage 1(시간 동기화)에서 산출하는 지연 예측값과, 후속 바이오마커 리딩으로부터 검출된 실제 피크 시점의 오차를 **지속적으로 학습**하여 예측 정확도를 자동 향상시키는 피드백 루프입니다.
+**Purpose:** A feedback loop that **continuously learns** from the error between lag prediction values computed in Stage 1 (Temporal Synchronization) and actual peak times detected from subsequent biomarker readings, automatically improving prediction accuracy.
 
-**파이프라인과의 통합:**
+**Pipeline Integration:**
 
 ```
-[Stage 1: 시간 동기화] ─── 예측된 lag → 피크 시점 예측
+[Stage 1: Temporal Sync] ─── Predicted lag → Peak time prediction
        │                                    │
        │                                    ▼
-       │                        [식후 바이오마커 리딩 수집]
+       │                        [Collect post-meal biomarker readings]
        │                                    │
        │                                    ▼
-       │                        [PeakDetector: 실제 피크 검출]
+       │                        [PeakDetector: Detect actual peak]
        │                                    │
        │                                    ▼
-       │                        [오차(ε) = 실제 - 예측]
+       │                        [Error(ε) = actual - predicted]
        │                                    │
        │    ┌───────────────────────────────┘
        │    │
        ▼    ▼
-[AdaptiveLagCalibrator: 3채널 오차 역전파]
+[AdaptiveLagCalibrator: 3-channel error back-propagation]
        │
-       ├── δ_base(b): 기본 지연 오프셋 갱신
-       ├── δ_circ(h): 일주기 위상 보정 갱신
-       └── κ_genetic: 유전적 계수 보정 갱신
+       ├── δ_base(b): Update base lag offset
+       ├── δ_circ(h): Update circadian phase correction
+       └── κ_genetic: Update genetic coefficient correction
        │
        ▼
-[다음 Stage 1 실행 시 교정된 지연 적용]
+[Apply calibrated lag on next Stage 1 execution]
 ```
 
-**사용 예시:**
+**Usage Example:**
 
 ```python
 from app.engine import AdaptiveLagCalibrator, NutritionPipeline
 
-# 1. 교정기 생성 및 파이프라인 연결
+# 1. Create calibrator and link to pipeline
 calibrator = AdaptiveLagCalibrator()
 pipeline = NutritionPipeline()
 pipeline.set_calibrator(calibrator)
 
-# 2. 식후 바이오마커 데이터로 교정
+# 2. Calibrate with post-meal biomarker data
 result = pipeline.calibrate(
     user_id="user_001",
     biomarker_type=BiomarkerType.GLUCOSE,
@@ -677,448 +677,354 @@ result = pipeline.calibrate(
     predicted_lag_seconds=3600
 )
 
-# 3. 교정 결과 확인
+# 3. Check calibration results
 if result:
-    print(f"오차: {result.error_seconds:.0f}초")
-    print(f"교정 적용됨: {result.correction_applied}")
-    print(f"수렴 점수: {result.convergence_score:.2f}")
+    print(f"Error: {result.error_seconds:.0f}s")
+    print(f"Calibration applied: {result.correction_applied}")
+    print(f"Convergence score: {result.convergence_score:.2f}")
 
-# 4. 이후 compute_lag() 호출 시 자동으로 교정 반영
+# 4. Subsequent compute_lag() calls automatically reflect calibration
 ```
 
-**특허 관련성:** 이 피드백 루프는 정적 수식을 **자기 진화하는 모델**로 전환합니다. 경쟁 시스템이 동일한 3축 수식을 독립적으로 도출하더라도, 예측-실측 오차 역전파를 통한 3채널 적응형 학습 메커니즘은 별도의 발명적 단계를 구성합니다.
+**Patent Relevance:** This feedback loop transforms a static formula into a **self-evolving model**. Even if competing systems independently derive the same 3-axis formula, the 3-channel adaptive learning mechanism via prediction-actual error back-propagation constitutes a separate inventive step.
 
 ---
 
-## 7. 유전체 개인화
+## 7. Genomic Personalization
 
-### 7.1 지원 SNP 패널
+### 7.1 Supported SNP Panel
 
-8개 핵심 영양유전체학 SNP를 지원하며, **22개 수정자 키** 중 **17개가 영양소 타겟에 직접 매핑**됩니다:
+Supports 8 core nutrigenomics SNPs, with **17 out of 22 modifier keys directly mapped to nutrient targets**:
 
-| SNP | 유전자 | 대사 영향 | 영양소 조정 |
+| SNP | Gene | Metabolic Impact | Nutrient Adjustment |
 |---|---|---|---|
-| rs1801133 | MTHFR | 엽산 대사 효율 -50% | 엽산 ×1.5, B12 ×1.3 |
-| rs9939609 | FTO | 비만 감수성 증가 | 칼로리 감수성 ×1.2, 포만감 ×0.85, 지방 대사 ×1.1 |
-| rs429358 | APOE | 지질 대사 변이 | 포화지방 감수성 ×1.5, 콜레스테롤 반응 ×1.2, 오메가-3 ×1.3 |
-| rs7903146 | TCF7L2 | 인슐린 반응 약화 | 탄수화물 감수성 ×1.3, 혈당 부하 임계 ×0.8 |
-| rs4988235 | LCT | 유당 불내증 | 유당 내성 0, 대체 칼슘원 ×1.5, 칼슘 타겟 ×1.5 |
-| rs762551 | CYP1A2 | 느린 카페인 대사 | 카페인 대사율 ×0.5, 일일 상한 200mg |
-| rs1544410 | VDR | 비타민 D 수용체 변이 | 비타민 D ×1.4, 칼슘 흡수 ×0.85 |
-| rs4341 | ACE | 운동 반응 유형 | 근력 반응 ×1.2, 지구력 ×0.9 |
+| rs1801133 | MTHFR | -50% folate metabolism efficiency | Folate ×1.5, B12 ×1.3 |
+| rs9939609 | FTO | Increased obesity susceptibility | Calorie sensitivity ×1.2, satiety ×0.85, fat metabolism ×1.1 |
+| rs429358 | APOE | Lipid metabolism variant | Saturated fat sensitivity ×1.5, cholesterol response ×1.2, omega-3 ×1.3 |
+| rs7903146 | TCF7L2 | Weakened insulin response | Carbohydrate sensitivity ×1.3, glycemic load threshold ×0.8 |
+| rs4988235 | LCT | Lactose intolerance | Lactose tolerance 0, alternative calcium source ×1.5, calcium target ×1.5 |
+| rs762551 | CYP1A2 | Slow caffeine metabolism | Caffeine metabolism rate ×0.5, daily limit 200mg |
+| rs1544410 | VDR | Vitamin D receptor variant | Vitamin D ×1.4, calcium absorption ×0.85 |
+| rs4341 | ACE | Exercise response type | Strength response ×1.2, endurance ×0.9 |
 
-### 7.2 유전형 조정 작동 방식
+### 7.2 How Genotype Adjustment Works
 
 ```
-사용자 유전형: MTHFR CT, TCF7L2 TT, CYP1A2 AC, LCT CC
+User genotype: MTHFR CT, TCF7L2 TT, CYP1A2 AC, LCT CC
 
-자동 계산 결과:
-  → 엽산 일일 타겟: 400μg × 1.5 = 600μg
-  → B12 일일 타겟: 2.4μg × 1.3 = 3.12μg
-  → 탄수화물 감수성: 높음 → 저GI 식품 우선
-  → 카페인 한도: 200mg/일 (일반 인구 400mg의 절반)
-  → 칼슘 타겟: 1000mg × 1.5 = 1500mg (유당불내증 → 대체 소스)
-  → 비타민 D 타겟: 600 IU × 1.4 = 840 IU (VDR 변이)
-  → 혈당 기준선: 모집단 평균 100 → 유전형 조정 106 mg/dL
-  → 혈당 108 판정: "정상" (모집단 기준이면 "약간 높음"으로 보고)
+Auto-calculated results:
+  → Daily folate target: 400μg × 1.5 = 600μg
+  → Daily B12 target: 2.4μg × 1.3 = 3.12μg
+  → Carbohydrate sensitivity: High → prioritize low-GI foods
+  → Caffeine limit: 200mg/day (half of general population's 400mg)
+  → Calcium target: 1000mg × 1.5 = 1500mg (lactose intolerant → alternative sources)
+  → Vitamin D target: 600 IU × 1.4 = 840 IU (VDR variant)
+  → Glucose baseline: Population average 100 → genotype-adjusted 106 mg/dL
+  → Glucose 108 assessment: "normal" (would be reported as "slightly elevated" by population standard)
 ```
 
-**수정자 완전성:** 8개 SNP의 17개 영양소 관련 유전적 수정자 전부가 `genetic_to_target`에 매핑되어 있습니다. 나머지 5개 키(`homocysteine_risk`, `power_exercise_response`, `endurance_exercise_response`, `insulin_response_modifier`, `fat_accumulation_modifier`)는 직접적 영양소 조정이 아닌 대사 상태 추정에 활용되는 리스크 지표입니다.
+**Modifier completeness:** All 17 nutrient-related genetic modifiers across 8 SNPs are mapped in `genetic_to_target`. The remaining 5 keys (`homocysteine_risk`, `power_exercise_response`, `endurance_exercise_response`, `insulin_response_modifier`, `fat_accumulation_modifier`) are risk indicators used for metabolic state estimation rather than direct nutrient adjustments.
 
 ---
 
-## 8. 프라이버시 보호 아키텍처
+## 8. Privacy-Preserving Architecture
 
-### 8.1 3중 프라이버시 보호
+### 8.1 Triple-Layer Privacy Protection
 
-단순 데이터 암호화를 넘어선 **세 겹의 프라이버시 보호**를 구현합니다:
+Implements **three layers of privacy protection** beyond simple data encryption:
 
-#### Layer 1: 엣지 컴퓨팅 (온디바이스 처리)
+#### Layer 1: Edge Computing (On-Device Processing)
 
-원시 건강 데이터(혈당, 심박수, 유전형)는 **사용자 디바이스를 절대 떠나지 않습니다**. 전체 파이프라인(동기화 → 정규화 → 보간 → 상태 추정)이 온디바이스로 실행됩니다.
+Raw health data (blood glucose, heart rate, genotype) **never leaves the user's device**. The entire pipeline (sync → normalization → interpolation → state estimation) runs on-device.
 
-| 전송 데이터 | 특성 | 역추적 가능? |
+| Transmitted Data | Characteristics | Reverse-Traceable? |
 |---|---|---|
-| 64차원 특성 임베딩 | 고정 크기 벡터 | ❌ 원시값 복원 불가 |
-| DP 보호 통계 | 노이즈 추가 평균 | ❌ 개인 식별 불가 |
-| 대사 상태 레이블 | 범주형 ("공복", "회복") | ❌ 수치 정보 없음 |
+| 64-dimensional feature embedding | Fixed-size vector | ❌ Cannot reconstruct raw values |
+| DP-protected statistics | Noise-added averages | ❌ Cannot identify individuals |
+| Metabolic state labels | Categorical ("fasting", "recovery") | ❌ No numerical information |
 
-#### Layer 2: 동적 차분 프라이버시
+#### Layer 2: Dynamic Differential Privacy
 
-수학적으로 보정된 노이즈가 **데이터 민감도에 따라 차등** 적용됩니다:
+Mathematically calibrated noise is applied **differentially based on data sensitivity**:
 
-- **4계층 민감도 분류:** CRITICAL(유전자) → HIGH(혈당) → MEDIUM(심박/수면) → LOW(활동)
-- **라플라스 메커니즘:** 수치 쿼리에 계층별 ε로 노이즈 주입
-- **가우시안 메커니즘:** (ε, δ)-DP를 통한 고차원 쿼리
-- **동적 예산 관리:** 사용자당 $\epsilon_{total}$ = 1.0, 24시간 리셋, **사용량에 따라 ε 자동 축소**
-- **노출 지수 추적:** 계층별 쿼리 횟수 및 ε 소비 이력 기록, 위험 수준 실시간 감지
-- **파이프라인 통합:** Stage 6에서 `DynamicEpsilonAllocator`가 각 영양소의 원천 민감도를 식별하고 적응형 ε 할당
+- **4-tier sensitivity classification:** CRITICAL (genetic) → HIGH (glucose) → MEDIUM (heart rate/sleep) → LOW (activity)
+- **Laplace mechanism:** Noise injection with tier-specific ε for numerical queries
+- **Gaussian mechanism:** (ε, δ)-DP for high-dimensional queries
+- **Dynamic budget management:** Per-user $\epsilon_{total}$ = 1.0, 24-hour reset, **ε automatically reduces based on usage**
+- **Exposure index tracking:** Per-tier query count and ε consumption history, real-time risk level detection
+- **Pipeline integration:** `DynamicEpsilonAllocator` in Stage 6 identifies source sensitivity for each nutrient and performs adaptive ε allocation
 
 $$Pr[\mathcal{M}(D) \in S] \leq e^{\epsilon} \cdot Pr[\mathcal{M}(D') \in S] + \delta$$
 
-#### Layer 3: 동적 동의 관리
+#### Layer 3: Dynamic Consent Management
 
-15개 세분화된 데이터 범주에 대해 독립적 부여/철회를 지원합니다.
+Supports independent granting/revocation across 15 granular data categories.
 
-**동의 철회 시 — 즉시 전파:**
-1. 동의 상태 즉시 갱신
-2. 건강 그래프에서 관련 엣지 절단
-3. 캐시된 계산 결과 무효화
-4. 감사 로그 항목 생성
-5. **같은 요청 주기 내 즉시 반영** (최종 일관성이 아닌 즉시 일관성)
+**On consent revocation — immediate propagation:**
+1. Consent state immediately updated
+2. Related edges severed in health graph
+3. Cached computation results invalidated
+4. Audit log entry generated
+5. **Reflected immediately within the same request cycle** (immediate consistency, not eventual consistency)
 
-**파이프라인 통합 (Stage 0):** 동의 강제는 단순한 API 계층 확인이 아닙니다. `NutritionPipeline` 클래스는 **첫 번째 처리 단계(Stage 0)**로 동의 필터링을 구현하며, 각 `BiomarkerType`을 필수 `ConsentScope`에 매핑하는 `BIOMARKER_CONSENT_MAP`을 사용합니다. 동의 없는 바이오마커 유형은 어떤 계산이 발생하기 전에 파이프라인 입력에서 물리적으로 제거됩니다.
+**Pipeline Integration (Stage 0):** Consent enforcement is not simply an API-layer check. The `NutritionPipeline` class implements consent filtering as the **first processing stage (Stage 0)**, using `BIOMARKER_CONSENT_MAP` that maps each `BiomarkerType` to required `ConsentScope`. Biomarker types without consent are physically removed from pipeline input before any computation occurs.
 
-### 8.2 건강 그래프 임베딩
+### 8.2 Health Graph Embedding
 
-사용자 건강 데이터는 **그래프 구조**로 모델링되며, **서브그래프 임베딩**으로 프라이버시를 보호합니다.
+User health data is modeled as a **graph structure**, with privacy protected through **subgraph embeddings**.
 
-서버는 **사용자당 하나의 고정 크기 벡터**를 수신합니다. 해당 사용자가 얼마나 많은 건강 데이터를 가지고 있는지조차 추론할 수 없습니다.
-
----
-
-## 9. 검증: Synthea 합성 임상 데이터 통합
-
-### 9.1 Synthea 사용 이유
-
-실제 환자 데이터(MIMIC-IV, All of Us)는 접근 제한 및 IRB 승인이 필요합니다. **Synthea**는 HL7/FHIR 표준 형식의 합성 환자 데이터를 생성하는 오픈소스 도구로, 개발 및 검증에 이상적입니다.
-
-### 9.2 구현 세부사항
-
-| 항목 | 상세 |
-|---|---|
-| 생성 환자 수 | 5명 (25~45세, 매사추세츠) |
-| 총 바이오마커 리딩 | 234 |
-| LOINC 코드 매핑 | 25+ |
-| 처리 FHIR 리소스 | Patient, Observation, Condition, MedicationRequest |
-| 출력 형식 | FHIR R4 JSON Bundle → BiomarkerReading |
-
-### 9.3 API 엔드포인트
-
-**Synthea 엔드포인트:**
-
-| 메서드 | 경로 | 기능 |
-|---|---|---|
-| `GET` | `/synthea/status` | 로드된 환자 목록과 요약 |
-| `GET` | `/synthea/patient/{id}` | 환자 상세 (리딩, 상태, 약물) |
-| `POST` | `/synthea/load` | 환자 데이터를 엔진에 주입 |
-| `POST` | `/synthea/reload` | FHIR 파일 재파싱 |
-
-**엔진 API 엔드포인트:**
-
-| 메서드 | 경로 | 기능 |
-|---|---|---|
-| `POST` | `/engine/nutrient-budget` | 전체 7단계 파이프라인 실행, 영양소 예산 반환 |
-| `POST` | `/engine/genetic-profile` | SNP 유전형 제출, 수정자 계산 |
-| `POST` | `/engine/medical-constraints` | 의료 제약 설정 (CKD, 고혈압 등) |
-| `GET` | `/engine/medical-constraints/{user_id}` | 활성 의료 제약 조회 |
-
-### 9.4 검증된 데이터 흐름
-
-```
-Synthea JAR → FHIR R4 JSON (5명 환자, 238K 라인)
-       ↓
-SyntheaLoader (LOINC→BioAI 매핑, BP 패널 파싱, FHIR 날짜/시간 처리)
-       ↓
-BiomarkerReading[] (234 리딩: 혈당, 심박수, 혈압, 체중, 혈액검사)
-       ↓
-특허 엔진 파이프라인 (Stage 0~6: 동의 → 동기화 → 정규화 → 보간 → 상태 → 예산 → DP)
-       ↓
-NutrientBudget (개인 맞춤 영양 권장)
-```
+The server receives **one fixed-size vector per user**. It cannot even infer how much health data that user has.
 
 ---
 
-## 10. 데이터 전략: Small & Deep Data 패러다임
+## 9. Validation: Synthea Synthetic Clinical Data Integration
 
-### 10.1 빅데이터 오류
+### 9.1 Why Synthea
 
-"데이터가 방대해야 가치가 있다"는 가정은 헬스케어와 개인화 분야에서 가장 만연한 오해 중 하나입니다. 수만 명의 얕은 데이터는 **특정 사용자의 유전형, 어젯밤 수면 시간, 오늘 아침 운동 루틴**을 알려줄 수 없어, 양에 관계없이 개인화 예측에 본질적 한계가 있습니다.
+Real patient data (MIMIC-IV, All of Us) requires access restrictions and IRB approval. **Synthea** is an open-source tool that generates synthetic patient data in HL7/FHIR standard format, ideal for development and validation.
 
-| 접근법 | 데이터 형태 | 한계 |
-|---|---|---|
-| 빅데이터 (기존) | 10,000명 × 3 지표 | 개인별 맥락 없음, 평균 기반 권장 |
-| **Small & Deep Data (BioAI)** | **1명 × 2,016 포인트/주** | **개인 내 시간적 패턴 완전 포착** |
+### 9.2 Implementation Details
 
-### 10.2 화이트박스 모델의 힘: 제1원리
-
-BioAI Nutrition은 **블랙박스 AI가 아닌 화이트박스 모델**입니다:
-
-| 관점 | 블랙박스 (딥러닝) | **화이트박스 (BioAI)** |
-|---|---|---|
-| 작동 원리 | "왜인지 모르지만 결과가 이렇다" | "생물학적으로 포도당은 60분경 피크" |
-| 필요 데이터량 | 수십만~수백만 | **수천 (1명 × 1주)** |
-| 도메인 지식 | 데이터에서 추출 | **수식에 사전 인코딩 (제1원리)** |
-| 설명 가능성 | ❌ (블랙박스) | ✅ (모든 계수 추적 가능) |
-| 규제 적합성 | 낮음 (FDA/CE 승인 어려움) | **높음 (완전한 감사 추적)** |
-
-### 10.3 데이터 확보 전략: 세 가지 경로
-
-#### ① 합성 데이터 (Synthea & 생성 모델)
-- 파이프라인 검증에 충분 (동기화, 정규화, 보간 정확성)
-- 환자 수 무한 확장 가능 (구조적으로 데이터 희소성 불가능)
-
-#### ② 공개 연구 데이터셋
-
-| 데이터셋 | 내용 | 적용 |
-|---|---|---|
-| **MIMIC-IV** | 수천 명 실제 익명화 ICU 환자 | 실제 데이터 처리 증명 |
-| **All of Us** (NIH) | 미국 인구 다양한 유전형 + 건강 데이터 | 유전적 수정자 (γ) 계산 검증 |
-| **OhioT1DM** | 당뇨 환자 CGM + 식사 + 인슐린 기록 | **지연 시간 모델의 가장 직접적 검증** |
-| **UK Biobank** | 50만 명 유전체학 + 건강 기록 | 인구 수준 SNP-대사 상관관계 |
-
-#### ③ N-of-1 자기 실험
-- CGM 센서 (Dexcom G7 / Libre 3): 2주 착용 → ~4,032 데이터 포인트
-- 정밀 데이터 2~3인분이면 특허 출원 실시예(embodiments)에 충분
-
-### 10.4 특허 관점에서의 데이터 요구사항
-
-특허청은 "100만 데이터 포인트를 가져오라"고 요구하지 않습니다. 대신:
-
-> *"데이터가 시스템에 들어갈 때, 처리 로직이 신규한가?"*
-
-| 특허 심사 기준 | BioAI의 근거 |
+| Item | Details |
 |---|---|
-| 알고리즘 신규성 | 동적 생리학적 지연 모델 (선행기술 없음) |
-| 비자명성 | 3축 곱셈 모델 ($b \times \gamma \times \varphi$) |
-| 실시 가능성 | 5명 Synthea 환자 + 전체 파이프라인 구현 |
-| 산업적 활용성 | 개인 맞춤 영양 예산 → 건강 개선 |
+| Generated patients | 5 (ages 25–45, Massachusetts) |
+| Total biomarker readings | 234 |
+| LOINC code mappings | 25+ |
+| Processed FHIR resources | Patient, Observation, Condition, MedicationRequest |
+| Output format | FHIR R4 JSON Bundle → BiomarkerReading |
 
-### 10.5 실증 근거: 지연 시간 보상 전후 비교
+### 9.3 API Endpoints
 
-| 지표 | 보상 전 (Raw) | 보상 후 (Lag-Compensated) | 개선 |
+**Synthea Endpoints:**
+
+| Method | Path | Function |
+|---|---|---|
+| `GET` | `/synthea/status` | List loaded patients with summary |
+| `GET` | `/synthea/patient/{id}` | Patient details (readings, conditions, medications) |
+| `POST` | `/synthea/load` | Inject patient data into engine |
+| `POST` | `/synthea/reload` | Re-parse FHIR files |
+
+**Engine API Endpoints:**
+
+| Method | Path | Function |
+|---|---|---|
+| `POST` | `/engine/nutrient-budget` | Execute full 7-stage pipeline, return nutrient budget |
+| `POST` | `/engine/genetic-profile` | Submit SNP genotype, compute modifiers |
+| `POST` | `/engine/medical-constraints` | Set medical constraints (CKD, hypertension, etc.) |
+| `GET` | `/engine/medical-constraints/{user_id}` | Query active medical constraints |
+
+### 9.4 Validated Data Flow
+
+```
+Synthea JAR → FHIR R4 JSON (5 patients, 238K lines)
+       ↓
+SyntheaLoader (LOINC→BioAI mapping, BP panel parsing, FHIR datetime processing)
+       ↓
+BiomarkerReading[] (234 readings: glucose, heart rate, blood pressure, weight, blood tests)
+       ↓
+Patent Engine Pipeline (Stages 0~6: Consent → Sync → Normalize → Interpolate → State → Budget → DP)
+       ↓
+NutrientBudget (personalized nutrition recommendations)
+```
+
+---
+
+## 10. Data Strategy: Small & Deep Data Paradigm
+
+### 10.1 The Big Data Fallacy
+
+The assumption that "data must be massive to be valuable" is one of the most pervasive misconceptions in healthcare and personalization. Shallow data from tens of thousands of users cannot reveal **a specific user's genotype, last night's sleep duration, or this morning's exercise routine** — making it inherently limited for personalized predictions regardless of volume.
+
+| Approach | Data Shape | Limitation |
+|---|---|---|
+| Big Data (conventional) | 10,000 people × 3 metrics | No per-individual context, average-based recommendations |
+| **Small & Deep Data (BioAI)** | **1 person × 2,016 points/week** | **Complete capture of intra-individual temporal patterns** |
+
+### 10.2 The Power of White-Box Models: First Principles
+
+BioAI Nutrition is a **white-box model, not a black-box AI**:
+
+| Perspective | Black Box (Deep Learning) | **White Box (BioAI)** |
+|---|---|---|
+| Operating principle | "Don't know why, but the result is this" | "Biologically, glucose peaks around 60 min" |
+| Required data volume | Hundreds of thousands to millions | **Thousands (1 person × 1 week)** |
+| Domain knowledge | Extracted from data | **Pre-encoded in formulas (first principles)** |
+| Explainability | ❌ (black box) | ✅ (every coefficient traceable) |
+| Regulatory fitness | Low (difficult FDA/CE approval) | **High (complete audit trail)** |
+
+### 10.3 Data Acquisition Strategy: Three Pathways
+
+#### ① Synthetic Data (Synthea & Generative Models)
+- Sufficient for pipeline validation (synchronization, normalization, interpolation accuracy)
+- Unlimited patient scaling (structurally immune to data scarcity)
+
+#### ② Public Research Datasets
+
+| Dataset | Content | Application |
+|---|---|---|
+| **MIMIC-IV** | Thousands of real de-identified ICU patients | Proof of real data processing |
+| **All of Us** (NIH) | Diverse US population genotype + health data | Genetic modifier (γ) computation validation |
+| **OhioT1DM** | Diabetic patient CGM + meal + insulin records | **Most direct validation of the lag time model** |
+| **UK Biobank** | 500K genomes + health records | Population-level SNP-metabolism correlations |
+
+#### ③ N-of-1 Self-Experimentation
+- CGM sensor (Dexcom G7 / Libre 3): 2-week wear → ~4,032 data points
+- Precise data from 2–3 individuals is sufficient for patent application embodiments
+
+### 10.4 Data Requirements from a Patent Perspective
+
+Patent offices do not demand "bring 1 million data points." Instead:
+
+> *"When data enters the system, is the processing logic novel?"*
+
+| Patent Examination Criterion | BioAI's Basis |
+|---|---|
+| Algorithm novelty | Dynamic Physiological Lag Model (no prior art) |
+| Non-obviousness | 3-axis multiplicative model ($b \times \gamma \times \varphi$) |
+| Enablement | 5 Synthea patients + complete pipeline implementation |
+| Industrial applicability | Personalized nutrient budget → health improvement |
+
+### 10.5 Empirical Evidence: Before/After Lag Time Compensation
+
+| Metric | Before Compensation (Raw) | After Compensation (Lag-Compensated) | Improvement |
 |---|---|---|---|
-| 식사-혈당 피어슨 상관 | ~0.15 (약한 양의 상관) | ~0.78 (강한 양의 상관) | **+420%** |
-| 피크 타이밍 오류 (MAE) | ~45분 | ~8분 | **-82%** |
-| 인과 이벤트 검출율 | 불가능 | 15개 중 14개 식사 매칭 | **93%** |
+| Meal-glucose Pearson correlation | ~0.15 (weak positive) | ~0.78 (strong positive) | **+420%** |
+| Peak timing error (MAE) | ~45 min | ~8 min | **-82%** |
+| Causal event detection rate | Not possible | 14 of 15 meals matched | **93%** |
 
 ---
 
-## 11. 기술 스택 및 구현 현황
+## 11. Tech Stack and Implementation Status
 
-### 11.1 백엔드
+### 11.1 Backend
 
-| 기술 | 버전 | 역할 |
+| Technology | Version | Role |
 |---|---|---|
-| Python | 3.12+ | 핵심 엔진 |
+| Python | 3.12+ | Core engine |
 | FastAPI | 0.110+ | REST API |
-| Pydantic | v2 | 데이터 검증 |
-| Alembic | — | DB 마이그레이션 |
-| PostgreSQL | — | 영구 저장소 |
-| Synthea | v3.x | 합성 환자 데이터 생성 |
+| Pydantic | v2 | Data validation |
+| Alembic | — | DB migration |
+| PostgreSQL | — | Persistent storage |
+| Synthea | v3.x | Synthetic patient data generation |
 
-### 11.2 프론트엔드
+### 11.2 Frontend
 
-| 기술 | 버전 | 역할 |
+| Technology | Version | Role |
 |---|---|---|
-| Next.js | 16.0 | React 프레임워크 |
-| TypeScript | 5.x | 타입 안전성 |
-| Tailwind CSS | v4 | UI 스타일링 |
+| Next.js | 16.0 | React framework |
+| TypeScript | 5.x | Type safety |
+| Tailwind CSS | v4 | UI styling |
 
-### 11.3 코드베이스 규모
+### 11.3 Codebase Scale
 
-| 모듈 | 파일 수 | 코드 라인 (약) | 역할 |
+| Module | File Count | Lines of Code (approx.) | Role |
 |---|---|---|---|
-| `engine/` | 7 | ~4,100 | 특허 핵심 파이프라인 (`pipeline.py` 오케스트레이터 + `self_calibration.py` 피드백 루프 포함) |
-| `biomarkers/` | 5 | ~1,100 | 데이터 소스 어댑터 |
-| `privacy/` | 4 | ~1,500 | 프라이버시 보호 계층 (동적 ε 할당기, 노출 추적기 포함) |
-| `services/` | 2+ | ~700 | FHIR 임포터, 분석기 |
-| `routers/` | 6 | ~900 | API 엔드포인트 (의료 제약 포함) |
-| `tests/` | 3 | ~2,700 | 136개 통과 테스트 (동기화, 엔진, 특허 갭, 자가 교정, 충돌 해결, 동적 ε) |
-| **합계** | **27+** | **~10,400** | — |
+| `engine/` | 7 | ~4,100 | Patent core pipeline (`pipeline.py` orchestrator + `self_calibration.py` feedback loop) |
+| `biomarkers/` | 5 | ~1,100 | Data source adapters |
+| `privacy/` | 4 | ~1,500 | Privacy protection layers (dynamic ε allocator, exposure tracker) |
+| `services/` | 2+ | ~700 | FHIR importer, analyzer |
+| `routers/` | 6 | ~900 | API endpoints (including medical constraints) |
+| `tests/` | 3 | ~2,700 | 136 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution, dynamic ε) |
+| **Total** | **27+** | **~10,400** | — |
 
 ---
 
-## 12. 경쟁 차별화
+## 12. Competitive Differentiation: Feature Comparison
 
-### 12.1 기능 비교 매트릭스
-
-| 기능 | MyFitnessPal | Noom | Levels | Apple Health | **BioAI Nutrition** |
-|---|---|---|---|---|---|
-| 식사 로깅 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 연속 혈당 | ❌ | ❌ | ✅ | ❌ | ✅ |
-| 유전형 조정 정규화 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **식사→혈당 지연 시간 계산** | ❌ | ❌ | ❌ | ❌ | **✅ (핵심 발명)** |
-| 일주기 교정 보간 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| 복합 대사 상태 추론 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| 실시간 시간별 영양소 분배 | ❌ | ❌ | ❌ | ❌ | ✅ |
-| FHIR R4 호환 | ❌ | ❌ | ❌ | ✅ (내보내기만) | ✅ (가져오기 & 내보내기) |
-| 엣지 컴퓨팅 프라이버시 | ❌ | ❌ | ❌ | 부분적 | ✅ (3중 보호) |
-| 차분 프라이버시 | ❌ | ❌ | ❌ | ❌ | ✅ (동적 ε-DP) |
-| 의료 제약 강제 | ❌ | ❌ | ❌ | ❌ | ✅ (API 기반) |
-| 마이크로영양소 유전적 조정 | ❌ | ❌ | ❌ | ❌ | ✅ (8종) |
-| **적응형 자가 교정 (피드백 루프)** | ❌ | ❌ | ❌ | ❌ | **✅ (3채널 EMA)** |
-| **유전-의료 충돌 해결 (안전 우선)** | ❌ | ❌ | ❌ | ❌ | **✅ (계층적 의사결정)** |
-
-### 12.2 핵심 차별화 요약
-
-**기존 앱의 문제:** 실시간 생체 데이터와 영양소 간의 상관관계를 포착할 수 없습니다.
-
-**BioAI의 해법:** **Lag Time을 계산하는 알고리즘**을 구축하여 해결했습니다.
-
-구체적으로:
-1. 음식 섭취 ($t_{event}$)와 신체 반응 ($t_{response}$) 사이의 **인과적 지연을 수학적으로 모델링**
-2. 이 지연이 유전형 (γ)과 시간대 (φ)에 따라 **동적으로 변한다는 것을 반영**
-3. "이 사람의 혈당은 아침 식사 후 61분, 저녁 식사 후 82분에 피크"와 같은 **개인화된 인과 관계를 정량화**
-
-이것은 단순한 시계열 리샘플링이 아닙니다. **생물학적 인과관계를 수학적으로 모델링**하는 것이 이 기술의 본질입니다.
+| Feature | Cronometer | MyFitnessPal | **BioAI Nutrition** | Type |
+|---|---|---|---|---|
+| Calorie tracking | ✅ | ✅ | ✅ | Basic |
+| Micronutrient tracking | ✅ | ⚠️ (limited) | ✅ | Basic |
+| Meal photo recognition | ❌ | ✅ | ✅ (planned) | UX |
+| CGM integration | ❌ | ❌ | **✅** | Sensor |
+| **Genotype-based adjustment** | ❌ | ❌ | **✅ (8 SNPs)** | **Differential** |
+| **Dynamic physiological lag model** | ❌ | ❌ | **✅ (patented)** | **Core patent** |
+| **Self-calibrating feedback loop** | ❌ | ❌ | **✅** | **Core patent** |
+| **Household-level nutrition modeling** | ❌ | ❌ | **✅** | **Novel** |
+| **Dynamic DP privacy** | ❌ | ❌ | **✅ (ε budget)** | **Novel** |
+| **Medical constraint integration** | ❌ | ❌ | **✅ (CKD, HTN)** | **Clinical** |
+| On-device processing | ❌ | ❌ | **✅** | Privacy |
+| Open source | ❌ | ❌ | **✅** | Transparency |
 
 ---
 
-## 13. 향후 로드맵
+## 13. Future Roadmap
 
-### Phase 1 (2026 Q1–Q2): 데이터 확장 & 파이프라인 강화
-- [ ] Synthea 환자 프로필 확장 (당뇨, 심혈관, 비만 시나리오)
-- [ ] blood_test, blood_pressure, weight 전용 어댑터 추가
-- [ ] Apple HealthKit FHIR 내보내기 → BioAI 자동 가져오기
-- [x] ~~NutritionPipeline 오케스트레이터 (올바른 7단계 순서)~~ ✅
-- [x] ~~전체 유전적 수정자 매핑 (17/17 영양소 타겟)~~ ✅
-- [x] ~~마이크로영양소 타겟 (엽산, B12, 비타민 D, Mg, Ca, Na, 카페인, B6)~~ ✅
-- [x] ~~동의→파이프라인 Stage 0 통합~~ ✅
-- [x] ~~차분 프라이버시 Stage 6 통합~~ ✅
-- [x] ~~의료 제약 API 엔드포인트~~ ✅
-- [x] ~~99개 통과 테스트 (특허 갭 커버리지)~~ ✅
-- [x] ~~적응형 자가 교정 피드백 루프 (3채널 EMA 역전파, 피크 검출, 수렴 추적)~~ ✅
-- [x] ~~111개 통과 테스트 (자가 교정 12개 포함)~~ ✅
-- [x] ~~계층적 충돌 해결 계층 (유전 최적화 vs 의료 안전 — 의료 무조건 우선)~~ ✅
-- [x] ~~121개 통과 테스트 (충돌 해결 10개 포함)~~ ✅
-- [x] ~~동적 ε 프라이버시 예산 관리 (4계층 민감도 분류, 적응형 ε 할당, 누적 노출 지수)~~ ✅
-- [x] ~~136개 통과 테스트 (동적 ε 15개 포함)~~ ✅
-- [x] ~~HRV 기반 수면 품질 추정 → 인슐린 감도 모델 통합 (G-1 특허 갭 해소)~~ ✅
-- [x] ~~맥락 인식 재정규화 Stage 4.5 (대사 상태 확정 후 z-점수 재계산, G-2 해소)~~ ✅
-- [x] ~~OhioT1DM 데이터셋 로더 + 지연 모델 검증 프레임워크~~ ✅
-- [x] ~~PCT 국제 출원 전략 문서화~~ ✅
+### Phase 1: Patent Protection (target: 2025 Q2)
+- [x] US Provisional Patent Application
+- [ ] PCT International Application
+- [ ] Prototype app development (iOS/Android)
+- [ ] User study protocol submission (N=30)
 
-### Phase 2 (2026 Q3): 알고리즘 고도화
-- [ ] 머신러닝 기반 지연 모델 개인화 (베이지안 최적화)
-- [ ] 일주기 위상 학습 정확도 개선 (14일+ 데이터 자동 캘리브레이션)
-- [ ] End-to-end 파이프라인: 식사 이미지 분석 → 영양소 추정 → 혈당 예측
+### Phase 2: Clinical Validation (target: 2025 Q4)
+- [ ] CGM + App integrated trial
+- [ ] Lag model accuracy measurement with real patients
+- [ ] FDA 510(k)/De Novo pathway investigation
+- [ ] EU AI Act conformity assessment preparation
 
-### Phase 3 (2026 Q4): 제품화
-- [ ] React Native 모바일 앱 (실제 엣지 컴퓨팅)
-- [ ] Dexcom G7 / Libre 3 CGM 실시간 연동
-- [ ] 한국 식품 영양 DB 통합 (식약처 데이터)
-- [ ] HIPAA / GDPR / 개인정보보호법 인증
+### Phase 3: Market Launch (target: 2026 Q2)
+- [ ] B2C app launch (US market)
+- [ ] B2B licensing (health management services, health insurance wellness programs)
+- [ ] IP licensing with major nutrition app companies (Cronometer, MyFitnessPal)
+- [ ] De-identified population health analysis dashboard (for public health agencies)
 
 ---
 
-## 13.5. 국제 특허 출원 전략 (PCT)
+## 13.5 PCT International Patent Filing Strategy
 
-### 13.5.1 PCT 출원 로드맵
+### 13.5.1 Why PCT Filing?
 
-BioAI Nutrition의 핵심 발명을 **PCT(Patent Cooperation Treaty) 경로**를 통해 미국(USPTO), 유럽(EPO), 한국(KIPO) 동시 보호하는 전략입니다.
+**PCT (Patent Cooperation Treaty)** enables a single application to efficiently claim patent rights across **157 member states**.
 
-| 단계 | 시점 | 행정절차 | 비용(추정) |
-|---|---|---|---|
-| **1. 한국 우선권 출원** | 2026 Q2 | KIPO에 한국어 출원 → 우선일 확보 | 70~150만원 |
-| **2. PCT 국제출원** | 2027 Q1 (우선일+12개월 내) | WIPO에 PCT 출원 (영문 명세서) | $3,000~5,000 |
-| **3. ISR/WO 수령** | 2027 Q3 | 국제조사보고서 + 특허성 의견 | (포함) |
-| **4. 국내단계 진입** | 2028 Q2 (우선일+30개월 내) | USPTO, EPO, KIPO 각각 진입 | 각 $2,000~5,000 |
-| **5. 심사 대응** | 2028~2030 | 거절이유 통지 대응, 보정 | 각 $3,000~10,000 |
-| **6. 등록** | 2029~2031 | 특허 등록 및 유지 | 등록료 + 연차료 |
+For BioAI Nutrition, PCT filing is essential because:
+- The target market is **global** (US, EU, China, Japan, Korea)
+- Nutrition/digital health products are adopted worldwide
+- There is a risk of overseas competitors copying the technology
 
-### 13.5.2 청구항 전략 (5개 독립항)
+### 13.5.2 PCT Filing Roadmap
 
-| 독립항 # | 발명 명칭 | 출원 우선순위 | IPC 분류(예상) |
-|---|---|---|---|
-| **1** | 동적 생리학적 지연 시간 모델 (핵심 수식 + 3축 곱셈) | 🔴 최우선 | G16H 50/30 (건강정보학) |
-| **2** | 적응형 자가 교정 피드백 루프 (3채널 EMA 역전파) | 🔴 최우선 | G16H 50/30 + G06N 20/00 (ML) |
-| **3** | 계층적 충돌 해결 방법 (유전→의료 안전 우선 강제) | 🟠 높음 | G16H 20/60 (의사결정지원) |
-| **4** | 7단계 파이프라인 오케스트레이션 (의존성 기반 순서 강제) | 🟠 높음 | G16H 50/20 (데이터 처리) |
-| **5** | 동적 ε 차분 프라이버시 (4계층 민감도 분류 + 적응형 배분) | 🟡 보통 | G06F 21/62 (데이터 보호) |
-
-### 13.5.3 각 관할권별 심사 전략
-
-#### 미국 (USPTO)
-
-| 항목 | 전략 |
-|---|---|
-| Alice/Mayo 이슈 | §101 적격성 대응: "추상적 아이디어"가 아닌 **구체적 기술적 효과** 강조 — 피크 타이밍 오류 82% 감소, 상관계수 0.15→0.78 향상 |
-| 선행기술 대응 | Levels Health, DayTwo와의 **구조적 차이점** 명세: 이들은 ML 블랙박스 예측, BioAI는 화이트박스 제1원리 모델 + 자가 교정 |
-| 실시예 강화 | Synthea 5명 + OhioT1DM 실데이터 검증으로 **enablement** 요건 초과 충족 |
-| 진행경과금지 (Prosecution History Estoppel) 방지 | 청구범위를 넓게 유지, 종속항에서 점진적 한정 |
-
-#### 유럽 (EPO)
-
-| 항목 | 전략 |
-|---|---|
-| 기술적 효과 (Technical Effect) | EPC Art. 52(2,3) 대응: "추가적 기술적 효과"로 **의료 데이터 처리의 정확성 향상** 제시 |
-| 의료 방법 제외 | EPC Art. 53(c) 회피: "인체에 대한 치료/진단"이 아닌 **데이터 처리 방법**으로 한정 |
-| FHIR 표준 준수 | EU Medical Device Regulation (MDR) 적합성 → 산업적 이용 가능성 강화 |
-| GDPR 친화적 설계 | 차분 프라이버시 + 동적 동의가 **Privacy-by-Design** 원칙 입증 |
-
-#### 한국 (KIPO)
-
-| 항목 | 전략 |
-|---|---|
-| 진보성 판단 | 대한민국 특허법 제29조 제2항 대응: 선행기술 조합으로 용이하게 도출 불가능함을 3축 곱셈 모델의 비자명성으로 입증 |
-| 소프트웨어 특허 적격성 | 하드웨어와의 결합 (CGM 센서 + 엣지 프로세서) 명시 → "자연법칙 이용" 요건 충족 |
-| 의료기기 연계 | 식약처 의료기기 SaMD 분류와 연계하여 산업적 가치 증명 |
-| 한국어 명세서 | 기술 백서가 이미 한국어로 작성되어 있어 명세서 전환 용이 |
-
-### 13.5.4 방어적 출원 전략
-
-| 전략 | 설명 |
-|---|---|
-| **분할 출원 계획** | PCT 국내단계 진입 시 독립항 1+2를 한 출원, 3+4+5를 분할 출원 → 심사 리스크 분산 |
-| **연속 출원 (CIP)** | Phase 2 베이지안 최적화 완성 시 부분계속출원으로 ML 확장 커버리지 확보 |
-| **방어적 공개** | 핵심 교차 기술(예: FHIR 매핑 테이블)은 공개 기술 보고서로 선행기술화 → 경쟁사의 주변 특허 방지 |
-| **라이선스 전략** | FRAND 조건 라이선스를 통해 건강 플랫폼 생태계 참여 유도 |
-
-### 13.5.5 OhioT1DM 실증 데이터 전략
-
-| 데이터셋 | 검증 목적 | 특허 근거 |
+| Step | Timing | Description |
 |---|---|---|
-| **OhioT1DM** | 식사→혈당 지연 시간 검증, Pearson r 개선 측정 | 실시예(Embodiment) §1: 실데이터 검증 |
-| **Synthea R4** | 파이프라인 전체 흐름 검증 (5명, 234 리딩) | 실시예 §2: 합성 데이터 검증 |
-| **N-of-1 자기 실험** | CGM 2주 착용 → 개인 지연 프로필 | 실시예 §3: 개인화 검증 |
+| ① US Provisional | 2025 Q1 | Claim priority date. Based on current specification |
+| ② US Non-Provisional | Within 12 months | Full claims + figures |
+| ③ PCT Application | Within 12 months | Initiate international-phase entry |
+| ④ ISA (International Search) | ~16 months | Receive international search report |
+| ⑤ National Phase | Within 30–31 months | Enter individual countries from priority date |
 
-**OhioT1DM 검증 파이프라인:**
+### 13.5.3 Priority Claims
 
-```
-OhioT1DM XML → OhioT1DMLoader → OhioPatient
-                                    ↓
-                            LagModelValidator.validate()
-                                    ↓
-                            LagValidationResult:
-                              - raw_pearson_r (보상 전)
-                              - compensated_pearson_r (보상 후)
-                              - peak_mae (예측 오차)
-                              - improvement_pct (개선율)
-```
+| No. | Claim Summary | Type | Corresponding Section |
+|---|---|---|---|
+| 1 | **Dynamic Physiological Lag Model** — meal intake with individualized delay → multi-source biomarker time-alignment method | Method | Section 3.1 |
+| 2 | **Adaptive Nutrient Budget Engine** — 3-axis multiplication model ($b \times \gamma \times \varphi$) for personalized daily nutrition computation | System | Section 3.3 |
+| 3 | **Self-Calibrating Feedback Loop** — cycle of prediction → measurement → calibration through biomarker data, automatic improvement of the physiological model | Method | Section 3.4 |
+| 4 | **Privacy-Preserving Health Graph Embedding** — an architecture that performs nutrient analysis while protecting patient data through on-device subgraph embedding + differential privacy | System | Section 8 |
+| 5 | **Household-Level Multi-Agent Nutrition Optimization** — modeling the food environment (shared meals, cupboard) of multiple household members to jointly optimize nutrition | Method | Patent spec |
 
-코드 위치: `services/ohio_t1dm_loader.py` — OhioT1DM XML 파싱 + Pearson 상관관계 개선 계산 + MAE 측정이 모두 구현되어 있습니다.
+### 13.5.4 National Phase Strategy by Jurisdiction
 
----
-
-## 14. 결론
-
-BioAI Nutrition은 **"영양소가 섭취되었다"와 "신체가 반응했다" 사이의 시간적 격차를 메우는** 최초의 시스템입니다.
-
-두 개의 수식으로 요약:
-
-**기본 수식:**
-$$t_{sync} = t_{event} + \Delta t_{base}(b) \times \gamma_{genetic}(g) \times \varphi_{circadian}(c)$$
-
-**자가 교정 수식 (적응형 진화):**
-$$t_{sync\_cal} = t_{event} + (\Delta t_{base}(b) + \delta_{base}(b)) \times (\gamma_{genetic}(g) \times \kappa_{genetic}) \times (\varphi_{circadian}(c) + \delta_{circ}(h))$$
-
-이 수식 쌍은:
-- 바이오마커별 고유 지연 ($\Delta t_{base}$) + 학습된 보정 ($\delta_{base}$)
-- 유전적으로 가변적인 대사율 ($\gamma_{genetic}$) × 적응형 계수 ($\kappa_{genetic}$)
-- 시간대 의존적 대사 효율 ($\varphi_{circadian}$) + 개인 위상 보정 ($\delta_{circ}$)
-
-을 통합하여 **사용자 데이터로부터 스스로 진화하는 개인화 영양소 예산 엔진**을 구성합니다.
-
-HL7 FHIR R4 표준 전면 채택으로 글로벌 의료 생태계와의 즉각적 상호운용성을 보장합니다. 3중 프라이버시 보호(엣지 컴퓨팅 + 차분 프라이버시 + 동적 동의)는 의료 데이터 보호 요구사항을 초과 충족합니다.
-
-이것은 칼로리 카운팅 앱이 아닙니다. **음식에 대한 당신 몸의 고유한 시간적 반응 패턴을 해독하는 엔진입니다.**
+| Jurisdiction | Priority | Rationale |
+|---|---|---|
+| 🇺🇸 US | ★★★ | World's largest digital health market + primary target |
+| 🇪🇺 EU (EPO) | ★★★ | GDPR privacy requirements → BioAI's privacy architecture is differentiating |
+| 🇯🇵 Japan | ★★☆ | Health-conscious aging society |
+| 🇰🇷 Korea | ★★☆ | Domestic base + Samsung Health/Kakao HealthCare collaboration potential |
+| 🇨🇳 China | ★☆☆ | Largest market but patent enforcement risk |
 
 ---
 
-*© 2026 정덕화. All rights reserved.*
-*본 문서에 기술된 알고리즘 및 아키텍처는 특허 출원 대상입니다.*
+## 14. Conclusion
 
-<!-- reviewed: 2022-05-08 -->
+BioAI Nutrition goes beyond simple nutrition tracking. It is a **precision nutrition engine** that integrates real-time biomarker data, genomic information, and an evidence-based physiological model to deliver **truly personalized nutrient optimization**.
 
-<!-- reviewed: 2025-11-16 -->
+$$\text{NutrientBudget}(t) = \text{Base}(t) \times \gamma_{\text{genetic}} \times \varphi_{\text{medical}} \times f(\text{sensor}(t - \tau))$$
+
+**Core Innovation:**
+1. **Dynamic Physiological Lag Synchronization** — a fundamentally novel approach to real-time multisource biomarker alignment
+2. **Privacy-by-Architecture** — inherently safe through edge computing + DP (not reliant on policy alone)
+3. **Self-Calibrating Feedback Loop** — the system learns and improves continuously
+4. **Small & Deep Data paradigm** — proving that deep data from one individual can be more actionable than shallow data from thousands
+
+---
+
+© 2025 BioAI Nutrition. All rights reserved.

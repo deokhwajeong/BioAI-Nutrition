@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-자연스러운 GitHub 잔디 생성기 v3
-- 여러 파일을 랜덤 수정하여 실제 개발처럼 보이게 함
-- 연도별 활동 강도 차별화
-- 주말 활동 감소
+Natural GitHub contribution generator v3
+- Randomly modifies multiple files to simulate real development
+- Differentiates activity intensity by year
+- Reduces weekend activity
 """
 import subprocess
 import random
@@ -14,12 +14,12 @@ from pathlib import Path
 REPO = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip())
 os.chdir(REPO)
 
-# 기존 커밋 날짜
+# Existing commit dates
 existing = set(subprocess.check_output(
     ["git", "log", "--format=%ad", "--date=short"], text=True
 ).strip().split("\n"))
 
-# ── 커밋 메시지 풀 ──
+# ── Commit message pool ──
 MSGS = {
     "research": [
         "research: survey personalized nutrition optimization methods",
@@ -122,7 +122,7 @@ MSGS = {
     ],
 }
 
-# 연도별 메시지 가중치
+# Message weights by year
 WEIGHTS = {
     2022: {"research": 40, "docs": 25, "chore": 15, "feat": 10, "style": 5, "fix": 3, "test": 2, "refactor": 0},
     2023: {"research": 30, "docs": 20, "feat": 15, "chore": 12, "refactor": 8, "fix": 5, "test": 5, "style": 5},
@@ -131,7 +131,7 @@ WEIGHTS = {
     2026: {"feat": 25, "refactor": 20, "test": 18, "fix": 15, "docs": 8, "chore": 7, "style": 4, "research": 3},
 }
 
-# ── 파일 목록 ──
+# ── File list ──
 def find_files(patterns, excludes=(".venv", "node_modules", "__pycache__")):
     result = []
     for p in patterns:
@@ -145,9 +145,9 @@ TS_FILES = find_files(["*.ts", "*.tsx"])
 MD_FILES = find_files(["*.md"])
 ALL_FILES = PY_FILES + TS_FILES + MD_FILES
 
-# ── 파일 수정 함수 ──
+# ── File modification function ──
 def modify_file(f: Path, date_str: str):
-    """파일을 미세하게 수정 (주석, 공백, TODO 등)"""
+    """Make minor modifications to a file (comments, whitespace, TODOs, etc.)"""
     if not f.exists():
         return False
     try:
@@ -183,7 +183,7 @@ def modify_file(f: Path, date_str: str):
             if lines and lines[-1] != "":
                 lines.append("")
         elif action == 4:
-            # 빈 줄 정리
+            # Clean up empty lines
             new_lines = []
             prev_empty = False
             for l in lines:
@@ -225,7 +225,7 @@ def modify_file(f: Path, date_str: str):
     return True
 
 def create_note(date_str: str) -> Path:
-    """새로운 노트/문서 파일 생성"""
+    """Create a new note/document file"""
     y, m, d = date_str.split("-")
     templates = [
         (f"docs/notes/{date_str}.md", f"# Notes — {date_str}\n\n- Reviewed biomarker integration approach\n- Explored privacy-preserving methods\n"),
@@ -264,7 +264,7 @@ def commit(date_str: str, hour: int, minute: int, second: int, message: str):
         env=env, capture_output=True, text=True,
     )
 
-# ── 연도별 설정 ──
+# ── Year-specific settings ──
 YEAR_CONFIG = {
     2022: {"prob": 30, "min_c": 1, "max_c": 2, "weekend_factor": 0.5},
     2023: {"prob": 35, "min_c": 1, "max_c": 3, "weekend_factor": 0.55},
@@ -290,7 +290,7 @@ def generate_range(start: str, end: str):
             current += timedelta(days=1)
             continue
 
-        # 확률 계산 (주말 감소)
+        # Calculate probability (reduce on weekends)
         prob = cfg["prob"]
         if current.weekday() >= 5:  # Sat/Sun
             prob = int(prob * cfg["weekend_factor"])
@@ -307,7 +307,7 @@ def generate_range(start: str, end: str):
             second = random.randint(0, 59)
             msg = get_message(year)
 
-            # 1~3개 파일 수정
+            # Modify 1~3 files
             n_files = random.randint(1, 3)
             modified = False
             for _ in range(n_files):
@@ -333,32 +333,32 @@ def generate_range(start: str, end: str):
 
     return day_count, commit_count
 
-# ── 메인 ──
-print("🌱 자연스러운 잔디 생성 시작...\n")
+# ── Main ──
+print("🌱 Starting natural contribution generation...\n")
 
 total_days = 0
 total_commits = 0
 
-for year, label in [(2022, "2022"), (2023, "2023"), (2024, "2024"), (2025, "2025"), (2026, "2026 (빈 날짜)")]:
+for year, label in [(2022, "2022"), (2023, "2023"), (2024, "2024"), (2025, "2025"), (2026, "2026 (empty dates)")]:
     if year == 2026:
         start, end = "2026-01-01", "2026-02-23"
     else:
         start, end = f"{year}-01-01", f"{year}-12-31"
 
-    print(f"📅 {label} 생성 중...")
+    print(f"📅 Generating {label}...")
     days, commits = generate_range(start, end)
-    print(f"   ✅ {days}일, {commits}개 커밋")
+    print(f"   ✅ {days} days, {commits} commits")
     total_days += days
     total_commits += commits
 
-print(f"\n🌱 완료! 총 {total_days}일, {total_commits}개 커밋 추가")
+print(f"\n🌱 Done! Total {total_days} days, {total_commits} commits added")
 
 total = subprocess.check_output(["git", "log", "--oneline"], text=True).strip().count("\n") + 1
 total_active = len(set(subprocess.check_output(
     ["git", "log", "--format=%ad", "--date=short"], text=True
 ).strip().split("\n")))
-print(f"📊 전체 커밋: {total}개, 활동 일수: {total_active}일")
-print(f"\n📌 'git push --force origin main' 으로 원격에 반영하세요.")
+print(f"📊 Total commits: {total}, Active days: {total_active}")
+print(f"\n📌 Run 'git push --force origin main' to push to remote.")
 
 # TODO: optimize this section
 

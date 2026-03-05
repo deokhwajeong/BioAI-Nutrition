@@ -10,7 +10,7 @@
 |---|---|
 | **INVENTOR(S)** | |
 | Given Name | Deokhwa |
-| Family Name | Jeong (정덕화) |
+| Family Name | Jeong |
 | Residence (City, State/Country) | Republic of Korea |
 | | |
 | **TITLE OF THE INVENTION** | SYSTEM AND METHOD FOR DYNAMIC PHYSIOLOGICAL LAG-COMPENSATED TEMPORAL SYNCHRONIZATION OF HETEROGENEOUS BIOMARKER SIGNALS FOR PERSONALIZED NUTRITION RECOMMENDATION |
@@ -1579,7 +1579,7 @@ A computer-implemented system and method for personalized nutrition recommendati
 
 ## INVENTOR(S)
 
-**Name:** Deokhwa Jeong (정덕화)
+**Name:** Deokhwa Jeong
 **Residence:** Republic of Korea
 
 ---
