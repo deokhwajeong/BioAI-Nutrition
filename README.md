@@ -1,6 +1,5 @@
 # Nutri-Node
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![Node.js 22](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
@@ -450,13 +449,6 @@ We welcome contributions! Please follow these steps:
 7. Open a Pull Request
 
 For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
-© 2025–2026 Deokhwa Jeong. All rights reserved.
 
 ---
 
