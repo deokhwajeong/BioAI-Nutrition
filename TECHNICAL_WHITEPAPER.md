@@ -439,7 +439,9 @@ $$\text{penalty} = 0.12 \times \left(1 - \frac{\text{sleep\_quality}}{0.7}\right
 - Maximum penalty: -0.12 (when sleep quality = 0)
 - Threshold: no penalty above 0.7
 
-**Patent Strengthening:** The "sleep debt → metabolic impact" claim is now supported by specific numerical algorithms.
+**Scientific Basis:** The 0.12 penalty coefficient is a conservative estimate derived from clinical evidence. Spiegel et al. (*Lancet* 354:1435–1439, 1999) demonstrated ~25% insulin sensitivity reduction with severe sleep restriction; the 0.12 max penalty represents approximately half this effect to account for individual variability. The 0.7 quality threshold corresponds to ~7 hours of adequate sleep, supported by Van Cauter et al. (*Nature Reviews Endocrinology* 5:253–261, 2009) showing dose-response relationships between sleep duration below 7 hours and impaired glucose metabolism.
+
+**Patent Strengthening:** The "sleep debt → metabolic impact" claim is now supported by specific numerical algorithms with literature-cited coefficients.
 
 #### 4.5-B: Context-Aware Re-Normalization (G-2 Resolution)
 
@@ -724,6 +726,19 @@ Auto-calculated results:
 ```
 
 **Modifier completeness:** All 17 nutrient-related genetic modifiers across 8 SNPs are mapped in `genetic_to_target`. The remaining 5 keys (`homocysteine_risk`, `power_exercise_response`, `endurance_exercise_response`, `insulin_response_modifier`, `fat_accumulation_modifier`) are risk indicators used for metabolic state estimation rather than direct nutrient adjustments.
+
+**Literature References for SNP Modifier Coefficients:**
+
+| SNP | Modifier | Source |
+|---|---|---|
+| rs1801133 (MTHFR) | Folate −50% | Frosst P et al., *Nature Genetics* 10:111–113, 1995 |
+| rs9939609 (FTO) | Obesity ×1.2 | Frayling TM et al., *Science* 316:889–894, 2007 |
+| rs429358 (APOE) | Sat. fat ×1.5 | Bennet AM et al., *JAMA* 298:1300–1311, 2007 |
+| rs7903146 (TCF7L2) | Insulin ×0.8 | Grant SF et al., *Nature Genetics* 38:320–323, 2006 |
+| rs4988235 (LCT) | Lactose 0 | Enattah NS et al., *Nature Genetics* 30:233–237, 2002 |
+| rs762551 (CYP1A2) | Caffeine ×0.5 | Cornelis MC et al., *JAMA* 295:1135–1141, 2006 |
+| rs1544410 (VDR) | Vit D ×1.4 | Uitterlinden AG et al., *Gene* 338:143–156, 2004 |
+| rs4341 (ACE) | Strength ×1.2 | Jones A & Woods DR, *BJSM* 37:197–201, 2003 |
 
 ---
 
