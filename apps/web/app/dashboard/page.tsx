@@ -18,11 +18,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const apiBase =
-          process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
-        const url = `${apiBase}/api/metrics`;
-
-        const res = await fetch(url, {
+        const res = await fetch('/api/metrics', {
           method: 'GET',
           headers: {
             ...(process.env.NEXT_PUBLIC_API_KEY

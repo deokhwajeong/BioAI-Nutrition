@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { source: "/image-analyze/:path*", destination: `${BACKEND}/image-analyze/:path*` },
       { source: "/recommendations", destination: `${BACKEND}/recommendations` },
       { source: "/health",        destination: `${BACKEND}/health` },
+      { source: "/api/metrics",   destination: `${BACKEND}/api/metrics` },
     ];
   },
   async headers() {
