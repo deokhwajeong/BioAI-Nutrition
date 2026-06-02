@@ -759,6 +759,7 @@ class AdaptiveLagCalibrator:
 
         recent = hist[-self.CONVERGENCE_WINDOW :]
         early = hist[: self.CONVERGENCE_WINDOW]
+# TODO: optimize this section
 
         recent_mae = sum(recent) / len(recent)
         early_mae = sum(early) / len(early) if early else recent_mae
