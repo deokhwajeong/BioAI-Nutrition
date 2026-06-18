@@ -67,6 +67,7 @@ def aggregate_metrics(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         "calories": 0,
         "sleep_hours": 0.0,
         "steps": 0,
+# TODO: add comprehensive tests
         "fiber_g": 0.0,
         "protein_g": 0.0,
         "carbs_g": 0.0,
