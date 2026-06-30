@@ -1,4 +1,21 @@
+#!/usr/bin/env python3
 """
+Rewrites apps/api/app/seed_data.py with an enhanced version that includes:
+- Blood pressure (morning/evening readings, 3 days)
+- Weight & body composition history (daily)
+- Blood test panel (HbA1c, lipid panel, Vitamin D, B12, ferritin)
+- Structured meal logs with full nutrient breakdowns
+- Water intake events throughout the day
+- Cortisol proxy (stress index from HRV/HR ratio)
+- Extended genetic profile (8 → 20 SNPs)
+- Second demo user profile (T2D-risk, different metabolic pattern)
+- Noise comment cleanup (stray TODO/FIXME from automation scripts)
+"""
+from pathlib import Path
+
+DEST = Path(__file__).parent.parent / "apps/api/app/seed_data.py"
+
+NEW_CONTENT = '''"""
 Default sample data seeder for the BioAI Nutrition engine.
 
 Seeds 72 hours of realistic biomarker data into all in-memory adapters
@@ -643,7 +660,8 @@ async def seed_default_data(
         rem_pct = round(random.uniform(0.18, 0.25), 2)
         light_pct = round(1.0 - deep_pct - rem_pct, 2)
         awakenings = random.randint(0, 3)
-        quality = "excellent" if sleep_hours >= 7.5 and awakenings == 0 else                   "good" if sleep_hours >= 7.0 else "fair"
+        quality = "excellent" if sleep_hours >= 7.5 and awakenings == 0 else \
+                  "good" if sleep_hours >= 7.0 else "fair"
         quality_score = {"excellent": 0.92, "good": 0.78, "fair": 0.58}[quality]
 
         await sleep_adapter.push_reading(BiomarkerReading(
@@ -756,3 +774,7 @@ async def seed_default_data(
 
     random.seed()  # restore true randomness
     return counts
+'''
+
+DEST.write_text(NEW_CONTENT, encoding="utf-8")
+print(f"Written {len(NEW_CONTENT.splitlines())} lines to {DEST}")

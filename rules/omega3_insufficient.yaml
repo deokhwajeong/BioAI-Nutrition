@@ -1,0 +1,8 @@
+id: omega3_insufficient
+when:
+  cond_omega3: "daily_features.omega3_g < user_targets.omega3_g * 0.7"
+then:
+  message: "Omega-3 intake looks low today. Consider adding fatty fish (salmon, mackerel), walnuts, or ground flaxseed to tomorrow's meals."
+  rationale: "Adequate EPA/DHA (≥1.6 g/day) supports anti-inflammatory pathways and has been linked to improved insulin sensitivity in several meta-analyses."
+  priority: low
+  guardrails: ["non-diagnostic", "allergen-aware"]

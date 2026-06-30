@@ -1,0 +1,8 @@
+id: hydration_low
+when:
+  cond_water: "daily_features.water_ml < 1500"
+then:
+  message: "Water intake is below 1.5 L today. Try keeping a water bottle at your desk and setting an hourly reminder to drink 200–250 ml."
+  rationale: "Mild dehydration (>2% body weight) impairs cognitive performance and can be mistaken for hunger."
+  priority: medium
+  guardrails: ["non-diagnostic"]

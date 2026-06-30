@@ -1,0 +1,8 @@
+id: sleep_quality_poor
+when:
+  cond_sleep: "daily_features.sleep_hours < 6.5"
+then:
+  message: "Sleep duration was under 6.5 hours. Short sleep reduces insulin sensitivity by up to 30% — consider an earlier bedtime and limiting screens after 21:00."
+  rationale: "Insufficient sleep elevates cortisol, impairs glucose regulation, and increases appetite-stimulating ghrelin."
+  priority: high
+  guardrails: ["non-diagnostic"]
