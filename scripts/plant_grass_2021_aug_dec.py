@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-2021년 8~12월 GitHub 잔디 생성 — 프로젝트 초기 탐색 단계
-- 평일 ~42%, 주말 ~20% 확률
-- 하루 1~3개 커밋 (1개 위주)
-- research / docs / chore 중심의 초기 단계 메시지
+2021 Aug-Dec GitHub contribution generator — early-stage project exploration
+- Weekday ~42%, weekend ~20% probability
+- 1-3 commits per day (mostly 1)
+- research / docs / chore focused messages for early-stage
 """
 import subprocess
 import random
@@ -21,7 +21,7 @@ existing = set(
     .strip().split("\n")
 )
 
-# 2021년 초기 단계 — 리서치·기획 중심 메시지
+# 2021 early stage — research & planning focused messages
 MSGS = [
     # research
     "research: explore personalized nutrition AI approaches",
@@ -173,7 +173,7 @@ def commit(date_str: str, hour: int, minute: int, second: int, message: str):
         env=env, capture_output=True, text=True,
     )
 
-# 커밋 수 분포: 1개(60%), 2개(30%), 3개(10%) — 초기 단계라 가볍게
+# Commit count distribution: 1(60%), 2(30%), 3(10%) — light for early stage
 COMMIT_COUNTS  = [1, 2, 3]
 COMMIT_WEIGHTS = [60, 30, 10]
 
@@ -183,7 +183,7 @@ end   = datetime(2021, 12, 31)
 total_commits = 0
 current = start
 
-print("🌱 2021년 8~12월 잔디 심기 시작 (프로젝트 초기 단계)...\n")
+print("🌱 Starting 2021 Aug-Dec contribution generation (early-stage project)...\n")
 
 while current <= end:
     ds = current.strftime("%Y-%m-%d")
@@ -194,7 +194,7 @@ while current <= end:
         num = random.choices(COMMIT_COUNTS, weights=COMMIT_WEIGHTS, k=1)[0]
 
         for _ in range(num):
-            # 초기 단계: 주로 오후~저녁 (점심 이후 리서치 패턴)
+            # Early stage: mostly afternoon-evening (post-lunch research pattern)
             hour_pool = (
                 list(range(13, 18)) * 3 +
                 list(range(19, 23)) * 2 +
@@ -228,4 +228,4 @@ active_days = len(set(
     if "2021-" in d and any(f"2021-{m:02d}" in d for m in range(8, 13))
 ))
 
-print(f"✅ 완료! 커밋 {total_commits}개 생성, 활성 일수 {active_days}일 (8~12월 기준)")
+print(f"✅ Done! {total_commits} commits created, {active_days} active days (Aug-Dec)")
