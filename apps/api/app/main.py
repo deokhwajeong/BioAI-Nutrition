@@ -159,3 +159,4 @@ async def health() -> dict[str, str]:
     Returns a simple status object to indicate that the service is up.
     """
     return {"status": "ok"}
+

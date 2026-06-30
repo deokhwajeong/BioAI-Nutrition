@@ -1,0 +1,8 @@
+id: calorie_surplus_moderate
+when:
+  cond_calories: "daily_features.calories > user_targets.calories * 1.15"
+then:
+  message: "Calorie intake is 15% above your daily target. For your next meal, choose a protein and vegetable-heavy option with minimal added fats or refined carbs."
+  rationale: "Sustained caloric surplus (>10%) drives adipose tissue accumulation and is the primary driver of long-term weight gain and metabolic risk."
+  priority: medium
+  guardrails: ["non-diagnostic"]

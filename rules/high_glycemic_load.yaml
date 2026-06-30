@@ -1,0 +1,9 @@
+id: high_glycemic_load_alert
+when:
+  cond_sugar: "daily_features.sugar_g > 50"
+  cond_fiber: "daily_features.fiber_g < 15"
+then:
+  message: "High sugar intake combined with low fiber can cause rapid glucose spikes. Try pairing carbohydrate-rich foods with fiber, protein, or healthy fats to blunt the glycemic response."
+  rationale: "Low dietary fiber reduces gut transit time and slows glucose absorption. Fiber-poor, high-sugar meals are strongly associated with postprandial hyperglycemia."
+  priority: medium
+  guardrails: ["non-diagnostic"]
