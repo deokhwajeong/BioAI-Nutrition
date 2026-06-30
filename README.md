@@ -4,9 +4,8 @@
 [![Node.js 22](https://img.shields.io/badge/node.js-22-green.svg)](https://nodejs.org/)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.1.0-009688.svg)](https://fastapi.tiangolo.com/)
-[![USPTO Patent](https://img.shields.io/badge/USPTO-Provisional_Filed-orange.svg)](#patent--ip)
 
-**AI-driven wellness platform** providing privacy-safe, personalized nutrition insights through a patented 7-stage biomarker processing pipeline.
+**AI-driven wellness platform** providing privacy-safe, personalized nutrition insights through a 7-stage biomarker processing pipeline.
 
 Built with **FastAPI**, **Next.js 16**, **React 19**, and machine learning pipelines — featuring differential privacy, edge computing, and FHIR R4 interoperability.
 
@@ -44,7 +43,7 @@ The main interface provides a full-featured **7-stage biomarker processing pipel
 | **Synthea** | FHIR R4-compliant synthetic patient data browser |
 
 Additional features:
-- **Lag Comparison View**: Side-by-side visualization of naive vs. patent-core temporal synchronization
+- **Lag Comparison View**: Side-by-side visualization of naive vs. lag-compensated temporal synchronization
 - **Safety Override Notice**: Hierarchical conflict resolution alerts (genetic vs. medical safety)
 - **Edge Boundary Bar**: Visual indicator of edge-cloud privacy boundary with real-time ε budget tracking
 
@@ -66,7 +65,7 @@ Full interactive API documentation at `/docs` with **28 endpoints** across 7 rou
 
 | Group | Endpoints | Description |
 |-------|-----------|-------------|
-| **biomarker-engine** | `/engine/consent`, `/engine/genetic-profile`, `/engine/ingest`, `/engine/sync`, `/engine/metabolic-state`, `/engine/nutrient-budget`, `/engine/status`, `/engine/lag-comparison`, `/engine/edge-manifest`, `/engine/edge-process`, `/engine/medical-constraints` | Core patent pipeline |
+| **biomarker-engine** | `/engine/consent`, `/engine/genetic-profile`, `/engine/ingest`, `/engine/sync`, `/engine/metabolic-state`, `/engine/nutrient-budget`, `/engine/status`, `/engine/lag-comparison`, `/engine/edge-manifest`, `/engine/edge-process`, `/engine/medical-constraints` | Core biomarker pipeline |
 | **events** | `/events/diet`, `/events/activity`, `/events/sleep`, `/events/{user_id}` | Lifestyle event logging |
 | **recommendations** | `/recommendations/recommendations` | Rule-based personalized insights |
 | **image-analyzer** | `/image-analyze/upload` | Food image AI analysis |
@@ -175,7 +174,7 @@ curl -X POST http://localhost:8000/recommendations/recommendations \
 
 ## Project Overview
 
-**Nutri-Node** is a wellness assistant that analyzes lifestyle data — meal patterns, biomarkers, activity, and sleep — to generate personalized daily insights through a patented biomarker processing pipeline.
+**Nutri-Node** is a wellness assistant that analyzes lifestyle data — meal patterns, biomarkers, activity, and sleep — to generate personalized daily insights through a multi-stage biomarker processing pipeline.
 
 It is **not a medical or diagnostic tool** — all recommendations are educational and intended to help users make sustainable, informed decisions.
 
@@ -220,7 +219,7 @@ Stage 6: DP Noise          → Four-tier dynamic differential privacy (ε = 0.1 
 | Layer | Technologies |
 |-------|---------------|
 | Backend API | FastAPI · Python 3.12 · Pydantic v2 · SQLAlchemy · Alembic |
-| Biomarker Engine | Temporal Sync · Self-Calibration · Circadian Interpolation · Metabolic State · Nutrient Calculator · Patent Pipeline |
+| Biomarker Engine | Temporal Sync · Self-Calibration · Circadian Interpolation · Metabolic State · Nutrient Calculator · 7-Stage Pipeline |
 | Sensor Adapters | CGM Adapter · Activity Adapter · Sleep Adapter · Genetic Adapter · Location Adapter |
 | Privacy Layer | Differential Privacy (4-tier ε-DP) · Edge Processor (64-dim embedding) · Dynamic Consent Manager · Health Graph Embedding |
 | Frontend | Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · D3.js 7 · Recharts 3 |
@@ -268,7 +267,7 @@ Nutri-Node/
 │   ├── api/                          # FastAPI Backend
 │   │   ├── app/
 │   │   │   ├── biomarkers/           # Sensor adapters (CGM, Activity, Sleep, Genetic, Location)
-│   │   │   ├── engine/               # Patent-core pipeline modules
+│   │   │   ├── engine/               # Core pipeline modules
 │   │   │   │   ├── pipeline.py       # 5-Stage orchestrator
 │   │   │   │   ├── temporal_sync.py  # Physiological lag model
 │   │   │   │   ├── normalization.py  # Genotype-aware Z-scores
@@ -325,22 +324,6 @@ Nutri-Node/
 - GDPR Article 7 and HIPAA §164.508 compliance at the algorithmic level
 - Privacy Exposure Index (PEI) tracking with 24-hour budget reset cycles
 - PII filter applied to all server-side logging
-
----
-
-## Patent & IP
-
-USPTO provisional patent application filed with the following IPC classifications:
-
-| Code | Scope | Module |
-|------|-------|--------|
-| **G16H 20/60** | ICT for nutrition control | Primary — full system |
-| G06F 16/27 | Data synchronization | Temporal Sync Engine |
-| G06F 11/34 | Performance monitoring | Self-Calibration Loop |
-| G06N 20/00 | Machine learning | Adaptive EMA calibration |
-| G06N 7/01 | Probabilistic models | Gaussian kernel weighting |
-| G06F 21/62 | Access control / privacy | Differential Privacy + Consent |
-| H04L 9/32 | Security protocols | Edge-cloud boundary |
 
 ---
 
@@ -427,12 +410,8 @@ cd apps/web && pnpm test
 - [x] Synthea FHIR R4 patient data integration
 - [x] Hierarchical conflict resolution (genetic vs. medical safety)
 - [x] Health graph embedding for privacy-preserving data sharing
-- [x] USPTO provisional patent application filed
-- [x] USPTO/IPC patent classification defense (6 secondary codes)
-- [ ] Formal patent drawings (37 CFR § 1.84)
 - [ ] OhioT1DM real-world validation
 - [ ] Closed user testing
-- [ ] Non-provisional patent filing
 
 ---
 
