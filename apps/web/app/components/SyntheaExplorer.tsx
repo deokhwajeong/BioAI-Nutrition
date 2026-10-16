@@ -99,8 +99,8 @@ export default function SyntheaExplorer() {
         const data = await syntheaStatus();
         setPatients(data.available_patients ?? []);
         setFilesFound(data.files_found ?? 0);
-      } catch (err: any) {
-        setError(err?.message ?? "Failed to fetch Synthea data");
+      } catch (err: unknown) {
+        setError((err instanceof Error ? err.message : undefined) ?? "Failed to fetch Synthea data");
       } finally {
         setLoading(false);
       }
@@ -109,17 +109,14 @@ export default function SyntheaExplorer() {
 
   // Load detail when patient selected
   useEffect(() => {
-    if (!selectedId) {
-      setDetail(null);
-      return;
-    }
+    if (!selectedId) return;
     (async () => {
       setDetailLoading(true);
       try {
-        const data = await syntheaPatientDetail(selectedId);
+        const data = await syntheaPatientDetail<PatientDetail>(selectedId);
         setDetail(data);
-      } catch (err: any) {
-        setError(err?.message ?? "Failed to load patient detail");
+      } catch (err: unknown) {
+        setError((err instanceof Error ? err.message : undefined) ?? "Failed to load patient detail");
       } finally {
         setDetailLoading(false);
       }
@@ -132,8 +129,8 @@ export default function SyntheaExplorer() {
     try {
       const result = await syntheaLoadPatient(patientId, "demo-user-001");
       setLoadResult(result);
-    } catch (err: any) {
-      setError(err?.message ?? "Failed to load into engine");
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : undefined) ?? "Failed to load into engine");
     } finally {
       setLoadingInto(null);
     }

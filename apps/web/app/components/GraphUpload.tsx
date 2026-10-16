@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -113,21 +113,7 @@ const parseJson = (text: string): ParsedResult => {
   return { rows: normalized, xKey, numericKeys };
 };
 
-const GraphUpload: React.FC = () => {
-  const [rows, setRows] = useState<ParsedRow[]>([]);
-  const [numericKeys, setNumericKeys] = useState<string[]>([]);
-  const [xKey, setXKey] = useState<string | null>(null);
-  const [chartType, setChartType] = useState<ChartType>("line");
-  const [status, setStatus] = useState<string>("Drop a CSV/JSON file to get started.");
-  const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Load sample data on mount
-  useEffect(() => {
-    const sampleCsv = `Date,Fiber Intake (g),Calories,Protein (g),Carbs (g),Fat (g)
+const SAMPLE_CSV = `Date,Fiber Intake (g),Calories,Protein (g),Carbs (g),Fat (g)
 2024-01-01,15,2200,80,250,70
 2024-01-02,18,2100,85,240,65
 2024-01-03,12,2300,75,260,75
@@ -138,9 +124,20 @@ const GraphUpload: React.FC = () => {
 2024-01-08,19,2050,88,235,62
 2024-01-09,17,2180,83,248,69
 2024-01-10,13,2280,76,258,74`;
-    const result = parseCsv(sampleCsv);
-    handleParsed(result);
-  }, []);
+const SAMPLE = parseCsv(SAMPLE_CSV);
+
+const GraphUpload: React.FC = () => {
+  // Start with a bundled sample dataset so the chart is never empty on first render.
+  const [rows, setRows] = useState<ParsedRow[]>(() => SAMPLE.rows);
+  const [numericKeys, setNumericKeys] = useState<string[]>(() => SAMPLE.numericKeys);
+  const [xKey, setXKey] = useState<string | null>(() => SAMPLE.xKey);
+  const [chartType, setChartType] = useState<ChartType>("line");
+  const [status, setStatus] = useState<string>(`Loaded ${SAMPLE.rows.length} sample rows. Drop a CSV/JSON file to replace them.`);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const reset = () => {
     setRows([]);

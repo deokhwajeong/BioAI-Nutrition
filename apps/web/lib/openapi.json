@@ -1,0 +1,2992 @@
+{
+  "components": {
+    "schemas": {
+      "ActivityEvent": {
+        "properties": {
+          "activity_type": {
+            "title": "Activity Type",
+            "type": "string"
+          },
+          "calories_burned": {
+            "title": "Calories Burned",
+            "type": "number"
+          },
+          "duration_minutes": {
+            "title": "Duration Minutes",
+            "type": "number"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "timestamp",
+          "activity_type",
+          "duration_minutes",
+          "calories_burned"
+        ],
+        "title": "ActivityEvent",
+        "type": "object"
+      },
+      "AlignedSignalOut": {
+        "properties": {
+          "biomarker_type": {
+            "title": "Biomarker Type",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "lag_compensated": {
+            "title": "Lag Compensated",
+            "type": "boolean"
+          },
+          "sample_count": {
+            "title": "Sample Count",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "biomarker_type",
+          "value",
+          "confidence",
+          "sample_count",
+          "lag_compensated"
+        ],
+        "title": "AlignedSignalOut",
+        "type": "object"
+      },
+      "AnalyzeMealRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FoodItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AnalyzeMealRequest",
+        "type": "object"
+      },
+      "AnalyzeMealResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FoodNutrition"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AnalyzeMealResponse",
+        "type": "object"
+      },
+      "BiomarkerBatchIn": {
+        "description": "Batch ingestion of multiple readings.",
+        "properties": {
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/BiomarkerReadingIn"
+            },
+            "title": "Readings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "readings"
+        ],
+        "title": "BiomarkerBatchIn",
+        "type": "object"
+      },
+      "BiomarkerIngestionResult": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "details": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accepted",
+          "rejected"
+        ],
+        "title": "BiomarkerIngestionResult",
+        "type": "object"
+      },
+      "BiomarkerReadingIn": {
+        "description": "Input schema for a single biomarker reading.",
+        "properties": {
+          "biomarker_type": {
+            "description": "One of: glucose, heart_rate, hrv, steps, exercise, meal, sleep, genotype, weight, etc.",
+            "title": "Biomarker Type",
+            "type": "string"
+          },
+          "confidence": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "title": "Metadata",
+            "type": "object"
+          },
+          "source_id": {
+            "description": "Device/service identifier",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "source_id",
+          "user_id",
+          "biomarker_type",
+          "timestamp",
+          "value"
+        ],
+        "title": "BiomarkerReadingIn",
+        "type": "object"
+      },
+      "Body_upload_food_image_image_analyze_upload_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_food_image_image_analyze_upload_post",
+        "type": "object"
+      },
+      "ConflictResolutionOut": {
+        "description": "Audit record of a Safety-First Override conflict resolution.",
+        "properties": {
+          "conflict_type": {
+            "title": "Conflict Type",
+            "type": "string"
+          },
+          "constraint_reason": {
+            "title": "Constraint Reason",
+            "type": "string"
+          },
+          "genetic_recommended": {
+            "title": "Genetic Recommended",
+            "type": "number"
+          },
+          "loser": {
+            "title": "Loser",
+            "type": "string"
+          },
+          "medical_limit": {
+            "title": "Medical Limit",
+            "type": "number"
+          },
+          "nutrient": {
+            "title": "Nutrient",
+            "type": "string"
+          },
+          "resolution_rationale": {
+            "title": "Resolution Rationale",
+            "type": "string"
+          },
+          "resolved_value": {
+            "title": "Resolved Value",
+            "type": "number"
+          },
+          "safety_margin": {
+            "title": "Safety Margin",
+            "type": "number"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "winner": {
+            "title": "Winner",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nutrient",
+          "conflict_type",
+          "genetic_recommended",
+          "medical_limit",
+          "resolved_value",
+          "winner",
+          "loser",
+          "safety_margin",
+          "constraint_reason",
+          "severity",
+          "resolution_rationale"
+        ],
+        "title": "ConflictResolutionOut",
+        "type": "object"
+      },
+      "ConsentRequest": {
+        "properties": {
+          "action": {
+            "description": "'grant' or 'revoke'",
+            "title": "Action",
+            "type": "string"
+          },
+          "expires_in_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In Hours"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "scope",
+          "action"
+        ],
+        "title": "ConsentRequest",
+        "type": "object"
+      },
+      "ConsentStatusOut": {
+        "properties": {
+          "allowed_biomarkers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Biomarkers",
+            "type": "array"
+          },
+          "granted_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Granted Scopes",
+            "type": "array"
+          },
+          "policy_gates": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Status of policy-level consent gates that control specific system features. Shows which gates are open/closed and what each gate controls.",
+            "title": "Policy Gates"
+          },
+          "revoked_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Revoked Scopes",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "granted_scopes",
+          "revoked_scopes",
+          "allowed_biomarkers"
+        ],
+        "title": "ConsentStatusOut",
+        "type": "object"
+      },
+      "DailyFeatures": {
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO date",
+            "title": "Date"
+          },
+          "fiber_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiber G"
+          },
+          "kcal_avg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kcal Avg"
+          },
+          "late_meal_freq": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Late Meal Freq"
+          },
+          "persona": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protein G"
+          },
+          "sleep_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Hours"
+          },
+          "sleep_regularity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Regularity"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "ultra_processed_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultra Processed Ratio"
+          }
+        },
+        "title": "DailyFeatures",
+        "type": "object"
+      },
+      "DietEvent": {
+        "properties": {
+          "calories": {
+            "title": "Calories",
+            "type": "number"
+          },
+          "carbs": {
+            "title": "Carbs",
+            "type": "number"
+          },
+          "fat": {
+            "title": "Fat",
+            "type": "number"
+          },
+          "food": {
+            "title": "Food",
+            "type": "string"
+          },
+          "protein": {
+            "title": "Protein",
+            "type": "number"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "timestamp",
+          "food",
+          "calories",
+          "protein",
+          "carbs",
+          "fat"
+        ],
+        "title": "DietEvent",
+        "type": "object"
+      },
+      "FetchRequest": {
+        "properties": {
+          "signed_ttl_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 300,
+            "title": "Signed Ttl Seconds"
+          },
+          "url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "FetchRequest",
+        "type": "object"
+      },
+      "FetchResponse": {
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "signed_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Url"
+          },
+          "source": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "content_type"
+        ],
+        "title": "FetchResponse",
+        "type": "object"
+      },
+      "FoodItem": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "FoodItem",
+        "type": "object"
+      },
+      "FoodNutrition": {
+        "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calories"
+          },
+          "carbs_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fat G"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protein G"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "FoodNutrition",
+        "type": "object"
+      },
+      "GeneticModifiersOut": {
+        "properties": {
+          "genetic_baseline": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Genotype-adjusted reference ranges for each biomarker, enabling z-score normalization relative to the user's genetic baseline rather than population averages.",
+            "title": "Genetic Baseline"
+          },
+          "modifiers": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Modifiers",
+            "type": "object"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          },
+          "variant_count": {
+            "title": "Variant Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "user_id",
+          "variant_count",
+          "modifiers"
+        ],
+        "title": "GeneticModifiersOut",
+        "type": "object"
+      },
+      "GeneticProfileIn": {
+        "description": "Input for genetic variant data.",
+        "properties": {
+          "genotypes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "SNP ID \u2192 genotype mapping, e.g. {'rs1801133': 'CT'}",
+            "title": "Genotypes",
+            "type": "object"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "genotypes"
+        ],
+        "title": "GeneticProfileIn",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LoadPatientRequest": {
+        "properties": {
+          "override_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override User Id"
+          },
+          "patient_id": {
+            "title": "Patient Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient_id"
+        ],
+        "title": "LoadPatientRequest",
+        "type": "object"
+      },
+      "LoadPatientResponse": {
+        "properties": {
+          "conditions": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "medications": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Medications",
+            "type": "array"
+          },
+          "patient_id": {
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "readings_by_type": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Readings By Type",
+            "type": "object"
+          },
+          "readings_loaded": {
+            "title": "Readings Loaded",
+            "type": "integer"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "patient_id",
+          "user_id",
+          "readings_loaded",
+          "readings_by_type",
+          "conditions",
+          "medications"
+        ],
+        "title": "LoadPatientResponse",
+        "type": "object"
+      },
+      "MedicalConstraintIn": {
+        "description": "Input schema for a single medical or safety constraint.",
+        "properties": {
+          "constraint_type": {
+            "description": "One of: 'max', 'min', 'range', 'consistency'",
+            "title": "Constraint Type",
+            "type": "string"
+          },
+          "nutrient": {
+            "description": "Target nutrient key, e.g. 'protein_g', 'sodium_mg'",
+            "title": "Nutrient",
+            "type": "string"
+          },
+          "reason": {
+            "description": "Medical reason for the constraint",
+            "title": "Reason",
+            "type": "string"
+          },
+          "severity": {
+            "default": "warning",
+            "description": "'warning' or 'critical'",
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "default": "user_reported",
+            "description": "'user_reported', 'medical_record', or 'genetic'",
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "description": "Constraint value (e.g. max grams per day)",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "nutrient",
+          "constraint_type",
+          "value",
+          "reason"
+        ],
+        "title": "MedicalConstraintIn",
+        "type": "object"
+      },
+      "MedicalConstraintOut": {
+        "properties": {
+          "constraint_type": {
+            "title": "Constraint Type",
+            "type": "string"
+          },
+          "nutrient": {
+            "title": "Nutrient",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "nutrient",
+          "constraint_type",
+          "value",
+          "reason",
+          "severity",
+          "source"
+        ],
+        "title": "MedicalConstraintOut",
+        "type": "object"
+      },
+      "MedicalConstraintsRequest": {
+        "description": "Request to set medical constraints for a user.",
+        "properties": {
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/MedicalConstraintIn"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "constraints"
+        ],
+        "title": "MedicalConstraintsRequest",
+        "type": "object"
+      },
+      "MedicalConstraintsResponse": {
+        "properties": {
+          "active_constraints": {
+            "items": {
+              "$ref": "#/components/schemas/MedicalConstraintOut"
+            },
+            "title": "Active Constraints",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "active_constraints",
+          "count"
+        ],
+        "title": "MedicalConstraintsResponse",
+        "type": "object"
+      },
+      "MetabolicStateOut": {
+        "properties": {
+          "active_phases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Phases",
+            "type": "array"
+          },
+          "decision_log": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Decision Log",
+            "type": "array"
+          },
+          "hours_since_last_exercise": {
+            "title": "Hours Since Last Exercise",
+            "type": "number"
+          },
+          "hours_since_last_meal": {
+            "title": "Hours Since Last Meal",
+            "type": "number"
+          },
+          "insulin_sensitivity_estimate": {
+            "title": "Insulin Sensitivity Estimate",
+            "type": "number"
+          },
+          "nutrient_priority_shifts": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Nutrient Priority Shifts",
+            "type": "object"
+          },
+          "phase_intensities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Phase Intensities",
+            "type": "object"
+          },
+          "primary_phase": {
+            "title": "Primary Phase",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "active_phases",
+          "primary_phase",
+          "phase_intensities",
+          "hours_since_last_meal",
+          "hours_since_last_exercise",
+          "insulin_sensitivity_estimate",
+          "nutrient_priority_shifts"
+        ],
+        "title": "MetabolicStateOut",
+        "type": "object"
+      },
+      "ModificationOut": {
+        "properties": {
+          "new_value": {
+            "title": "New Value",
+            "type": "number"
+          },
+          "nutrient": {
+            "title": "Nutrient",
+            "type": "string"
+          },
+          "old_value": {
+            "title": "Old Value",
+            "type": "number"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "step": {
+            "title": "Step",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "nutrient",
+          "old_value",
+          "new_value",
+          "reason"
+        ],
+        "title": "ModificationOut",
+        "type": "object"
+      },
+      "NutrientBudgetRequest": {
+        "description": "Request a real-time nutrient budget calculation.",
+        "properties": {
+          "consumed_today": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Already consumed nutrients {name: amount}",
+            "title": "Consumed Today",
+            "type": "object"
+          },
+          "kcal_target": {
+            "default": 2000,
+            "description": "Daily calorie target",
+            "title": "Kcal Target",
+            "type": "number"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          },
+          "weight_kg": {
+            "default": 70,
+            "description": "Body weight in kg",
+            "title": "Weight Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "NutrientBudgetRequest",
+        "type": "object"
+      },
+      "NutrientBudgetResponse": {
+        "properties": {
+          "active_phases": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Phases",
+            "type": "array"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "conflict_resolutions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ConflictResolutionOut"
+            },
+            "title": "Conflict Resolutions",
+            "type": "array"
+          },
+          "metabolic_state": {
+            "title": "Metabolic State",
+            "type": "string"
+          },
+          "modifications": {
+            "items": {
+              "$ref": "#/components/schemas/ModificationOut"
+            },
+            "title": "Modifications",
+            "type": "array"
+          },
+          "next_meal_recommendation": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Next Meal Recommendation",
+            "type": "object"
+          },
+          "targets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/NutrientTargetOut"
+            },
+            "title": "Targets",
+            "type": "object"
+          },
+          "time_buckets": {
+            "items": {
+              "$ref": "#/components/schemas/TimeBucketOut"
+            },
+            "title": "Time Buckets",
+            "type": "array"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "user_id",
+          "targets",
+          "time_buckets",
+          "metabolic_state",
+          "active_phases",
+          "modifications",
+          "next_meal_recommendation",
+          "confidence"
+        ],
+        "title": "NutrientBudgetResponse",
+        "type": "object"
+      },
+      "NutrientTargetOut": {
+        "properties": {
+          "consumed_today": {
+            "title": "Consumed Today",
+            "type": "number"
+          },
+          "daily_target": {
+            "title": "Daily Target",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "number"
+          },
+          "remaining_pct": {
+            "title": "Remaining Pct",
+            "type": "number"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "daily_target",
+          "consumed_today",
+          "remaining",
+          "remaining_pct",
+          "unit"
+        ],
+        "title": "NutrientTargetOut",
+        "type": "object"
+      },
+      "PatientSummary": {
+        "properties": {
+          "birth_date": {
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "bmi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bmi"
+          },
+          "conditions": {
+            "title": "Conditions",
+            "type": "integer"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "string"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "medications": {
+            "title": "Medications",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "patient_id": {
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "readings_by_type": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Readings By Type",
+            "type": "object"
+          },
+          "total_readings": {
+            "title": "Total Readings",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "patient_id",
+          "name",
+          "gender",
+          "birth_date",
+          "total_readings",
+          "readings_by_type",
+          "conditions",
+          "medications"
+        ],
+        "title": "PatientSummary",
+        "type": "object"
+      },
+      "PipelineStatusOut": {
+        "description": "Status of the biomarker processing pipeline.",
+        "properties": {
+          "consent_manager_active": {
+            "title": "Consent Manager Active",
+            "type": "boolean"
+          },
+          "privacy_engine_active": {
+            "title": "Privacy Engine Active",
+            "type": "boolean"
+          },
+          "registered_biomarker_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Registered Biomarker Types",
+            "type": "array"
+          },
+          "registered_sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Registered Sources",
+            "type": "array"
+          },
+          "users_with_data": {
+            "title": "Users With Data",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "registered_sources",
+          "registered_biomarker_types",
+          "users_with_data",
+          "consent_manager_active",
+          "privacy_engine_active"
+        ],
+        "title": "PipelineStatusOut",
+        "type": "object"
+      },
+      "Recommendation": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "message",
+          "rationale"
+        ],
+        "title": "Recommendation",
+        "type": "object"
+      },
+      "RecommendationRequest": {
+        "properties": {
+          "daily_features": {
+            "$ref": "#/components/schemas/DailyFeatures"
+          },
+          "user_targets": {
+            "$ref": "#/components/schemas/UserTargets"
+          }
+        },
+        "required": [
+          "daily_features",
+          "user_targets"
+        ],
+        "title": "RecommendationRequest",
+        "type": "object"
+      },
+      "RecommendationResponse": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "recommendations"
+        ],
+        "title": "RecommendationResponse",
+        "type": "object"
+      },
+      "SleepEvent": {
+        "properties": {
+          "duration_minutes": {
+            "title": "Duration Minutes",
+            "type": "number"
+          },
+          "sleep_quality": {
+            "title": "Sleep Quality",
+            "type": "integer"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "timestamp",
+          "duration_minutes",
+          "sleep_quality"
+        ],
+        "title": "SleepEvent",
+        "type": "object"
+      },
+      "SyncRequest": {
+        "description": "Request to synchronize biomarker data for a user.",
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "resolution": {
+            "default": "medium",
+            "description": "Temporal resolution: fine (5min), medium (1hr), coarse (24hr)",
+            "title": "Resolution",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "start",
+          "end"
+        ],
+        "title": "SyncRequest",
+        "type": "object"
+      },
+      "SyncResponse": {
+        "properties": {
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/SynchronizedFrameOut"
+            },
+            "title": "Frames",
+            "type": "array"
+          },
+          "total_frames": {
+            "title": "Total Frames",
+            "type": "integer"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "frames",
+          "total_frames"
+        ],
+        "title": "SyncResponse",
+        "type": "object"
+      },
+      "SynchronizedFrameOut": {
+        "properties": {
+          "completeness": {
+            "title": "Completeness",
+            "type": "number"
+          },
+          "feature_vector": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Feature Vector",
+            "type": "object"
+          },
+          "frame_confidence": {
+            "title": "Frame Confidence",
+            "type": "number"
+          },
+          "resolution": {
+            "title": "Resolution",
+            "type": "string"
+          },
+          "signals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AlignedSignalOut"
+            },
+            "title": "Signals",
+            "type": "object"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "window_start",
+          "window_end",
+          "resolution",
+          "signals",
+          "frame_confidence",
+          "completeness",
+          "feature_vector"
+        ],
+        "title": "SynchronizedFrameOut",
+        "type": "object"
+      },
+      "SyntheaStatusResponse": {
+        "properties": {
+          "available_patients": {
+            "items": {
+              "$ref": "#/components/schemas/PatientSummary"
+            },
+            "title": "Available Patients",
+            "type": "array"
+          },
+          "fhir_directory": {
+            "title": "Fhir Directory",
+            "type": "string"
+          },
+          "files_found": {
+            "title": "Files Found",
+            "type": "integer"
+          },
+          "patients_cached": {
+            "title": "Patients Cached",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fhir_directory",
+          "files_found",
+          "patients_cached",
+          "available_patients"
+        ],
+        "title": "SyntheaStatusResponse",
+        "type": "object"
+      },
+      "TimeBucketOut": {
+        "properties": {
+          "carb_pct": {
+            "title": "Carb Pct",
+            "type": "number"
+          },
+          "end_hour": {
+            "title": "End Hour",
+            "type": "integer"
+          },
+          "fat_pct": {
+            "title": "Fat Pct",
+            "type": "number"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "protein_pct": {
+            "title": "Protein Pct",
+            "type": "number"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "start_hour": {
+            "title": "Start Hour",
+            "type": "integer"
+          },
+          "water_pct": {
+            "title": "Water Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start_hour",
+          "end_hour",
+          "label",
+          "carb_pct",
+          "protein_pct",
+          "fat_pct",
+          "water_pct",
+          "rationale"
+        ],
+        "title": "TimeBucketOut",
+        "type": "object"
+      },
+      "UserTargets": {
+        "properties": {
+          "fiber_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily fiber target (g)",
+            "title": "Fiber G"
+          },
+          "kcal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily calorie target",
+            "title": "Kcal"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily protein target (g)",
+            "title": "Protein G"
+          }
+        },
+        "title": "UserTargets",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Backend services for secure data ingestion and analytics.",
+    "title": "BioAI Nutrition API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Health check endpoint.\n\nReturns a simple status object to indicate that the service is up.",
+        "operationId": "health__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/analyze-meal": {
+      "post": {
+        "description": "Analyze nutritional content of food items by name.",
+        "operationId": "analyze_meal_endpoint_analyze_meal_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeMealRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeMealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Analyze Meal Endpoint",
+        "tags": [
+          "meal-analyze",
+          "meal-analyze"
+        ]
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "description": "Get aggregated metrics for a user (placeholder for now).",
+        "operationId": "get_metrics_api_metrics_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "user_id",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Metrics Api Metrics Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Metrics",
+        "tags": [
+          "metrics"
+        ]
+      }
+    },
+    "/engine/consent": {
+      "post": {
+        "description": "Grant or revoke consent for specific data scopes.",
+        "operationId": "manage_consent_engine_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Grant or revoke data consent",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/consent/{user_id}": {
+      "get": {
+        "operationId": "get_consent_status_engine_consent__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get consent status",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/edge-manifest": {
+      "get": {
+        "description": "Returns the privacy contract describing what computation happens on-device vs. what data is transmitted to the server. This manifest is the foundation of the on-device privacy layer.",
+        "operationId": "get_edge_manifest_engine_edge_manifest_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Edge Manifest Engine Edge Manifest Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get on-device processing manifest",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/edge-process": {
+      "post": {
+        "description": "Demonstrates the on-device privacy pipeline: raw biomarker data is processed locally \u2014 only non-invertible embeddings and differentially-private aggregations leave the device.",
+        "operationId": "edge_process_engine_edge_process_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Edge Process Engine Edge Process Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Simulate on-device edge processing",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/genetic-profile": {
+      "post": {
+        "description": "Ingest genetic variant data and compute personalized metabolic modifiers.",
+        "operationId": "set_genetic_profile_engine_genetic_profile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneticProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneticModifiersOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Set genetic profile and compute metabolic modifiers",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/ingest": {
+      "post": {
+        "description": "Accept one or more biomarker readings from any supported source. Readings are validated, enriched, and stored in the appropriate adapter.",
+        "operationId": "ingest_biomarkers_engine_ingest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BiomarkerBatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BiomarkerIngestionResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Ingest biomarker readings",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/lag-comparison": {
+      "post": {
+        "description": "Demonstrates the patent-core advantage of physiological lag compensation by comparing raw temporal alignment vs. the dynamic lag model: t_sync = t_event + \u0394t_base(b) \u00d7 \u03b3_genetic(g) \u00d7 \u03c6_circadian(c). Returns Pearson correlation metrics before and after correction.",
+        "operationId": "lag_comparison_engine_lag_comparison_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Lag Comparison Engine Lag Comparison Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Before/After t_sync correction comparison",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/medical-constraints": {
+      "post": {
+        "description": "Set personalized medical constraints that act as hard boundaries on nutrient targets. Examples: CKD protein limit, hypertension sodium cap, warfarin vitamin-K consistency.",
+        "operationId": "set_medical_constraints_engine_medical_constraints_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicalConstraintsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalConstraintsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Set medical/safety constraints",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/medical-constraints/{user_id}": {
+      "get": {
+        "operationId": "get_medical_constraints_engine_medical_constraints__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalConstraintsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get active medical constraints",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/metabolic-state": {
+      "post": {
+        "description": "Infer the user's current metabolic state from recent biomarker data.",
+        "operationId": "get_metabolic_state_engine_metabolic_state_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetabolicStateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get current metabolic state",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/nutrient-budget": {
+      "post": {
+        "description": "Compute personalized, real-time nutrient demands via the 5-stage patent pipeline: Sync \u2192 Normalize \u2192 Interpolate \u2192 State \u2192 Nutrient. Consent filtering at entrance. DP noise at exit.",
+        "operationId": "calculate_nutrient_budget_engine_nutrient_budget_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NutrientBudgetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NutrientBudgetResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Calculate real-time nutrient budget",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/status": {
+      "get": {
+        "description": "Get status of the biomarker processing pipeline.",
+        "operationId": "get_pipeline_status_engine_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Pipeline status",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/engine/sync": {
+      "post": {
+        "description": "Align heterogeneous biomarker data onto a unified temporal grid with physiological lag compensation and confidence-weighted aggregation.",
+        "operationId": "synchronize_biomarkers_engine_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Synchronize biomarker streams",
+        "tags": [
+          "biomarker-engine",
+          "biomarker-engine"
+        ]
+      }
+    },
+    "/events/activity": {
+      "post": {
+        "description": "Ingest an activity event and store it in the database.",
+        "operationId": "ingest_activity_events_activity_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityEvent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Ingest Activity",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/events/diet": {
+      "post": {
+        "description": "Ingest a diet event and store it in the database.",
+        "operationId": "ingest_diet_events_diet_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DietEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DietEvent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Ingest Diet",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/events/sleep": {
+      "post": {
+        "description": "Ingest a sleep event and store it in the database.",
+        "operationId": "ingest_sleep_events_sleep_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SleepEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SleepEvent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Ingest Sleep",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/events/{user_id}": {
+      "get": {
+        "description": "Get all events for a specific user.",
+        "operationId": "get_user_events_events__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Get User Events Events  User Id  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get User Events",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/image-analyze/upload": {
+      "post": {
+        "description": "Upload a food image to analyze nutritional content.\n\nUses Tesseract OCR when available, otherwise falls back to\ncolour-histogram heuristics for food category estimation.",
+        "operationId": "upload_food_image_image_analyze_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_food_image_image_analyze_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeMealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Upload Food Image",
+        "tags": [
+          "image-analyze",
+          "image-analyze"
+        ]
+      }
+    },
+    "/ingest/ingest/fetch": {
+      "post": {
+        "description": "Fetch remote files server-side to avoid CORS/credential leakage.",
+        "operationId": "fetch_remote_ingest_ingest_fetch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FetchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Fetch Remote",
+        "tags": [
+          "ingest",
+          "ingest"
+        ]
+      }
+    },
+    "/recommendations": {
+      "post": {
+        "description": "Rank rule-based nutrition recommendations for one day of features against user targets.",
+        "operationId": "post_recommendations_recommendations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Post Recommendations",
+        "tags": [
+          "recommendations",
+          "recommendations"
+        ]
+      }
+    },
+    "/synthea/load": {
+      "post": {
+        "description": "Load a Synthea patient's biomarker data into the engine.\n\nPushes all readings through the biomarker engine's ingest pipeline,\nmaking them available for synchronization and analysis.",
+        "operationId": "load_synthea_patient_synthea_load_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoadPatientRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoadPatientResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Load Synthea Patient",
+        "tags": [
+          "synthea",
+          "synthea"
+        ]
+      }
+    },
+    "/synthea/patient/{patient_id}": {
+      "get": {
+        "description": "Get detailed information about a specific Synthea patient.",
+        "operationId": "get_patient_detail_synthea_patient__patient_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Get Patient Detail",
+        "tags": [
+          "synthea",
+          "synthea"
+        ]
+      }
+    },
+    "/synthea/reload": {
+      "post": {
+        "description": "Reload Synthea data from disk (clears cache).",
+        "operationId": "reload_synthea_data_synthea_reload_post",
+        "parameters": [
+          {
+            "description": "Custom FHIR directory path",
+            "in": "query",
+            "name": "directory",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Custom FHIR directory path",
+              "title": "Directory"
+            }
+          },
+          {
+            "description": "Max patients to load",
+            "in": "query",
+            "name": "max_patients",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max patients to load",
+              "title": "Max Patients"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Reload Synthea Data",
+        "tags": [
+          "synthea",
+          "synthea"
+        ]
+      }
+    },
+    "/synthea/status": {
+      "get": {
+        "description": "List available Synthea patients and data statistics.",
+        "operationId": "synthea_status_synthea_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyntheaStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Synthea Status",
+        "tags": [
+          "synthea",
+          "synthea"
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "delete": {
+        "description": "Schedule deletion of all data associated with a user. In a real implementation,\nthis would enqueue a task to delete user data from the database and storage.",
+        "operationId": "delete_user_users__user_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Delete User",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  }
+}

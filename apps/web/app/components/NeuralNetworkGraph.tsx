@@ -31,32 +31,27 @@ const NeuralNetworkGraph: React.FC<NeuralNetworkGraphProps> = ({ data }) => {
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Layer positions
+    // Layer positions, with node coordinates spread evenly down each column
+    type NodePosition = { x: number; y: number; label: string };
     const layers = [
       { name: 'Input', nodes: data.input, x: innerWidth * 0.1 },
       { name: 'Hidden', nodes: data.hidden, x: innerWidth * 0.5 },
       { name: 'Output', nodes: data.output, x: innerWidth * 0.9 }
-    ];
-
-    // Calculate node positions
-    layers.forEach(layer => {
-      const nodeCount = layer.nodes.length;
-      const ySpacing = innerHeight / (nodeCount + 1);
-      layer.nodes.forEach((node, i) => {
-        (layer as any).positions = (layer as any).positions || [];
-        (layer as any).positions.push({
-          x: layer.x,
-          y: ySpacing * (i + 1),
-          label: node
-        });
-      });
+    ].map(layer => {
+      const ySpacing = innerHeight / (layer.nodes.length + 1);
+      const positions: NodePosition[] = layer.nodes.map((node, i) => ({
+        x: layer.x,
+        y: ySpacing * (i + 1),
+        label: node
+      }));
+      return { ...layer, positions };
     });
 
     // Draw connections
     layers.slice(0, -1).forEach((layer, layerIndex) => {
       const nextLayer = layers[layerIndex + 1];
-      (layer as any).positions.forEach((pos: any) => {
-        (nextLayer as any).positions.forEach((nextPos: any) => {
+      layer.positions.forEach(pos => {
+        nextLayer.positions.forEach(nextPos => {
           g.append("line")
             .attr("x1", pos.x)
             .attr("y1", pos.y)
@@ -71,7 +66,7 @@ const NeuralNetworkGraph: React.FC<NeuralNetworkGraphProps> = ({ data }) => {
 
     // Draw nodes
     layers.forEach(layer => {
-      (layer as any).positions.forEach((pos: any) => {
+      layer.positions.forEach(pos => {
         const node = g.append("circle")
           .attr("cx", pos.x)
           .attr("cy", pos.y)

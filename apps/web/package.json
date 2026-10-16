@@ -6,15 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "jest"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "gen:api": "cd ../api && uv run python scripts/export_openapi.py > ../web/lib/openapi.json && cd ../web && openapi-typescript lib/openapi.json -o lib/api-schema.d.ts --default-non-nullable false"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
-    "next": "16.0.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "next": "^16.4.2",
+    "react": "^19.2.9",
+    "react-dom": "^19.2.9",
     "recharts": "^3.6.0"
   },
   "devDependencies": {
@@ -22,9 +23,18 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.11.29",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1",
+    "eslint-config-next": "^16.4.2",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "browserslist": ">=4.28.7",
+      "source-map-js": ">=1.2.2",
+      "@babel/core": ">=7.29.6"
+    }
   }
 }

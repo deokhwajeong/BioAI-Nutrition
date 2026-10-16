@@ -61,7 +61,7 @@ function sumNutrients(items: FoodNutrition[]): MealTotal {
       protein_g: acc.protein_g + (item.protein_g ?? 0),
       carbs_g: acc.carbs_g + (item.carbs_g ?? 0),
       fat_g: acc.fat_g + (item.fat_g ?? 0),
-      fiber_g: acc.fiber_g + ((item as any).fiber_g ?? 0),
+      fiber_g: acc.fiber_g + ((item as FoodNutrition & { fiber_g?: number }).fiber_g ?? 0),
     }),
     { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 }
   );
@@ -128,8 +128,8 @@ export default function MealPredictionFlow({
       setResults(items);
       setMealTotal(sumNutrients(items));
       setStep(2);
-    } catch (err: any) {
-      setError(err?.message ?? "Analysis failed");
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : undefined) ?? "Analysis failed");
     } finally {
       setLoading(false);
     }
