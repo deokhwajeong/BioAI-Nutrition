@@ -62,7 +62,7 @@ flowchart LR
 | Normalization | Z-scores against personal, then genetic, then population baselines | `app/engine/normalization.py` |
 | Interpolation | Fills sensor gaps from circadian and ultradian rhythm models, blending toward real data as it arrives | `app/engine/interpolation.py` |
 | Metabolic state | Classifies 14 phases (fasting, post-prandial, exercise recovery, sleep, stress, ...) with intensities | `app/engine/metabolic_state.py` |
-| Nutrient budget | Daily targets adjusted by phase and genotype; medical limits always win over genetic optimization, with an audit record | `app/engine/nutrient_calculator.py` |
+| Nutrient budget | Daily targets adjusted by phase and genotype. Stacked adjustments are bounded (0.75x to 1.25x of base for energy, macros, and water; 0.5x to 2x for micronutrients) and protein is kept within 0.8 to 2.0 g/kg/day: the adult RDA (Institute of Medicine DRI, 2005) up to the top of the range for exercising adults (Jager et al., ISSN position stand on protein and exercise, JISSN 14:20, 2017). Medical limits are applied after these bounds and always win, with an audit record | `app/engine/nutrient_calculator.py` |
 | Privacy noise | Tiered ε budget per data sensitivity; only non-invertible embeddings leave the edge boundary | `app/privacy/` |
 | Suggestions | `POST /recommendations` evaluates the YAML rules in `rules/` against a logged day and the user's targets. Rules are validated at load (every condition must parse, every rule must carry the `non-diagnostic` guardrail) and conditions are parsed, never `eval`ed | `app/services/recommendations.py` |
 
@@ -89,7 +89,7 @@ apps/api/        FastAPI service (uv, ruff, pytest)
   app/engine/      pipeline stages
   app/privacy/     consent, differential privacy, edge processing
   app/routers/     HTTP endpoints
-  tests/           217 tests
+  tests/           226 tests
 apps/web/        Next.js 16 + React 19 dashboard
   lib/api.ts       typed client; lib/api-schema.d.ts is generated from the API's OpenAPI spec
 rules/           YAML suggestion rules served by POST /recommendations
@@ -100,7 +100,7 @@ docs/            whitepaper, user manual, screenshots
 ## Engineering notes
 
 - **One contract, enforced.** The web client's types are generated from FastAPI's OpenAPI spec (`make gen-api`). CI regenerates them and fails if they drift, so the frontend cannot silently fall out of sync with the API.
-- **Checks on every push:** ruff lint and format, 217 API tests with coverage (79%), TypeScript strict typecheck, ESLint, production build, and both Docker images.
+- **Checks on every push:** ruff lint and format, 226 API tests with coverage (79%), TypeScript strict typecheck, ESLint, production build, and both Docker images.
 - **Security defaults:** every endpoint requires `X-API-Key`; strict Content-Security-Policy with same-origin API calls through Next.js rewrites; PII filter on all log records; pseudonymous user IDs hashed with a server-side pepper; CORS credentials only with explicit origins; dependency updates via Dependabot.
 - **Runs anywhere:** SQLite by default (`DATABASE_URL` for Postgres); Celery tasks run inline unless `CELERY_BROKER_URL` is set; OCR is an optional extra (`uv sync --extra ocr`).
 

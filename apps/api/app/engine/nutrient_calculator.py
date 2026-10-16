@@ -266,6 +266,35 @@ class NutrientBudget:
         }
 
 
+# Bounds on how far the stacked metabolic, genetic, and biomarker adjustments may move a
+# target away from its base value. Each modifier is modest on its own, but several applied
+# to the same nutrient multiply, and without a bound the product can run away (the demo
+# profile once reached 243 g protein/day at 70 kg). A sane band keeps personalization a
+# refinement of the base target rather than a replacement for it. Energy, macronutrients,
+# and water get a tight band; micronutrients keep a wider one because single genetic
+# variants legitimately move them further (for example folate x1.5 for MTHFR TT).
+MACRO_TARGETS = frozenset({"kcal", "carbs_g", "protein_g", "fat_g", "fiber_g", "water_ml"})
+COMBINED_MODIFIER_MIN = 0.75
+COMBINED_MODIFIER_MAX = 1.25
+MICRO_MODIFIER_MIN = 0.5
+MICRO_MODIFIER_MAX = 2.0
+
+# Protein per kg body weight for healthy adults.
+# Floor: 0.8 g/kg/day is the adult RDA (Institute of Medicine, Dietary Reference Intakes
+#   for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino
+#   Acids, National Academies Press, 2005).
+# Ceiling: 2.0 g/kg/day is the top of the 1.4 to 2.0 g/kg/day range for most exercising
+#   individuals (Jager R. et al., "International Society of Sports Nutrition Position Stand:
+#   protein and exercise", J Int Soc Sports Nutr 14:20, 2017).
+# Medical constraints (for example a kidney-related protein limit) are applied after this
+# clamp and always win.
+PROTEIN_G_PER_KG_MIN = 0.8
+PROTEIN_G_PER_KG_MAX = 2.0
+
+# Genetic outputs that are absolute daily limits, not multipliers.
+GENETIC_DIRECT_CAPS = {"caffeine_max_daily_mg": "caffeine_mg"}
+
+
 class NutrientDemandCalculator:
     """Calculates real-time nutrient demands from the full biomarker pipeline.
 
@@ -318,10 +347,12 @@ class NutrientDemandCalculator:
         normalized_signals: dict[BiomarkerType, NormalizedSignal],
         genetic_modifiers: dict[str, float],
         frame_confidence: float = 1.0,
+        weight_kg: float | None = None,
     ) -> NutrientBudget:
         """Calculate real-time nutrient budget.
 
         This is the main entry point that orchestrates the full calculation.
+        ``weight_kg`` enables the per-kg protein clamp.
         """
         budget = NutrientBudget(
             timestamp=metabolic_state.timestamp,
@@ -351,6 +382,10 @@ class NutrientDemandCalculator:
         # Step 4: Apply biomarker-driven adjustments
         self._apply_biomarker_adjustments(adjusted, normalized_signals, metabolic_state, budget)
 
+        # Step 4b: Bound the stacked adjustments (combined-modifier band, protein g/kg).
+        # Runs before the medical constraints, which can only tighten from here.
+        self._bound_adjustments(adjusted, base_targets, budget, weight_kg)
+
         # Step 5: Consumed amounts already applied in base_targets
 
         # Step 6: Conflict Resolution Layer - medical safety ALWAYS wins
@@ -367,6 +402,63 @@ class NutrientDemandCalculator:
         budget.confidence = frame_confidence
 
         return budget
+
+    def _bound_adjustments(
+        self,
+        targets: dict[str, NutrientTarget],
+        base_targets: dict[str, NutrientTarget],
+        budget: NutrientBudget,
+        weight_kg: float | None,
+    ) -> None:
+        """Clamp each target to its combined-modifier band, then protein to g/kg limits."""
+
+        def clamp(name: str, low: float, high: float, reason: str) -> None:
+            target = targets[name]
+            # Narrow the allowed range too, so later stages (DP noise) stay inside it.
+            target.maximum = min(target.maximum if target.maximum is not None else high, high)
+            target.minimum = min(max(target.minimum or 0.0, low), target.maximum)
+            old = target.daily_target
+            new = min(max(old, low), high)
+            if abs(new - old) < 1e-9:
+                return
+            target.daily_target = new
+            budget.modifications.append(
+                {
+                    "step": "bound",
+                    "nutrient": name,
+                    "old_value": round(old, 1),
+                    "new_value": round(new, 1),
+                    "reason": reason,
+                }
+            )
+
+        for name, target in targets.items():
+            base = base_targets.get(name)
+            if base is None or base.daily_target <= 0:
+                continue
+            ratio = target.daily_target / base.daily_target
+            if name in GENETIC_DIRECT_CAPS.values() and ratio < 1:
+                continue  # an absolute safety cap may lower the target as far as it says
+            low, high = (
+                (COMBINED_MODIFIER_MIN, COMBINED_MODIFIER_MAX)
+                if name in MACRO_TARGETS
+                else (MICRO_MODIFIER_MIN, MICRO_MODIFIER_MAX)
+            )
+            clamp(
+                name,
+                base.daily_target * low,
+                base.daily_target * high,
+                f"Combined adjustments bounded to {low:g}x to {high:g}x of base",
+            )
+
+        if weight_kg and "protein_g" in targets:
+            clamp(
+                "protein_g",
+                weight_kg * PROTEIN_G_PER_KG_MIN,
+                weight_kg * PROTEIN_G_PER_KG_MAX,
+                f"Protein kept within {PROTEIN_G_PER_KG_MIN:g} to "
+                f"{PROTEIN_G_PER_KG_MAX:g} g/kg/day for healthy adults",
+            )
 
     def _apply_metabolic_modifiers(
         self,
@@ -456,6 +548,29 @@ class NutrientDemandCalculator:
 
             target_name, is_inverse = mapping
             if target_name not in targets:
+                continue
+
+            if genetic_key in GENETIC_DIRECT_CAPS:
+                # Absolute limit in the target's own unit: cap, never multiply.
+                old_target = targets[target_name].daily_target
+                cap_target = targets[target_name]
+                cap_target.maximum = min(
+                    cap_target.maximum if cap_target.maximum is not None else modifier, modifier
+                )
+                if cap_target.minimum is not None:
+                    cap_target.minimum = min(cap_target.minimum, modifier)
+                if modifier < old_target:
+                    targets[target_name].daily_target = modifier
+                    budget.modifications.append(
+                        {
+                            "step": "genetic",
+                            "nutrient": target_name,
+                            "old_value": round(old_target, 1),
+                            "new_value": round(modifier, 1),
+                            "genetic_factor": genetic_key,
+                            "reason": f"Genetic daily limit {genetic_key}={modifier}",
+                        }
+                    )
                 continue
 
             # For sensitivity modifiers, inverse relationship:
@@ -628,16 +743,24 @@ class NutrientDemandCalculator:
             conflict_type = "medical_constraint"
 
             if constraint.constraint_type == "max":
+                # The limit also bounds later stages (DP noise) and outranks any floor.
+                target.maximum = min(
+                    target.maximum if target.maximum is not None else constraint.value,
+                    constraint.value,
+                )
+                if target.minimum is not None:
+                    target.minimum = min(target.minimum, constraint.value)
                 if target.daily_target > constraint.value:
                     conflict_detected = True
                     target.daily_target = constraint.value
-                    target.maximum = constraint.value
 
             elif constraint.constraint_type == "min":
+                target.minimum = max(target.minimum or 0.0, constraint.value)
+                if target.maximum is not None:
+                    target.maximum = max(target.maximum, constraint.value)
                 if target.daily_target < constraint.value:
                     conflict_detected = True
                     target.daily_target = constraint.value
-                    target.minimum = constraint.value
 
             if not conflict_detected:
                 continue
@@ -821,7 +944,9 @@ def create_default_targets(
         ),
         "protein_g": NutrientTarget(
             name="protein_g",
-            daily_target=max(protein_kcal / 4, weight_kg * 1.2),
+            # 30% of energy, kept between 1.2 and 1.6 g/kg so large energy targets do not
+            # push the base toward the 2.0 g/kg ceiling before any personalization.
+            daily_target=min(max(protein_kcal / 4, weight_kg * 1.2), weight_kg * 1.6),
             minimum=weight_kg * 0.8,
             maximum=weight_kg * 2.2,
             unit="g",

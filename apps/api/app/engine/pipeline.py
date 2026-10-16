@@ -552,6 +552,7 @@ class NutritionPipeline:
             normalized_signals=normalized_signals,
             genetic_modifiers=genetic_modifiers,
             frame_confidence=frame_confidence,
+            weight_kg=weight_kg,
         )
 
         result.stages_executed.append(f"nutrient_calculation:targets={len(budget.targets)}")
@@ -636,10 +637,11 @@ class NutritionPipeline:
                 noise_scale=noise_scale,
             )
 
-            # Clamp to valid range
+            # Clamp to the range the calculator left: bounds and medical limits included.
+            # The maximum is applied last so a medical cap always wins over a floor.
             lo = target.minimum if target.minimum is not None else 0.0
             hi = target.maximum if target.maximum is not None else float("inf")
-            target.daily_target = max(lo, min(hi, noisy_value))
+            target.daily_target = min(hi, max(lo, noisy_value))
 
             tier_key = tier.value
             tier_summary[tier_key] = tier_summary.get(tier_key, 0) + 1
