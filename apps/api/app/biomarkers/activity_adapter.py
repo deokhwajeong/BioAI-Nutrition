@@ -13,7 +13,6 @@ but muscle glycogen replenishment creates delayed nutrient demands
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List
 
 from .base import (
     BiomarkerReading,
@@ -50,6 +49,7 @@ POST_EXERCISE_WINDOWS = {
     "extreme": {"carb_replenish_hours": 24, "protein_window_hours": 48},
 }
 
+
 class ActivityAdapter(BiomarkerSource):
     """Adapter for wearable activity tracker data.
 
@@ -62,14 +62,14 @@ class ActivityAdapter(BiomarkerSource):
 
     def __init__(self, device_model: str = "generic"):
         self._device_model = device_model
-        self._readings_store: Dict[str, List[BiomarkerReading]] = {}
+        self._readings_store: dict[str, list[BiomarkerReading]] = {}
 
     @property
     def source_id(self) -> str:
         return f"activity_{self._device_model}"
 
     @property
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         return [
             BiomarkerType.STEPS,
             BiomarkerType.HEART_RATE,
@@ -132,9 +132,7 @@ class ActivityAdapter(BiomarkerSource):
         }
 
         if biomarker_type not in characteristics:
-            raise ValueError(
-                f"ActivityAdapter does not provide {biomarker_type}"
-            )
+            raise ValueError(f"ActivityAdapter does not provide {biomarker_type}")
         return characteristics[biomarker_type]
 
     async def fetch_readings(
@@ -143,7 +141,7 @@ class ActivityAdapter(BiomarkerSource):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         key = f"{user_id}:{biomarker_type.value}"
         readings = self._readings_store.get(key, [])
         return sorted(
@@ -209,9 +207,7 @@ class ActivityAdapter(BiomarkerSource):
 
         return "moderate"
 
-    def _get_post_exercise_window(
-        self, reading: BiomarkerReading
-    ) -> Dict[str, int]:
+    def _get_post_exercise_window(self, reading: BiomarkerReading) -> dict[str, int]:
         """Calculate the post-exercise nutrient demand time window.
 
         Patent-relevant: This delayed nutrient demand is a key factor in
@@ -230,7 +226,7 @@ class ActivityAdapter(BiomarkerSource):
         height_cm: float,
         age: int,
         sex: str,
-        activity_readings: List[BiomarkerReading],
+        activity_readings: list[BiomarkerReading],
     ) -> float:
         """Estimate Total Daily Energy Expenditure from activity data.
 
@@ -248,9 +244,7 @@ class ActivityAdapter(BiomarkerSource):
 
         # Calculate activity factor from actual data
         total_steps = sum(
-            r.value
-            for r in activity_readings
-            if r.biomarker_type == BiomarkerType.STEPS
+            r.value for r in activity_readings if r.biomarker_type == BiomarkerType.STEPS
         )
         exercise_minutes = sum(
             r.metadata.get("duration_minutes", 0)
@@ -269,4 +263,3 @@ class ActivityAdapter(BiomarkerSource):
             factor = 1.2
 
         return bmr * factor
-

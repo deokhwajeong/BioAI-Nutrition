@@ -1,12 +1,15 @@
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
+
+from ..schemas.user_input import AnalyzeMealRequest, AnalyzeMealResponse
 from ..services.image_analyzer import analyze_food_image
 from ..services.meal_analyzer import analyze_meal
-from ..schemas.user_input import AnalyzeMealRequest, AnalyzeMealResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/image-analyze", tags=["image-analyze"])
+
 
 @router.post("/upload", response_model=AnalyzeMealResponse)
 async def upload_food_image(file: UploadFile = File(...)):

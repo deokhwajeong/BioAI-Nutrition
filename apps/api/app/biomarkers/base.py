@@ -20,39 +20,41 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
+
 
 class BiomarkerType(str, Enum):
     """Classification of biomarker data categories."""
 
     # Continuous high-frequency signals
-    GLUCOSE = "glucose"            # CGM: ~5min intervals
-    HEART_RATE = "heart_rate"      # Wearable: ~1s–1min
-    HRV = "hrv"                    # Heart Rate Variability
+    GLUCOSE = "glucose"  # CGM: ~5min intervals
+    HEART_RATE = "heart_rate"  # Wearable: ~1s–1min
+    HRV = "hrv"  # Heart Rate Variability
 
     # Activity signals (variable frequency)
-    STEPS = "steps"                # Pedometer: aggregated per minute/hour
+    STEPS = "steps"  # Pedometer: aggregated per minute/hour
     ACTIVITY_CALORIES = "activity_calories"
-    EXERCISE = "exercise"          # Discrete exercise sessions
+    EXERCISE = "exercise"  # Discrete exercise sessions
 
     # Discrete event-driven signals
-    MEAL = "meal"                  # User-logged meals (irregular)
+    MEAL = "meal"  # User-logged meals (irregular)
     WATER_INTAKE = "water_intake"
     MEDICATION = "medication"
 
     # Low-frequency periodic signals
-    SLEEP = "sleep"                # 1x/day summary
-    WEIGHT = "weight"              # Manual: days–weeks
+    SLEEP = "sleep"  # 1x/day summary
+    WEIGHT = "weight"  # Manual: days–weeks
     BLOOD_PRESSURE = "blood_pressure"
-    BLOOD_TEST = "blood_test"      # Months apart
+    BLOOD_TEST = "blood_test"  # Months apart
 
     # Static / quasi-static signals
-    GENOTYPE = "genotype"          # One-time genetic test
-    ALLERGY = "allergy"            # Rarely changes
+    GENOTYPE = "genotype"  # One-time genetic test
+    ALLERGY = "allergy"  # Rarely changes
     MEDICAL_CONDITION = "medical_condition"
 
     # Context signals
-    LOCATION = "location"          # GPS / geofence (event-driven)
+    LOCATION = "location"  # GPS / geofence (event-driven)
+
 
 class TemporalBehavior(str, Enum):
     """How the biomarker behaves over time.
@@ -68,6 +70,7 @@ class TemporalBehavior(str, Enum):
     EVENT = "event"
     PERIODIC = "periodic"
     STATIC = "static"
+
 
 @dataclass(frozen=True)
 class SamplingCharacteristics:
@@ -97,6 +100,7 @@ class SamplingCharacteristics:
     circadian_sensitivity: float = 0.0
     noise_floor: float = 0.0
 
+
 @dataclass
 class BiomarkerReading:
     """A single unified biomarker measurement.
@@ -123,13 +127,14 @@ class BiomarkerReading:
     value: float
     unit: str
     confidence: float = 1.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     raw_hash: str = ""
 
     def __post_init__(self):
         if not self.raw_hash:
             raw = f"{self.source_id}:{self.timestamp.isoformat()}:{self.value}"
             self.raw_hash = hashlib.sha256(raw.encode()).hexdigest()
+
 
 class BiomarkerSource(ABC):
     """Abstract base class for biomarker data source adapters.
@@ -153,7 +158,7 @@ class BiomarkerSource(ABC):
 
     @property
     @abstractmethod
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         """List of biomarker types this source provides."""
         ...
 
@@ -175,7 +180,7 @@ class BiomarkerSource(ABC):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         """Fetch readings from this source within a time window.
 
         Args:
@@ -211,4 +216,3 @@ class BiomarkerSource(ABC):
         if reading.biomarker_type not in self.supported_biomarkers:
             return False
         return True
-

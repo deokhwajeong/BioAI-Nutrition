@@ -16,7 +16,6 @@ carbohydrate and fluid requirements).
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 from .base import (
     BiomarkerReading,
@@ -29,21 +28,21 @@ from .base import (
 # Environmental modifiers based on location context
 ALTITUDE_METABOLIC_MULTIPLIERS = {
     # Altitude ranges (meters) → metabolic rate multiplier
-    "sea_level": 1.0,       # 0-500m
-    "low_altitude": 1.02,   # 500-1500m
-    "moderate": 1.05,       # 1500-2500m
-    "high": 1.10,           # 2500-3500m
-    "very_high": 1.15,      # 3500m+
+    "sea_level": 1.0,  # 0-500m
+    "low_altitude": 1.02,  # 500-1500m
+    "moderate": 1.05,  # 1500-2500m
+    "high": 1.10,  # 2500-3500m
+    "very_high": 1.15,  # 3500m+
 }
 
 TEMPERATURE_HYDRATION_MULTIPLIERS = {
     # Temperature ranges (°C) → hydration need multiplier
-    "cold": 1.0,            # < 5°C
-    "cool": 1.0,            # 5-15°C
-    "moderate": 1.05,       # 15-25°C
-    "warm": 1.15,           # 25-32°C
-    "hot": 1.30,            # 32-38°C
-    "extreme_heat": 1.50,   # > 38°C
+    "cold": 1.0,  # < 5°C
+    "cool": 1.0,  # 5-15°C
+    "moderate": 1.05,  # 15-25°C
+    "warm": 1.15,  # 25-32°C
+    "hot": 1.30,  # 32-38°C
+    "extreme_heat": 1.50,  # > 38°C
 }
 
 VENUE_CONTEXT = {
@@ -55,6 +54,7 @@ VENUE_CONTEXT = {
     "transit": {"activity_boost": 0.7, "category": "sedentary"},
     "unknown": {"activity_boost": 1.0, "category": "mixed"},
 }
+
 
 class LocationAdapter(BiomarkerSource):
     """Adapter for GPS / geofence location context data.
@@ -77,23 +77,21 @@ class LocationAdapter(BiomarkerSource):
     """
 
     def __init__(self) -> None:
-        self._readings_store: Dict[str, List[BiomarkerReading]] = {}
+        self._readings_store: dict[str, list[BiomarkerReading]] = {}
 
     @property
     def source_id(self) -> str:
         return "location_gps"
 
     @property
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         return [BiomarkerType.LOCATION]
 
     def get_sampling_characteristics(
         self, biomarker_type: BiomarkerType
     ) -> SamplingCharacteristics:
         if biomarker_type != BiomarkerType.LOCATION:
-            raise ValueError(
-                f"LocationAdapter does not provide {biomarker_type}"
-            )
+            raise ValueError(f"LocationAdapter does not provide {biomarker_type}")
         return SamplingCharacteristics(
             typical_interval=timedelta(minutes=10),
             min_interval=timedelta(seconds=30),
@@ -112,7 +110,7 @@ class LocationAdapter(BiomarkerSource):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         key = f"{user_id}:{biomarker_type.value}"
         readings = self._readings_store.get(key, [])
         return sorted(
@@ -137,12 +135,8 @@ class LocationAdapter(BiomarkerSource):
                 "altitude_class": self._classify_altitude(reading),
                 "temperature_class": self._classify_temperature(reading),
                 "venue_context": self._get_venue_context(reading),
-                "metabolic_multiplier": self._compute_metabolic_multiplier(
-                    reading
-                ),
-                "hydration_multiplier": self._compute_hydration_multiplier(
-                    reading
-                ),
+                "metabolic_multiplier": self._compute_metabolic_multiplier(reading),
+                "hydration_multiplier": self._compute_hydration_multiplier(reading),
             },
         )
 
@@ -189,7 +183,7 @@ class LocationAdapter(BiomarkerSource):
             return "extreme_heat"
 
     @staticmethod
-    def _get_venue_context(reading: BiomarkerReading) -> Dict:
+    def _get_venue_context(reading: BiomarkerReading) -> dict:
         """Get venue-based activity context."""
         venue = reading.metadata.get("venue_type", "unknown")
         return VENUE_CONTEXT.get(venue, VENUE_CONTEXT["unknown"])
@@ -206,9 +200,7 @@ class LocationAdapter(BiomarkerSource):
         temp_class = LocationAdapter._classify_temperature(reading)
         return TEMPERATURE_HYDRATION_MULTIPLIERS.get(temp_class, 1.0)
 
-    def get_environmental_modifiers(
-        self, user_id: str
-    ) -> Dict[str, float]:
+    def get_environmental_modifiers(self, user_id: str) -> dict[str, float]:
         """Get latest environmental modifiers for a user.
 
         Returns altitude-based metabolic and temperature-based hydration
@@ -225,17 +217,9 @@ class LocationAdapter(BiomarkerSource):
 
         latest = max(readings, key=lambda r: r.timestamp)
         return {
-            "metabolic_multiplier": latest.metadata.get(
-                "metabolic_multiplier", 1.0
-            ),
-            "hydration_multiplier": latest.metadata.get(
-                "hydration_multiplier", 1.0
-            ),
-            "venue_category": latest.metadata.get("venue_context", {}).get(
-                "category", "unknown"
-            ),
+            "metabolic_multiplier": latest.metadata.get("metabolic_multiplier", 1.0),
+            "hydration_multiplier": latest.metadata.get("hydration_multiplier", 1.0),
+            "venue_category": latest.metadata.get("venue_context", {}).get("category", "unknown"),
             "altitude_class": latest.metadata.get("altitude_class", "sea_level"),
-            "temperature_class": latest.metadata.get(
-                "temperature_class", "moderate"
-            ),
+            "temperature_class": latest.metadata.get("temperature_class", "moderate"),
         }

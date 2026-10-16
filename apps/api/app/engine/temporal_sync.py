@@ -45,7 +45,7 @@ import math
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any
 
 from ..biomarkers.base import (
     BiomarkerReading,
@@ -54,6 +54,8 @@ from ..biomarkers.base import (
     TemporalBehavior,
 )
 
+if TYPE_CHECKING:
+    from .interpolation import CircadianInterpolator
 
 # ═══════════════════════════════════════════════════════════════════════
 # Physiological Lag Time Model
@@ -88,21 +90,39 @@ from ..biomarkers.base import (
 # Circadian lag modifiers per hour — derived from insulin sensitivity
 # and metabolic rate circadian profiles (chronobiology literature)
 # < 1.0 = faster response (shorter lag), > 1.0 = slower (longer lag)
-CIRCADIAN_LAG_MODIFIERS: Dict[int, float] = {
-    0: 1.15,   1: 1.18,   2: 1.20,   3: 1.18,    # Night: slow metabolism
-    4: 1.10,   5: 1.00,   6: 0.90,   7: 0.85,    # Dawn: rising sensitivity
-    8: 0.82,   9: 0.85,  10: 0.88,  11: 0.90,    # Morning: peak response
-    12: 0.92, 13: 0.95,  14: 0.98,  15: 1.00,    # Afternoon: decline
-    16: 1.02, 17: 1.05,  18: 1.03,  19: 1.00,    # Evening: moderate
-    20: 1.05, 21: 1.08,  22: 1.10,  23: 1.12,    # Pre-sleep: slowing
+CIRCADIAN_LAG_MODIFIERS: dict[int, float] = {
+    0: 1.15,
+    1: 1.18,
+    2: 1.20,
+    3: 1.18,  # Night: slow metabolism
+    4: 1.10,
+    5: 1.00,
+    6: 0.90,
+    7: 0.85,  # Dawn: rising sensitivity
+    8: 0.82,
+    9: 0.85,
+    10: 0.88,
+    11: 0.90,  # Morning: peak response
+    12: 0.92,
+    13: 0.95,
+    14: 0.98,
+    15: 1.00,  # Afternoon: decline
+    16: 1.02,
+    17: 1.05,
+    18: 1.03,
+    19: 1.00,  # Evening: moderate
+    20: 1.05,
+    21: 1.08,
+    22: 1.10,
+    23: 1.12,  # Pre-sleep: slowing
 }
 
 # Maps genetic modifier keys to their effect on physiological lag
 # Higher modifier = slower metabolic processing = longer lag
-GENETIC_LAG_MAPPINGS: Dict[BiomarkerType, List[str]] = {
+GENETIC_LAG_MAPPINGS: dict[BiomarkerType, list[str]] = {
     BiomarkerType.GLUCOSE: [
-        "insulin_response_modifier",   # TCF7L2: lower = slower clearance
-        "carb_sensitivity_modifier",   # Higher sensitivity = faster peak
+        "insulin_response_modifier",  # TCF7L2: lower = slower clearance
+        "carb_sensitivity_modifier",  # Higher sensitivity = faster peak
     ],
     BiomarkerType.STEPS: [
         "power_exercise_response",
@@ -138,9 +158,9 @@ class LagComputation:
     circadian_modifier: float
     effective_lag_seconds: float
     hour_of_day: int
-    genetic_factors_used: List[str] = field(default_factory=list)
+    genetic_factors_used: list[str] = field(default_factory=list)
     calibration_applied: bool = False
-    calibration_audit: Optional[Dict[str, Any]] = None
+    calibration_audit: dict[str, Any] | None = None
 
     @property
     def effective_lag(self) -> timedelta:
@@ -173,12 +193,10 @@ class PhysiologicalLagModel:
     """
 
     def __init__(self, calibrator=None):
-        self._genetic_modifiers: Dict[str, Dict[str, float]] = {}
+        self._genetic_modifiers: dict[str, dict[str, float]] = {}
         self._calibrator = calibrator  # Optional AdaptiveLagCalibrator
 
-    def set_genetic_modifiers(
-        self, user_id: str, modifiers: Dict[str, float]
-    ) -> None:
+    def set_genetic_modifiers(self, user_id: str, modifiers: dict[str, float]) -> None:
         """Set user-specific genetic modifiers for lag computation."""
         self._genetic_modifiers[user_id] = modifiers
 
@@ -187,7 +205,7 @@ class PhysiologicalLagModel:
         biomarker_type: BiomarkerType,
         characteristics: SamplingCharacteristics,
         event_time: datetime,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> LagComputation:
         """Compute the effective physiological lag for a signal at a given time.
 
@@ -216,9 +234,7 @@ class PhysiologicalLagModel:
             )
 
         # γ_genetic(g): genetic modifier
-        gamma_genetic, factors_used = self._compute_genetic_modifier(
-            biomarker_type, user_id
-        )
+        gamma_genetic, factors_used = self._compute_genetic_modifier(biomarker_type, user_id)
 
         # φ_circadian(c): circadian modifier
         phi_circadian = self._compute_circadian_modifier(event_time)
@@ -229,15 +245,13 @@ class PhysiologicalLagModel:
         # Apply self-calibration corrections if calibrator is attached
         calibration_audit = None
         if self._calibrator is not None and user_id:
-            effective_seconds, calibration_audit = (
-                self._calibrator.get_calibrated_lag(
-                    user_id=user_id,
-                    biomarker_type=biomarker_type,
-                    base_lag_seconds=base_seconds,
-                    genetic_modifier=gamma_genetic,
-                    circadian_modifier=phi_circadian,
-                    event_time=event_time,
-                )
+            effective_seconds, calibration_audit = self._calibrator.get_calibrated_lag(
+                user_id=user_id,
+                biomarker_type=biomarker_type,
+                base_lag_seconds=base_seconds,
+                genetic_modifier=gamma_genetic,
+                circadian_modifier=phi_circadian,
+                event_time=event_time,
             )
 
         return LagComputation(
@@ -255,8 +269,8 @@ class PhysiologicalLagModel:
     def _compute_genetic_modifier(
         self,
         biomarker_type: BiomarkerType,
-        user_id: Optional[str],
-    ) -> Tuple[float, List[str]]:
+        user_id: str | None,
+    ) -> tuple[float, list[str]]:
         """Compute γ_genetic from user's SNP-derived metabolic modifiers.
 
         For glucose lag, a user with TCF7L2 T/T (insulin_response_modifier=0.8)
@@ -279,8 +293,8 @@ class PhysiologicalLagModel:
         if not relevant_keys:
             return 1.0, []
 
-        factors: List[float] = []
-        factor_names: List[str] = []
+        factors: list[float] = []
+        factor_names: list[str] = []
         for key in relevant_keys:
             if key in modifiers:
                 # Inverse: slower metabolic response → longer lag
@@ -324,9 +338,9 @@ class PhysiologicalLagModel:
 class Resolution(str, Enum):
     """Temporal resolution levels for synchronized frames."""
 
-    FINE = "fine"        # 5-minute windows (near real-time)
-    MEDIUM = "medium"    # 1-hour windows (hourly overview)
-    COARSE = "coarse"    # 24-hour windows (daily summary)
+    FINE = "fine"  # 5-minute windows (near real-time)
+    MEDIUM = "medium"  # 1-hour windows (hourly overview)
+    COARSE = "coarse"  # 24-hour windows (daily summary)
 
 
 # Resolution → window duration mapping
@@ -356,8 +370,8 @@ class AlignedSignal:
     confidence: float
     sample_count: int
     lag_compensated: bool
-    lag_computation: Optional[LagComputation] = None
-    original_timestamps: List[datetime] = field(default_factory=list)
+    lag_computation: LagComputation | None = None
+    original_timestamps: list[datetime] = field(default_factory=list)
 
 
 @dataclass
@@ -385,17 +399,17 @@ class SynchronizedFrame:
     window_start: datetime
     window_end: datetime
     resolution: Resolution
-    signals: Dict[BiomarkerType, AlignedSignal] = field(default_factory=dict)
+    signals: dict[BiomarkerType, AlignedSignal] = field(default_factory=dict)
     frame_confidence: float = 0.0
     completeness: float = 0.0
-    lag_computations: List[LagComputation] = field(default_factory=list)
+    lag_computations: list[LagComputation] = field(default_factory=list)
 
-    def to_feature_vector(self) -> Dict[str, float]:
+    def to_feature_vector(self) -> dict[str, float]:
         """Convert frame to a flat feature dictionary for ML models.
 
         Returns signal values with confidence-weighted keys.
         """
-        features: Dict[str, float] = {}
+        features: dict[str, float] = {}
         for bt, signal in self.signals.items():
             features[f"{bt.value}_value"] = signal.value
             features[f"{bt.value}_confidence"] = signal.confidence
@@ -433,19 +447,20 @@ class TemporalSynchronizer:
 
     def __init__(
         self,
-        lag_model: Optional[PhysiologicalLagModel] = None,
-        interpolator: Optional["CircadianInterpolator"] = None,
+        lag_model: PhysiologicalLagModel | None = None,
+        interpolator: CircadianInterpolator | None = None,
     ):
-        self._characteristics: Dict[BiomarkerType, SamplingCharacteristics] = {}
+        self._characteristics: dict[BiomarkerType, SamplingCharacteristics] = {}
         self._lag_model = lag_model or PhysiologicalLagModel()
         # Lazy import to avoid circular dependency at module level
         if interpolator is not None:
             self._interpolator = interpolator
         else:
             from .interpolation import CircadianInterpolator as _CI
+
             self._interpolator = _CI()
         # Personal baseline means for interpolation (learned over time)
-        self._baseline_means: Dict[str, Dict[BiomarkerType, float]] = {}
+        self._baseline_means: dict[str, dict[BiomarkerType, float]] = {}
 
     @property
     def lag_model(self) -> PhysiologicalLagModel:
@@ -457,9 +472,7 @@ class TemporalSynchronizer:
         """Access the circadian interpolator."""
         return self._interpolator
 
-    def set_baseline_mean(
-        self, user_id: str, biomarker_type: BiomarkerType, mean: float
-    ) -> None:
+    def set_baseline_mean(self, user_id: str, biomarker_type: BiomarkerType, mean: float) -> None:
         """Set a user's personal baseline mean for a biomarker.
 
         Used by CircadianInterpolator when filling data gaps.
@@ -469,9 +482,7 @@ class TemporalSynchronizer:
             self._baseline_means[user_id] = {}
         self._baseline_means[user_id][biomarker_type] = mean
 
-    def _get_baseline_mean(
-        self, user_id: Optional[str], biomarker_type: BiomarkerType
-    ) -> float:
+    def _get_baseline_mean(self, user_id: str | None, biomarker_type: BiomarkerType) -> float:
         """Get user's baseline mean, falling back to population average."""
         if user_id:
             user_means = self._baseline_means.get(user_id, {})
@@ -479,6 +490,7 @@ class TemporalSynchronizer:
                 return user_means[biomarker_type]
         # Fallback to population defaults
         from .normalization import POPULATION_RANGES
+
         pop = POPULATION_RANGES.get(biomarker_type, {})
         return pop.get("mean", 0.0)  # type: ignore
 
@@ -492,12 +504,12 @@ class TemporalSynchronizer:
 
     def synchronize(
         self,
-        readings: Dict[BiomarkerType, List[BiomarkerReading]],
+        readings: dict[BiomarkerType, list[BiomarkerReading]],
         window_start: datetime,
         window_end: datetime,
         resolution: Resolution = Resolution.MEDIUM,
-        user_id: Optional[str] = None,
-    ) -> List[SynchronizedFrame]:
+        user_id: str | None = None,
+    ) -> list[SynchronizedFrame]:
         """Synchronize heterogeneous biomarker streams into aligned frames.
 
         This is the main entry point. It takes raw readings from multiple
@@ -514,14 +526,12 @@ class TemporalSynchronizer:
             List of SynchronizedFrames covering [window_start, window_end].
         """
         frame_duration = RESOLUTION_DURATIONS[resolution]
-        frames: List[SynchronizedFrame] = []
+        frames: list[SynchronizedFrame] = []
 
         current = window_start
         while current < window_end:
             frame_end = min(current + frame_duration, window_end)
-            frame = self._build_frame(
-                readings, current, frame_end, resolution, user_id
-            )
+            frame = self._build_frame(readings, current, frame_end, resolution, user_id)
             frames.append(frame)
             current = frame_end
 
@@ -529,11 +539,11 @@ class TemporalSynchronizer:
 
     def _build_frame(
         self,
-        readings: Dict[BiomarkerType, List[BiomarkerReading]],
+        readings: dict[BiomarkerType, list[BiomarkerReading]],
         frame_start: datetime,
         frame_end: datetime,
         resolution: Resolution,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> SynchronizedFrame:
         """Build a single synchronized frame for one time window.
 
@@ -553,12 +563,14 @@ class TemporalSynchronizer:
             raw = readings.get(biomarker_type, [])
 
             # Compute dynamic lag using the physiological model
-            lag_comp = self._lag_model.compute_lag(
-                biomarker_type, chars, frame_start, user_id
-            )
+            lag_comp = self._lag_model.compute_lag(biomarker_type, chars, frame_start, user_id)
 
             aligned = self._align_signal(
-                raw, biomarker_type, chars, frame_start, frame_end,
+                raw,
+                biomarker_type,
+                chars,
+                frame_start,
+                frame_end,
                 lag_override=lag_comp.effective_lag,
                 user_id=user_id,
             )
@@ -573,22 +585,20 @@ class TemporalSynchronizer:
         if frame.signals:
             confidences = [s.confidence for s in frame.signals.values()]
             frame.frame_confidence = sum(confidences) / len(confidences)
-        frame.completeness = (
-            present_signals / expected_signals if expected_signals > 0 else 0
-        )
+        frame.completeness = present_signals / expected_signals if expected_signals > 0 else 0
 
         return frame
 
     def _align_signal(
         self,
-        raw_readings: List[BiomarkerReading],
+        raw_readings: list[BiomarkerReading],
         biomarker_type: BiomarkerType,
         chars: SamplingCharacteristics,
         frame_start: datetime,
         frame_end: datetime,
-        lag_override: Optional[timedelta] = None,
-        user_id: Optional[str] = None,
-    ) -> Optional[AlignedSignal]:
+        lag_override: timedelta | None = None,
+        user_id: str | None = None,
+    ) -> AlignedSignal | None:
         """Align a single biomarker's readings to a time window.
 
         Implements physiological lag compensation using the dynamic
@@ -624,22 +634,14 @@ class TemporalSynchronizer:
         query_end = frame_end - lag
 
         # Find readings within the lag-adjusted window
-        in_window = [
-            r
-            for r in raw_readings
-            if query_start <= r.timestamp < query_end
-        ]
+        in_window = [r for r in raw_readings if query_start <= r.timestamp < query_end]
 
         if in_window:
-            return self._aggregate_readings(
-                in_window, biomarker_type, chars, frame_start, True
-            )
+            return self._aggregate_readings(in_window, biomarker_type, chars, frame_start, True)
 
         # No readings in window — delegate to CircadianInterpolator
         # for gap filling using biological rhythm models.
-        nearest = self._find_nearest_reading(
-            raw_readings, query_start, query_end
-        )
+        nearest = self._find_nearest_reading(raw_readings, query_start, query_end)
         if nearest is None:
             # No data at all — try circadian-only interpolation
             if (
@@ -732,7 +734,7 @@ class TemporalSynchronizer:
 
     def _aggregate_readings(
         self,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         biomarker_type: BiomarkerType,
         chars: SamplingCharacteristics,
         frame_center: datetime,
@@ -746,14 +748,10 @@ class TemporalSynchronizer:
         - PERIODIC: Most recent value
         """
         if chars.temporal_behavior == TemporalBehavior.CONTINUOUS:
-            value, confidence = self._weighted_mean(
-                readings, frame_center, chars
-            )
+            value, confidence = self._weighted_mean(readings, frame_center, chars)
         elif chars.temporal_behavior == TemporalBehavior.EVENT:
             value = sum(r.value for r in readings)
-            confidence = (
-                sum(r.confidence for r in readings) / len(readings)
-            )
+            confidence = sum(r.confidence for r in readings) / len(readings)
         elif chars.temporal_behavior == TemporalBehavior.PERIODIC:
             # Use most recent
             latest = max(readings, key=lambda r: r.timestamp)
@@ -774,10 +772,10 @@ class TemporalSynchronizer:
 
     def _weighted_mean(
         self,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         center: datetime,
         chars: SamplingCharacteristics,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Compute distance-weighted mean of continuous readings.
 
         Readings closer to the window center receive higher weight.
@@ -812,9 +810,7 @@ class TemporalSynchronizer:
         )
 
     @staticmethod
-    def _staleness_decay(
-        gap: timedelta, chars: SamplingCharacteristics
-    ) -> float:
+    def _staleness_decay(gap: timedelta, chars: SamplingCharacteristics) -> float:
         """Compute confidence decay due to data staleness.
 
         Uses exponential decay with the source's typical interval as
@@ -837,10 +833,10 @@ class TemporalSynchronizer:
 
     @staticmethod
     def _find_nearest_reading(
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         query_start: datetime,
         query_end: datetime,
-    ) -> Optional[BiomarkerReading]:
+    ) -> BiomarkerReading | None:
         """Find the reading closest to the query window."""
         if not readings:
             return None
@@ -850,5 +846,3 @@ class TemporalSynchronizer:
             readings,
             key=lambda r: abs((r.timestamp - query_center).total_seconds()),
         )
-
-

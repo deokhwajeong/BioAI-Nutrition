@@ -7,7 +7,7 @@ Provides helpers for privacy and PII handling.
 import hashlib
 import logging
 import re
-from typing import Any
+
 
 class PIIFilter(logging.Filter):
     """
@@ -30,6 +30,7 @@ class PIIFilter(logging.Filter):
         value = self.phone_pattern.sub("<phone>", value)
         return value
 
+
 def hash_identifier(identifier: str, pepper: str) -> str:
     """
     Hashes a user identifier together with a secret pepper to create a
@@ -39,5 +40,3 @@ def hash_identifier(identifier: str, pepper: str) -> str:
     hasher = hashlib.sha256()
     hasher.update((identifier + pepper).encode("utf-8"))
     return hasher.hexdigest()
-
-

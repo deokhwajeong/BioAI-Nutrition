@@ -4,19 +4,22 @@ Uses Tesseract OCR when available, otherwise falls back to
 basic image metadata analysis with colour-histogram heuristics.
 """
 
-from PIL import Image
 import io
 import logging
+
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
 # Attempt to import pytesseract; gracefully degrade if missing.
 try:
     import pytesseract  # type: ignore[import-untyped]
+
     _HAS_TESSERACT = True
 except ImportError:
     _HAS_TESSERACT = False
     logger.warning("pytesseract not available – OCR disabled, using fallback analysis")
+
 
 def _estimate_food_from_image(image: Image.Image) -> str:
     """Heuristic food estimation from image colour profile.
@@ -52,6 +55,7 @@ def _estimate_food_from_image(image: Image.Image) -> str:
 
     return "\n".join(items)
 
+
 def analyze_food_image(image_bytes: bytes) -> str:
     """Extract text or identify food from an uploaded image.
 
@@ -76,4 +80,3 @@ def analyze_food_image(image_bytes: bytes) -> str:
 
     except Exception as e:
         raise Exception(f"Image analysis failed: {e!s}")
-

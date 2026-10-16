@@ -69,15 +69,15 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
 # ═══════════════════════════════════════════════════════════════════════
 # Data structures
 # ═══════════════════════════════════════════════════════════════════════
+
 
 @dataclass
 class CalibrationObservation:
@@ -107,6 +107,7 @@ class CalibrationObservation:
     relative_error: float
     confidence: float = 1.0
 
+
 @dataclass
 class PersonalCalibrationProfile:
     """Stores learned corrections for a single user.
@@ -134,17 +135,15 @@ class PersonalCalibrationProfile:
     """
 
     user_id: str
-    base_lag_offsets: Dict[str, float] = field(default_factory=dict)
-    circadian_corrections: Dict[int, float] = field(default_factory=dict)
+    base_lag_offsets: dict[str, float] = field(default_factory=dict)
+    circadian_corrections: dict[int, float] = field(default_factory=dict)
     genetic_correction_factor: float = 1.0
     observation_count: int = 0
-    per_biomarker_count: Dict[str, int] = field(default_factory=dict)
-    observation_history: List[CalibrationObservation] = field(
-        default_factory=list
-    )
-    last_updated: Optional[datetime] = None
+    per_biomarker_count: dict[str, int] = field(default_factory=dict)
+    observation_history: list[CalibrationObservation] = field(default_factory=list)
+    last_updated: datetime | None = None
     convergence_score: float = 0.0
-    mae_history: List[float] = field(default_factory=list)
+    mae_history: list[float] = field(default_factory=list)
 
     @property
     def is_converged(self) -> bool:
@@ -155,6 +154,7 @@ class PersonalCalibrationProfile:
         2. The convergence score exceeds 0.8 (recent errors are small)
         """
         return self.observation_count >= 10 and self.convergence_score > 0.8
+
 
 @dataclass
 class DetectedPeak:
@@ -172,6 +172,7 @@ class DetectedPeak:
     prominence: float
     confidence: float
 
+
 @dataclass
 class CalibrationResult:
     """Result of a single calibration step.
@@ -184,13 +185,15 @@ class CalibrationResult:
     """
 
     observation: CalibrationObservation
-    applied_corrections: Dict[str, float]
+    applied_corrections: dict[str, float]
     updated_profile: PersonalCalibrationProfile
     improvement_estimate: float
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # Peak Detection
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class PeakDetector:
     """Detects biomarker response peaks in time-series data.
@@ -221,10 +224,10 @@ class PeakDetector:
 
     def detect_peak(
         self,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         search_start: datetime,
         search_end: datetime,
-    ) -> Optional[DetectedPeak]:
+    ) -> DetectedPeak | None:
         """Detect the most prominent peak within a time window.
 
         Args:
@@ -258,17 +261,14 @@ class PeakDetector:
         smoothed = self._ema_smooth([r.value for r in windowed])
 
         # Step 2: Find local maxima
-        peaks: List[Tuple[int, float]] = []  # (index, prominence)
+        peaks: list[tuple[int, float]] = []  # (index, prominence)
         for i in range(1, len(smoothed) - 1):
             if smoothed[i] > smoothed[i - 1] and smoothed[i] > smoothed[i + 1]:
                 # Step 3: Compute prominence
                 # Left trough: minimum between start and this peak
                 left_min = min(smoothed[:i]) if i > 0 else smoothed[0]
                 # Right trough: minimum between this peak and end
-                right_min = (
-                    min(smoothed[i + 1 :]) if i < len(smoothed) - 1
-                    else smoothed[-1]
-                )
+                right_min = min(smoothed[i + 1 :]) if i < len(smoothed) - 1 else smoothed[-1]
                 prominence = smoothed[i] - max(left_min, right_min)
                 peaks.append((i, prominence))
 
@@ -286,9 +286,7 @@ class PeakDetector:
         signal_range = max(smoothed) - min(smoothed)
         min_prominence = signal_range * self._min_prominence_fraction
 
-        significant_peaks = [
-            (idx, prom) for idx, prom in peaks if prom >= min_prominence
-        ]
+        significant_peaks = [(idx, prom) for idx, prom in peaks if prom >= min_prominence]
 
         if not significant_peaks:
             # No significant peaks — return highest peak with low confidence
@@ -314,7 +312,7 @@ class PeakDetector:
             confidence=confidence,
         )
 
-    def _ema_smooth(self, values: List[float]) -> List[float]:
+    def _ema_smooth(self, values: list[float]) -> list[float]:
         """Exponential moving average smoothing."""
         if not values:
             return []
@@ -324,9 +322,11 @@ class PeakDetector:
             smoothed.append(alpha * v + (1 - alpha) * smoothed[-1])
         return smoothed
 
+
 # ═══════════════════════════════════════════════════════════════════════
 # Adaptive Self-Calibration Engine
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class AdaptiveLagCalibrator:
     """Self-calibrating feedback loop for the Physiological Lag Model.
@@ -384,15 +384,15 @@ class AdaptiveLagCalibrator:
 
     # ── Default hyperparameters ─────────────────────────────────────
 
-    DEFAULT_ALPHA_BASE = 0.3       # Initial learning rate for base lag
+    DEFAULT_ALPHA_BASE = 0.3  # Initial learning rate for base lag
     DEFAULT_ALPHA_CIRCADIAN = 0.2  # Initial learning rate for circadian
-    DEFAULT_ALPHA_GENETIC = 0.1    # Initial learning rate for genetic (slow)
-    DEFAULT_TAU = 20.0             # Convergence time constant (observations)
+    DEFAULT_ALPHA_GENETIC = 0.1  # Initial learning rate for genetic (slow)
+    DEFAULT_TAU = 20.0  # Convergence time constant (observations)
 
     # Bound constraints (prevent divergence)
-    MAX_BASE_OFFSET_SECONDS = 1800.0   # ±30 minutes
-    MAX_CIRCADIAN_CORRECTION = 0.3     # ±30% of circadian modifier
-    MAX_GENETIC_CORRECTION = 0.5       # κ ∈ [0.5, 1.5]
+    MAX_BASE_OFFSET_SECONDS = 1800.0  # ±30 minutes
+    MAX_CIRCADIAN_CORRECTION = 0.3  # ±30% of circadian modifier
+    MAX_GENETIC_CORRECTION = 0.5  # κ ∈ [0.5, 1.5]
 
     # History window for convergence analysis
     CONVERGENCE_WINDOW = 10
@@ -404,7 +404,7 @@ class AdaptiveLagCalibrator:
         alpha_circadian: float = DEFAULT_ALPHA_CIRCADIAN,
         alpha_genetic: float = DEFAULT_ALPHA_GENETIC,
         tau: float = DEFAULT_TAU,
-        peak_detector: Optional[PeakDetector] = None,
+        peak_detector: PeakDetector | None = None,
     ):
         """Initialize the calibration engine.
 
@@ -422,21 +422,17 @@ class AdaptiveLagCalibrator:
         self._peak_detector = peak_detector or PeakDetector()
 
         # Per-user calibration profiles
-        self._profiles: Dict[str, PersonalCalibrationProfile] = {}
+        self._profiles: dict[str, PersonalCalibrationProfile] = {}
 
     # ── Profile Management ──────────────────────────────────────────
 
     def get_profile(self, user_id: str) -> PersonalCalibrationProfile:
         """Get or create a user's calibration profile."""
         if user_id not in self._profiles:
-            self._profiles[user_id] = PersonalCalibrationProfile(
-                user_id=user_id
-            )
+            self._profiles[user_id] = PersonalCalibrationProfile(user_id=user_id)
         return self._profiles[user_id]
 
-    def set_profile(
-        self, user_id: str, profile: PersonalCalibrationProfile
-    ) -> None:
+    def set_profile(self, user_id: str, profile: PersonalCalibrationProfile) -> None:
         """Set a user's calibration profile (e.g., loaded from storage)."""
         self._profiles[user_id] = profile
 
@@ -444,11 +440,11 @@ class AdaptiveLagCalibrator:
 
     def detect_response_peak(
         self,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         event_time: datetime,
         expected_lag_seconds: float,
         search_window_multiplier: float = 2.5,
-    ) -> Optional[DetectedPeak]:
+    ) -> DetectedPeak | None:
         """Detect the actual biomarker response peak after an event.
 
         Searches in a window around the expected peak time, using the
@@ -469,7 +465,9 @@ class AdaptiveLagCalibrator:
         search_end = search_center + timedelta(seconds=half_window)
 
         return self._peak_detector.detect_peak(
-            readings, search_start, search_end,
+            readings,
+            search_start,
+            search_end,
         )
 
     # ── Core Calibration Loop ───────────────────────────────────────
@@ -505,18 +503,12 @@ class AdaptiveLagCalibrator:
         profile = self.get_profile(user_id)
 
         # ── Compute prediction error ────────────────────────────────
-        error_seconds = (
-            actual_peak_time - predicted_peak_time
-        ).total_seconds()
+        error_seconds = (actual_peak_time - predicted_peak_time).total_seconds()
 
-        predicted_lag = (
-            predicted_peak_time - event_time
-        ).total_seconds()
+        predicted_lag = (predicted_peak_time - event_time).total_seconds()
 
         # Relative error (for genetic correction)
-        relative_error = (
-            error_seconds / predicted_lag if predicted_lag > 0 else 0.0
-        )
+        relative_error = error_seconds / predicted_lag if predicted_lag > 0 else 0.0
 
         observation = CalibrationObservation(
             biomarker_type=biomarker_type,
@@ -535,16 +527,14 @@ class AdaptiveLagCalibrator:
 
         alpha_b = self._adaptive_alpha(self._alpha_base, bt_count)
         alpha_c = self._adaptive_alpha(self._alpha_circadian, bt_count)
-        alpha_g = self._adaptive_alpha(
-            self._alpha_genetic, profile.observation_count
-        )
+        alpha_g = self._adaptive_alpha(self._alpha_genetic, profile.observation_count)
 
         # Weight update by detection confidence
         alpha_b *= confidence
         alpha_c *= confidence
         alpha_g *= confidence
 
-        corrections: Dict[str, float] = {}
+        corrections: dict[str, float] = {}
 
         # ── Channel 1: Base Lag Offset ──────────────────────────────
         # δ_base(b)^(k+1) = (1 - α) × δ_base(b)^(k) + α × ε_k
@@ -585,14 +575,12 @@ class AdaptiveLagCalibrator:
         # ── Update profile metadata ─────────────────────────────────
         profile.observation_count += 1
         profile.per_biomarker_count[bt_key] = bt_count + 1
-        profile.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
+        profile.last_updated = datetime.now(UTC).replace(tzinfo=None)
 
         # Maintain observation history (bounded)
         profile.observation_history.append(observation)
         if len(profile.observation_history) > self.MAX_HISTORY:
-            profile.observation_history = profile.observation_history[
-                -self.MAX_HISTORY :
-            ]
+            profile.observation_history = profile.observation_history[-self.MAX_HISTORY :]
 
         # ── Compute convergence score ───────────────────────────────
         profile.mae_history.append(abs(error_seconds))
@@ -622,7 +610,7 @@ class AdaptiveLagCalibrator:
         genetic_modifier: float,
         circadian_modifier: float,
         event_time: datetime,
-    ) -> Tuple[float, Dict[str, Any]]:
+    ) -> tuple[float, dict[str, Any]]:
         """Compute the calibrated lag by applying learned corrections.
 
         The calibrated model:
@@ -654,9 +642,7 @@ class AdaptiveLagCalibrator:
         calibrated_genetic = genetic_modifier * kappa
         calibrated_circadian = circadian_modifier + delta_circ
 
-        calibrated_lag = (
-            calibrated_base * calibrated_genetic * calibrated_circadian
-        )
+        calibrated_lag = calibrated_base * calibrated_genetic * calibrated_circadian
 
         # Ensure non-negative
         calibrated_lag = max(0, calibrated_lag)
@@ -680,10 +666,8 @@ class AdaptiveLagCalibrator:
         self,
         user_id: str,
         biomarker_type: BiomarkerType,
-        event_readings_pairs: List[
-            Tuple[datetime, List[BiomarkerReading], float]
-        ],
-    ) -> List[CalibrationResult]:
+        event_readings_pairs: list[tuple[datetime, list[BiomarkerReading], float]],
+    ) -> list[CalibrationResult]:
         """Run batch calibration from historical event-readings pairs.
 
         Each tuple contains:
@@ -700,12 +684,14 @@ class AdaptiveLagCalibrator:
         Returns:
             List of CalibrationResults.
         """
-        results: List[CalibrationResult] = []
+        results: list[CalibrationResult] = []
 
         for event_time, readings, predicted_lag in event_readings_pairs:
             # Detect actual peak
             peak = self.detect_response_peak(
-                readings, event_time, predicted_lag,
+                readings,
+                event_time,
+                predicted_lag,
             )
             if peak is None or peak.confidence < 0.3:
                 continue
@@ -738,9 +724,7 @@ class AdaptiveLagCalibrator:
         """
         return alpha_0 / (1.0 + step / self._tau)
 
-    def _compute_convergence(
-        self, profile: PersonalCalibrationProfile
-    ) -> float:
+    def _compute_convergence(self, profile: PersonalCalibrationProfile) -> float:
         """Compute convergence score from recent MAE trend.
 
         Score is high (close to 1.0) when:
@@ -770,9 +754,7 @@ class AdaptiveLagCalibrator:
         # Stability (low variance = stable)
         if len(recent) > 1:
             mean_recent = recent_mae
-            variance = sum((x - mean_recent) ** 2 for x in recent) / len(
-                recent
-            )
+            variance = sum((x - mean_recent) ** 2 for x in recent) / len(recent)
             std = math.sqrt(variance)
             stability = 1.0 / (1.0 + std / (mean_recent + 1e-6))
         else:
@@ -785,43 +767,30 @@ class AdaptiveLagCalibrator:
 
     # ── Diagnostic helpers ──────────────────────────────────────────
 
-    def get_calibration_summary(
-        self, user_id: str
-    ) -> Dict[str, Any]:
+    def get_calibration_summary(self, user_id: str) -> dict[str, Any]:
         """Get a summary of the user's calibration state.
 
         Useful for diagnostics, API responses, and debugging.
         """
         profile = self.get_profile(user_id)
 
-        summary: Dict[str, Any] = {
+        summary: dict[str, Any] = {
             "user_id": user_id,
             "observation_count": profile.observation_count,
             "convergence_score": round(profile.convergence_score, 3),
             "is_converged": profile.is_converged,
-            "genetic_correction_factor": round(
-                profile.genetic_correction_factor, 4
-            ),
-            "base_lag_offsets": {
-                k: round(v, 1) for k, v in profile.base_lag_offsets.items()
-            },
+            "genetic_correction_factor": round(profile.genetic_correction_factor, 4),
+            "base_lag_offsets": {k: round(v, 1) for k, v in profile.base_lag_offsets.items()},
             "circadian_corrections": {
-                str(k): round(v, 4)
-                for k, v in profile.circadian_corrections.items()
+                str(k): round(v, 4) for k, v in profile.circadian_corrections.items()
             },
-            "last_updated": (
-                profile.last_updated.isoformat()
-                if profile.last_updated
-                else None
-            ),
+            "last_updated": (profile.last_updated.isoformat() if profile.last_updated else None),
         }
 
         if profile.mae_history:
             summary["current_mae"] = round(profile.mae_history[-1], 1)
             if len(profile.mae_history) >= self.CONVERGENCE_WINDOW:
                 recent = profile.mae_history[-self.CONVERGENCE_WINDOW :]
-                summary["recent_avg_mae"] = round(
-                    sum(recent) / len(recent), 1
-                )
+                summary["recent_avg_mae"] = round(sum(recent) / len(recent), 1)
 
         return summary

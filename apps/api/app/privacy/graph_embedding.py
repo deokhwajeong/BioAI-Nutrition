@@ -32,8 +32,9 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+from typing import Any
+
 
 @dataclass
 class GraphNode:
@@ -44,9 +45,10 @@ class GraphNode:
 
     node_id: str
     node_type: str  # "user", "biomarker", "meal", "condition", "household"
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
     owner_id: str = ""  # Which user owns this node
     is_shared: bool = False  # Household-shared or private
+
 
 @dataclass
 class GraphEdge:
@@ -60,9 +62,10 @@ class GraphEdge:
     target_id: str
     edge_type: str
     weight: float = 1.0
-    consent_required: Optional[str] = None  # ConsentScope needed
+    consent_required: str | None = None  # ConsentScope needed
     is_active: bool = True  # Can be severed by consent revocation
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class NodeEmbedding:
@@ -75,11 +78,12 @@ class NodeEmbedding:
 
     node_id: str
     node_type: str
-    embedding: List[float]
+    embedding: list[float]
     dimension: int
     timestamp: datetime
     is_differential_private: bool = False
     epsilon_used: float = 0.0
+
 
 class HealthGraphEmbedding:
     """Computes privacy-preserving graph embeddings.
@@ -110,9 +114,9 @@ class HealthGraphEmbedding:
 
     def __init__(self, embedding_dim: int = 64):
         self._dim = embedding_dim
-        self._nodes: Dict[str, GraphNode] = {}
-        self._edges: List[GraphEdge] = []
-        self._embeddings: Dict[str, NodeEmbedding] = {}
+        self._nodes: dict[str, GraphNode] = {}
+        self._edges: list[GraphEdge] = []
+        self._embeddings: dict[str, NodeEmbedding] = {}
 
     def add_node(self, node: GraphNode) -> None:
         """Add a node to the health graph."""
@@ -151,7 +155,7 @@ class HealthGraphEmbedding:
 
     def compute_node_embedding(
         self, node_id: str, include_neighbors: bool = True
-    ) -> Optional[NodeEmbedding]:
+    ) -> NodeEmbedding | None:
         """Compute embedding for a single node.
 
         Uses a simplified graph neural network approach:
@@ -181,7 +185,7 @@ class HealthGraphEmbedding:
         features = [math.tanh(f) for f in features]
 
         # Step 4: L2 normalize to unit sphere
-        norm = math.sqrt(sum(f ** 2 for f in features))
+        norm = math.sqrt(sum(f**2 for f in features))
         if norm > 0:
             features = [f / norm for f in features]
 
@@ -190,14 +194,12 @@ class HealthGraphEmbedding:
             node_type=node.node_type,
             embedding=features,
             dimension=self._dim,
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
         self._embeddings[node_id] = embedding
         return embedding
 
-    def compute_subgraph_embedding(
-        self, user_id: str
-    ) -> Optional[NodeEmbedding]:
+    def compute_subgraph_embedding(self, user_id: str) -> NodeEmbedding | None:
         """Compute a single embedding for a user's entire subgraph.
 
         This aggregates all nodes owned by the user into one vector,
@@ -208,15 +210,14 @@ class HealthGraphEmbedding:
         impossible to infer the number or type of biomarkers collected.
         """
         user_nodes = [
-            n for n in self._nodes.values()
-            if n.owner_id == user_id or n.node_id == user_id
+            n for n in self._nodes.values() if n.owner_id == user_id or n.node_id == user_id
         ]
 
         if not user_nodes:
             return None
 
         # Compute individual embeddings
-        node_embeddings: List[List[float]] = []
+        node_embeddings: list[list[float]] = []
         for node in user_nodes:
             emb = self.compute_node_embedding(node.node_id)
             if emb:
@@ -234,7 +235,7 @@ class HealthGraphEmbedding:
         aggregated = [v / n for v in aggregated]
 
         # Normalize
-        norm = math.sqrt(sum(v ** 2 for v in aggregated))
+        norm = math.sqrt(sum(v**2 for v in aggregated))
         if norm > 0:
             aggregated = [v / norm for v in aggregated]
 
@@ -243,12 +244,10 @@ class HealthGraphEmbedding:
             node_type="user_subgraph",
             embedding=aggregated,
             dimension=self._dim,
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
-    def compute_household_embedding(
-        self, user_ids: List[str]
-    ) -> Optional[NodeEmbedding]:
+    def compute_household_embedding(self, user_ids: list[str]) -> NodeEmbedding | None:
         """Compute household-level embedding from individual subgraphs.
 
         Patent-relevant: Household embedding is computed from individual
@@ -256,16 +255,14 @@ class HealthGraphEmbedding:
         recommendations (e.g., "reduce sodium for the family") without
         the server knowing any individual's blood pressure reading.
         """
-        subgraph_embeddings: List[List[float]] = []
+        subgraph_embeddings: list[list[float]] = []
         for uid in user_ids:
             sub_emb = self.compute_subgraph_embedding(uid)
             if sub_emb:
                 subgraph_embeddings.append(sub_emb.embedding)
 
         # Also include shared nodes
-        shared_nodes = [
-            n for n in self._nodes.values() if n.is_shared
-        ]
+        shared_nodes = [n for n in self._nodes.values() if n.is_shared]
         for node in shared_nodes:
             emb = self.compute_node_embedding(node.node_id)
             if emb:
@@ -285,7 +282,7 @@ class HealthGraphEmbedding:
             for j in range(self._dim):
                 aggregated[j] += emb[j] * weight
 
-        norm = math.sqrt(sum(v ** 2 for v in aggregated))
+        norm = math.sqrt(sum(v**2 for v in aggregated))
         if norm > 0:
             aggregated = [v / norm for v in aggregated]
 
@@ -294,21 +291,15 @@ class HealthGraphEmbedding:
             node_type="household",
             embedding=aggregated,
             dimension=self._dim,
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
-    def compute_similarity(
-        self, emb1: NodeEmbedding, emb2: NodeEmbedding
-    ) -> float:
+    def compute_similarity(self, emb1: NodeEmbedding, emb2: NodeEmbedding) -> float:
         """Compute cosine similarity between two embeddings."""
-        dot_product = sum(
-            a * b for a, b in zip(emb1.embedding, emb2.embedding)
-        )
+        dot_product = sum(a * b for a, b in zip(emb1.embedding, emb2.embedding))
         return dot_product  # Already L2-normalized, so dot = cosine sim
 
-    def _properties_to_vector(
-        self, properties: Dict[str, Any]
-    ) -> List[float]:
+    def _properties_to_vector(self, properties: dict[str, Any]) -> list[float]:
         """Convert node properties to a fixed-size feature vector.
 
         Uses deterministic hashing so the same properties always
@@ -321,13 +312,13 @@ class HealthGraphEmbedding:
             h = hashlib.sha256(f"{key}:{value}".encode()).hexdigest()
             for j in range(self._dim):
                 byte_idx = j % 32
-                byte_val = int(h[byte_idx * 2: byte_idx * 2 + 2], 16)
+                byte_val = int(h[byte_idx * 2 : byte_idx * 2 + 2], 16)
                 # Scale to [-1, 1]
                 vector[j] += (byte_val / 128.0 - 1.0) * (1.0 / (i + 1))
 
         return vector
 
-    def _aggregate_neighbors(self, node_id: str) -> List[float]:
+    def _aggregate_neighbors(self, node_id: str) -> list[float]:
         """Aggregate features from neighboring nodes via active edges."""
         aggregated = [0.0] * self._dim
         count = 0

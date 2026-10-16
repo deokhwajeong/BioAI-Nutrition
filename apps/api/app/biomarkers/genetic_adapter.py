@@ -12,8 +12,7 @@ modifiers as multiplicative weights on nutrient demand calculations.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List
+from datetime import UTC, datetime, timedelta
 
 from .base import (
     BiomarkerReading,
@@ -32,7 +31,7 @@ NUTRIGENOMIC_VARIANTS = {
         "name": "Methylenetetrahydrofolate reductase",
         "risk_allele": "T",
         "effects": {
-            "folate_requirement_modifier": 1.5,   # 50% higher folate need
+            "folate_requirement_modifier": 1.5,  # 50% higher folate need
             "b12_requirement_modifier": 1.3,
             "homocysteine_risk": 1.4,
         },
@@ -43,8 +42,8 @@ NUTRIGENOMIC_VARIANTS = {
         "name": "Fat mass and obesity-associated",
         "risk_allele": "A",
         "effects": {
-            "calorie_sensitivity_modifier": 1.2,   # More calorie-sensitive
-            "satiety_response_modifier": 0.85,     # Reduced satiety
+            "calorie_sensitivity_modifier": 1.2,  # More calorie-sensitive
+            "satiety_response_modifier": 0.85,  # Reduced satiety
             "fat_metabolism_modifier": 0.9,
         },
     },
@@ -65,8 +64,8 @@ NUTRIGENOMIC_VARIANTS = {
         "name": "Transcription factor 7-like 2",
         "risk_allele": "T",
         "effects": {
-            "carb_sensitivity_modifier": 1.3,      # More carb-sensitive
-            "insulin_response_modifier": 0.8,      # Weaker insulin response
+            "carb_sensitivity_modifier": 1.3,  # More carb-sensitive
+            "insulin_response_modifier": 0.8,  # Weaker insulin response
             "glycemic_load_threshold_modifier": 0.7,
         },
     },
@@ -87,7 +86,7 @@ NUTRIGENOMIC_VARIANTS = {
         "risk_allele": "C",
         "effects": {
             "caffeine_metabolism_rate": 0.5,  # Slow metabolizer
-            "caffeine_max_daily_mg": 200,     # vs 400 for fast
+            "caffeine_max_daily_mg": 200,  # vs 400 for fast
         },
     },
     # VDR: Vitamin D receptor
@@ -113,6 +112,7 @@ NUTRIGENOMIC_VARIANTS = {
     },
 }
 
+
 class GeneticAdapter(BiomarkerSource):
     """Adapter for genetic/genomic data.
 
@@ -127,23 +127,21 @@ class GeneticAdapter(BiomarkerSource):
     """
 
     def __init__(self):
-        self._genotype_store: Dict[str, Dict[str, str]] = {}
+        self._genotype_store: dict[str, dict[str, str]] = {}
 
     @property
     def source_id(self) -> str:
         return "genetic_profile"
 
     @property
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         return [BiomarkerType.GENOTYPE]
 
     def get_sampling_characteristics(
         self, biomarker_type: BiomarkerType
     ) -> SamplingCharacteristics:
         if biomarker_type != BiomarkerType.GENOTYPE:
-            raise ValueError(
-                f"GeneticAdapter does not provide {biomarker_type}"
-            )
+            raise ValueError(f"GeneticAdapter does not provide {biomarker_type}")
 
         return SamplingCharacteristics(
             typical_interval=timedelta(days=36500),  # ~100 years (static)
@@ -161,7 +159,7 @@ class GeneticAdapter(BiomarkerSource):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         """Fetch genetic profile as a single 'reading'.
 
         For static data, the time window is ignored — the current
@@ -178,7 +176,7 @@ class GeneticAdapter(BiomarkerSource):
                 source_id=self.source_id,
                 user_id=user_id,
                 biomarker_type=BiomarkerType.GENOTYPE,
-                timestamp=datetime.now(timezone.utc).replace(tzinfo=None),  # Always "current"
+                timestamp=datetime.now(UTC).replace(tzinfo=None),  # Always "current"
                 value=len(genotypes),  # Number of variants
                 unit="variants",
                 confidence=1.0,
@@ -211,9 +209,7 @@ class GeneticAdapter(BiomarkerSource):
         self._genotype_store[reading.user_id] = genotypes
         return True
 
-    def compute_metabolic_modifiers(
-        self, user_id: str
-    ) -> Dict[str, float]:
+    def compute_metabolic_modifiers(self, user_id: str) -> dict[str, float]:
         """Compute personalized metabolic modifier coefficients.
 
         Patent-relevant core algorithm: Translates raw genotype data into
@@ -228,7 +224,7 @@ class GeneticAdapter(BiomarkerSource):
             return {}
 
         # Aggregate all genetic effects
-        aggregated: Dict[str, List[float]] = {}
+        aggregated: dict[str, list[float]] = {}
 
         for snp_id, user_genotype in genotypes.items():
             variant_info = NUTRIGENOMIC_VARIANTS.get(snp_id)
@@ -259,7 +255,7 @@ class GeneticAdapter(BiomarkerSource):
                     aggregated[effect_name].append(scaled)
 
         # Combine multiple effects on the same modifier (geometric mean)
-        result: Dict[str, float] = {}
+        result: dict[str, float] = {}
         for name, values in aggregated.items():
             if len(values) == 1:
                 result[name] = round(values[0], 3)
@@ -271,4 +267,3 @@ class GeneticAdapter(BiomarkerSource):
                 result[name] = round(product ** (1.0 / len(values)), 3)
 
         return result
-

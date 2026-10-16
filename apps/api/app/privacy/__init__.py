@@ -22,16 +22,16 @@ Patent-relevant: These modules support Independent Claim 3 —
 and differential privacy aggregation."
 """
 
+from .consent_manager import DynamicConsentManager
 from .differential_privacy import (
+    NUTRIENT_SENSITIVITY_TIERS,
+    TIER_EPSILON_MAP,
     DifferentialPrivacyEngine,
     DynamicEpsilonAllocator,
     PrivacyBudget,
     PrivacyExposureReport,
     SensitivityTier,
-    TIER_EPSILON_MAP,
-    NUTRIENT_SENSITIVITY_TIERS,
 )
-from .consent_manager import DynamicConsentManager
 from .graph_embedding import HealthGraphEmbedding
 
 __all__ = [
@@ -45,4 +45,3 @@ __all__ = [
     "DynamicConsentManager",
     "HealthGraphEmbedding",
 ]
-

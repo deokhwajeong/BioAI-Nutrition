@@ -40,37 +40,39 @@ from multiple physiological angles is the inventive step.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from ..biomarkers.base import BiomarkerType
-from .temporal_sync import SynchronizedFrame, AlignedSignal
+from .temporal_sync import SynchronizedFrame
+
 
 class MetabolicPhase(str, Enum):
     """Individual metabolic phases that can combine."""
 
     # Feeding-related phases
-    FASTING = "fasting"                    # ≥12h since last meal
+    FASTING = "fasting"  # ≥12h since last meal
     POSTPRANDIAL_EARLY = "postprandial_early"  # 0-2h after meal
-    POSTPRANDIAL_LATE = "postprandial_late"    # 2-4h after meal
-    POST_ABSORPTIVE = "post_absorptive"    # 4-12h after meal
+    POSTPRANDIAL_LATE = "postprandial_late"  # 2-4h after meal
+    POST_ABSORPTIVE = "post_absorptive"  # 4-12h after meal
 
     # Exercise-related phases
-    PRE_EXERCISE = "pre_exercise"          # 0-30min before planned exercise
+    PRE_EXERCISE = "pre_exercise"  # 0-30min before planned exercise
     DURING_EXERCISE = "during_exercise"
     RECOVERY_IMMEDIATE = "recovery_immediate"  # 0-2h after exercise
     RECOVERY_DELAYED = "recovery_delayed"  # 2-48h after intense exercise
 
     # Sleep-related phases
-    PRE_SLEEP = "pre_sleep"                # 1-2h before typical bedtime
+    PRE_SLEEP = "pre_sleep"  # 1-2h before typical bedtime
     SLEEPING = "sleeping"
-    POST_WAKING = "post_waking"            # 0-1h after waking
+    POST_WAKING = "post_waking"  # 0-1h after waking
 
     # Stress/metabolic states
     METABOLIC_STRESS = "metabolic_stress"  # High cortisol indicators
-    RECOVERY = "recovery"                  # High parasympathetic
-    CIRCADIAN_LOW = "circadian_low"        # Afternoon energy dip
+    RECOVERY = "recovery"  # High parasympathetic
+    CIRCADIAN_LOW = "circadian_low"  # Afternoon energy dip
+
 
 @dataclass
 class MetabolicState:
@@ -97,9 +99,9 @@ class MetabolicState:
     """
 
     timestamp: datetime
-    active_phases: Set[MetabolicPhase] = field(default_factory=set)
+    active_phases: set[MetabolicPhase] = field(default_factory=set)
     primary_phase: MetabolicPhase = MetabolicPhase.FASTING
-    phase_intensities: Dict[MetabolicPhase, float] = field(default_factory=dict)
+    phase_intensities: dict[MetabolicPhase, float] = field(default_factory=dict)
     hours_since_last_meal: float = 12.0
     hours_since_last_exercise: float = 24.0
     hours_since_waking: float = 8.0
@@ -107,8 +109,8 @@ class MetabolicState:
     energy_availability: float = 0.0
     hydration_estimate: float = 0.8
     sleep_quality_estimate: float = 0.7  # 0-1, HRV-based sleep quality
-    nutrient_priority_shifts: Dict[str, float] = field(default_factory=dict)
-    decision_log: List[str] = field(default_factory=list)
+    nutrient_priority_shifts: dict[str, float] = field(default_factory=dict)
+    decision_log: list[str] = field(default_factory=list)
 
     def to_context_string(self) -> str:
         """Convert to a context string for the normalization layer."""
@@ -124,9 +126,10 @@ class MetabolicState:
             return "recovery"
         return "unknown"
 
+
 # Nutrient priority modifiers per metabolic phase
 # >1.0 = increased need, <1.0 = decreased need
-PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
+PHASE_NUTRIENT_MODIFIERS: dict[MetabolicPhase, dict[str, float]] = {
     MetabolicPhase.FASTING: {
         "carbohydrate_priority": 0.8,
         "protein_priority": 1.0,
@@ -143,7 +146,7 @@ PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
     },
     MetabolicPhase.RECOVERY_IMMEDIATE: {
         "carbohydrate_priority": 1.5,  # Glycogen replenishment
-        "protein_priority": 1.4,       # Muscle repair
+        "protein_priority": 1.4,  # Muscle repair
         "fat_priority": 0.8,
         "water_priority": 1.5,
         "electrolyte_priority": 1.4,
@@ -156,15 +159,15 @@ PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
     },
     MetabolicPhase.PRE_SLEEP: {
         "carbohydrate_priority": 0.5,  # Avoid glucose spikes before sleep
-        "protein_priority": 1.1,       # Casein protein benefits sleep/recovery
+        "protein_priority": 1.1,  # Casein protein benefits sleep/recovery
         "fat_priority": 0.8,
-        "caffeine_limit": 0.0,         # No caffeine
-        "water_priority": 0.7,         # Reduce to avoid nocturia
+        "caffeine_limit": 0.0,  # No caffeine
+        "water_priority": 0.7,  # Reduce to avoid nocturia
     },
     MetabolicPhase.POST_WAKING: {
         "carbohydrate_priority": 1.0,
         "protein_priority": 1.2,
-        "water_priority": 1.4,         # Rehydrate after sleep
+        "water_priority": 1.4,  # Rehydrate after sleep
         "electrolyte_priority": 1.2,
     },
     MetabolicPhase.METABOLIC_STRESS: {
@@ -175,13 +178,14 @@ PHASE_NUTRIENT_MODIFIERS: Dict[MetabolicPhase, Dict[str, float]] = {
         "vitamin_b_priority": 1.2,
     },
     MetabolicPhase.DURING_EXERCISE: {
-        "carbohydrate_priority": 1.8,   # Fuel for activity
+        "carbohydrate_priority": 1.8,  # Fuel for activity
         "protein_priority": 0.5,
         "fat_priority": 0.3,
         "water_priority": 2.0,
         "electrolyte_priority": 1.8,
     },
 }
+
 
 class MetabolicStateEstimator:
     """Estimates current metabolic state from synchronized biomarker frames.
@@ -215,9 +219,9 @@ class MetabolicStateEstimator:
     """
 
     def __init__(self):
-        self._meal_history: Dict[str, List[datetime]] = {}
-        self._exercise_history: Dict[str, List[Dict[str, Any]]] = {}
-        self._sleep_history: Dict[str, List[Dict[str, Any]]] = {}
+        self._meal_history: dict[str, list[datetime]] = {}
+        self._exercise_history: dict[str, list[dict[str, Any]]] = {}
+        self._sleep_history: dict[str, list[dict[str, Any]]] = {}
 
     def record_meal_event(self, user_id: str, timestamp: datetime) -> None:
         """Record a meal event for metabolic state tracking."""
@@ -226,9 +230,7 @@ class MetabolicStateEstimator:
         self._meal_history[user_id].append(timestamp)
         # Keep last 30 days
         cutoff = timestamp - timedelta(days=30)
-        self._meal_history[user_id] = [
-            t for t in self._meal_history[user_id] if t > cutoff
-        ]
+        self._meal_history[user_id] = [t for t in self._meal_history[user_id] if t > cutoff]
 
     def record_exercise_event(
         self,
@@ -240,11 +242,13 @@ class MetabolicStateEstimator:
         """Record an exercise event."""
         if user_id not in self._exercise_history:
             self._exercise_history[user_id] = []
-        self._exercise_history[user_id].append({
-            "timestamp": timestamp,
-            "duration_minutes": duration_minutes,
-            "intensity": intensity,
-        })
+        self._exercise_history[user_id].append(
+            {
+                "timestamp": timestamp,
+                "duration_minutes": duration_minutes,
+                "intensity": intensity,
+            }
+        )
 
     def record_sleep_event(
         self,
@@ -256,17 +260,19 @@ class MetabolicStateEstimator:
         """Record a sleep event."""
         if user_id not in self._sleep_history:
             self._sleep_history[user_id] = []
-        self._sleep_history[user_id].append({
-            "start": sleep_start,
-            "end": sleep_end,
-            "quality": quality,
-        })
+        self._sleep_history[user_id].append(
+            {
+                "start": sleep_start,
+                "end": sleep_end,
+                "quality": quality,
+            }
+        )
 
     def estimate(
         self,
         user_id: str,
         frame: SynchronizedFrame,
-        current_time: Optional[datetime] = None,
+        current_time: datetime | None = None,
     ) -> MetabolicState:
         """Estimate current metabolic state from a synchronized frame.
 
@@ -302,9 +308,7 @@ class MetabolicStateEstimator:
 
         return state
 
-    def _determine_feeding_phase(
-        self, user_id: str, now: datetime, state: MetabolicState
-    ) -> None:
+    def _determine_feeding_phase(self, user_id: str, now: datetime, state: MetabolicState) -> None:
         """Classify current feeding/fasting phase."""
         meals = self._meal_history.get(user_id, [])
 
@@ -312,37 +316,33 @@ class MetabolicStateEstimator:
             state.hours_since_last_meal = 12.0
             state.active_phases.add(MetabolicPhase.FASTING)
             state.phase_intensities[MetabolicPhase.FASTING] = 1.0
-            state.decision_log.append(
-                "Feeding: No meal history → default FASTING (12h assumed)"
-            )
+            state.decision_log.append("Feeding: No meal history → default FASTING (12h assumed)")
             return
 
         last_meal = max(meals)
         # Ensure timezone-awareness compatibility
         _now = now
         _lm = last_meal
-        if hasattr(_lm, 'tzinfo') and _lm.tzinfo is not None and _now.tzinfo is None:
-            from datetime import timezone
-            _now = _now.replace(tzinfo=timezone.utc)
-        elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(_lm, 'tzinfo') or _lm.tzinfo is None):
-            from datetime import timezone
-            _lm = _lm.replace(tzinfo=timezone.utc)
+        if hasattr(_lm, "tzinfo") and _lm.tzinfo is not None and _now.tzinfo is None:
+            _now = _now.replace(tzinfo=UTC)
+        elif (
+            hasattr(_now, "tzinfo")
+            and _now.tzinfo is not None
+            and (not hasattr(_lm, "tzinfo") or _lm.tzinfo is None)
+        ):
+            _lm = _lm.replace(tzinfo=UTC)
         hours = (_now - _lm).total_seconds() / 3600.0
         state.hours_since_last_meal = hours
 
         if hours < 2:
             state.active_phases.add(MetabolicPhase.POSTPRANDIAL_EARLY)
-            state.phase_intensities[MetabolicPhase.POSTPRANDIAL_EARLY] = (
-                1.0 - hours / 2.0
-            )
+            state.phase_intensities[MetabolicPhase.POSTPRANDIAL_EARLY] = 1.0 - hours / 2.0
             state.decision_log.append(
                 f"Feeding: hours_since_meal={hours:.1f}h < 2h → POSTPRANDIAL_EARLY (intensity={1.0 - hours / 2.0:.2f})"
             )
         elif hours < 4:
             state.active_phases.add(MetabolicPhase.POSTPRANDIAL_LATE)
-            state.phase_intensities[MetabolicPhase.POSTPRANDIAL_LATE] = (
-                1.0 - (hours - 2) / 2.0
-            )
+            state.phase_intensities[MetabolicPhase.POSTPRANDIAL_LATE] = 1.0 - (hours - 2) / 2.0
             state.decision_log.append(
                 f"Feeding: 2h ≤ hours_since_meal={hours:.1f}h < 4h → POSTPRANDIAL_LATE"
             )
@@ -354,12 +354,8 @@ class MetabolicStateEstimator:
             )
         else:
             state.active_phases.add(MetabolicPhase.FASTING)
-            state.phase_intensities[MetabolicPhase.FASTING] = min(
-                1.0, hours / 16.0
-            )
-            state.decision_log.append(
-                f"Feeding: hours_since_meal={hours:.1f}h ≥ 12h → FASTING"
-            )
+            state.phase_intensities[MetabolicPhase.FASTING] = min(1.0, hours / 16.0)
+            state.decision_log.append(f"Feeding: hours_since_meal={hours:.1f}h ≥ 12h → FASTING")
 
     def _determine_exercise_phase(
         self,
@@ -397,18 +393,18 @@ class MetabolicStateEstimator:
             return
 
         last_ex = max(exercises, key=lambda e: e["timestamp"])
-        end_time = last_ex["timestamp"] + timedelta(
-            minutes=last_ex["duration_minutes"]
-        )
+        end_time = last_ex["timestamp"] + timedelta(minutes=last_ex["duration_minutes"])
         # Ensure timezone-awareness compatibility
         _now = now
         _et = end_time
-        if hasattr(_et, 'tzinfo') and _et.tzinfo is not None and _now.tzinfo is None:
-            from datetime import timezone
-            _now = _now.replace(tzinfo=timezone.utc)
-        elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(_et, 'tzinfo') or _et.tzinfo is None):
-            from datetime import timezone
-            _et = _et.replace(tzinfo=timezone.utc)
+        if hasattr(_et, "tzinfo") and _et.tzinfo is not None and _now.tzinfo is None:
+            _now = _now.replace(tzinfo=UTC)
+        elif (
+            hasattr(_now, "tzinfo")
+            and _now.tzinfo is not None
+            and (not hasattr(_et, "tzinfo") or _et.tzinfo is None)
+        ):
+            _et = _et.replace(tzinfo=UTC)
         hours = (_now - _et).total_seconds() / 3600.0
         state.hours_since_last_exercise = max(0, hours)
 
@@ -423,17 +419,13 @@ class MetabolicStateEstimator:
             )
         elif hours < 2:
             state.active_phases.add(MetabolicPhase.RECOVERY_IMMEDIATE)
-            state.phase_intensities[MetabolicPhase.RECOVERY_IMMEDIATE] = (
-                1.0 - hours / 2.0
-            )
+            state.phase_intensities[MetabolicPhase.RECOVERY_IMMEDIATE] = 1.0 - hours / 2.0
             state.decision_log.append(
                 f"Exercise: {hours:.1f}h since {intensity} exercise < 2h → RECOVERY_IMMEDIATE"
             )
         elif intensity in ("high", "extreme") and hours < 48:
             state.active_phases.add(MetabolicPhase.RECOVERY_DELAYED)
-            state.phase_intensities[MetabolicPhase.RECOVERY_DELAYED] = (
-                max(0, 1.0 - hours / 48.0)
-            )
+            state.phase_intensities[MetabolicPhase.RECOVERY_DELAYED] = max(0, 1.0 - hours / 48.0)
             state.decision_log.append(
                 f"Exercise: {hours:.1f}h since {intensity} exercise, 2h-48h → RECOVERY_DELAYED"
             )
@@ -482,22 +474,24 @@ class MetabolicStateEstimator:
             # Ensure timezone-awareness compatibility
             sleep_end = last_sleep["end"]
             _now = now
-            if hasattr(sleep_end, 'tzinfo') and sleep_end.tzinfo is not None and _now.tzinfo is None:
-                from datetime import timezone
-                _now = _now.replace(tzinfo=timezone.utc)
-            elif hasattr(_now, 'tzinfo') and _now.tzinfo is not None and (not hasattr(sleep_end, 'tzinfo') or sleep_end.tzinfo is None):
-                from datetime import timezone
-                sleep_end = sleep_end.replace(tzinfo=timezone.utc)
-            hours_since_waking = (
-                _now - sleep_end
-            ).total_seconds() / 3600.0
+            if (
+                hasattr(sleep_end, "tzinfo")
+                and sleep_end.tzinfo is not None
+                and _now.tzinfo is None
+            ):
+                _now = _now.replace(tzinfo=UTC)
+            elif (
+                hasattr(_now, "tzinfo")
+                and _now.tzinfo is not None
+                and (not hasattr(sleep_end, "tzinfo") or sleep_end.tzinfo is None)
+            ):
+                sleep_end = sleep_end.replace(tzinfo=UTC)
+            hours_since_waking = (_now - sleep_end).total_seconds() / 3600.0
             state.hours_since_waking = max(0, hours_since_waking)
 
             if hours_since_waking < 1:
                 state.active_phases.add(MetabolicPhase.POST_WAKING)
-                state.phase_intensities[MetabolicPhase.POST_WAKING] = (
-                    1.0 - hours_since_waking
-                )
+                state.phase_intensities[MetabolicPhase.POST_WAKING] = 1.0 - hours_since_waking
                 state.decision_log.append(
                     f"Sleep: {hours_since_waking:.1f}h since waking < 1h → POST_WAKING"
                 )
@@ -505,16 +499,10 @@ class MetabolicStateEstimator:
         # Check if approaching bedtime (21:00-23:00)
         if 21 <= hour < 23:
             state.active_phases.add(MetabolicPhase.PRE_SLEEP)
-            state.phase_intensities[MetabolicPhase.PRE_SLEEP] = (
-                (hour - 21) / 2.0
-            )
-            state.decision_log.append(
-                f"Sleep: hour={hour:02d}:00 ∈ [21:00-23:00] → PRE_SLEEP"
-            )
+            state.phase_intensities[MetabolicPhase.PRE_SLEEP] = (hour - 21) / 2.0
+            state.decision_log.append(f"Sleep: hour={hour:02d}:00 ∈ [21:00-23:00] → PRE_SLEEP")
 
-    def _detect_stress_state(
-        self, frame: SynchronizedFrame, state: MetabolicState
-    ) -> None:
+    def _detect_stress_state(self, frame: SynchronizedFrame, state: MetabolicState) -> None:
         """Detect metabolic stress from HRV and heart rate signals."""
         hrv_signal = frame.signals.get(BiomarkerType.HRV)
 
@@ -522,8 +510,8 @@ class MetabolicStateEstimator:
             # Low HRV indicates sympathetic dominance (stress)
             if hrv_signal.value < 30:
                 state.active_phases.add(MetabolicPhase.METABOLIC_STRESS)
-                state.phase_intensities[MetabolicPhase.METABOLIC_STRESS] = (
-                    max(0, 1.0 - hrv_signal.value / 30.0)
+                state.phase_intensities[MetabolicPhase.METABOLIC_STRESS] = max(
+                    0, 1.0 - hrv_signal.value / 30.0
                 )
                 state.decision_log.append(
                     f"Stress: HRV={hrv_signal.value:.1f}ms < 30ms threshold → METABOLIC_STRESS"
@@ -542,9 +530,7 @@ class MetabolicStateEstimator:
                     f"Stress: HRV={hrv_signal.value:.1f}ms ∈ [30-60ms] → neutral autonomic state"
                 )
         else:
-            state.decision_log.append(
-                "Stress: HRV signal unavailable or low confidence → skipped"
-            )
+            state.decision_log.append("Stress: HRV signal unavailable or low confidence → skipped")
 
     def _estimate_sleep_quality(
         self,
@@ -638,8 +624,7 @@ class MetabolicStateEstimator:
                 duration_contribution = (duration_contribution + recorded_quality) / 2.0
 
             state.decision_log.append(
-                f"SleepQuality: duration={duration_hours:.1f}h → "
-                f"dur_q={duration_contribution:.2f}"
+                f"SleepQuality: duration={duration_hours:.1f}h → dur_q={duration_contribution:.2f}"
             )
 
         # ── Combine signals with weighted average ─────────────────
@@ -661,9 +646,7 @@ class MetabolicStateEstimator:
                 f"SleepQuality: final={quality:.2f} (from {len(contributions)} signals)"
             )
         else:
-            state.decision_log.append(
-                "SleepQuality: no HRV or sleep data → default 0.7"
-            )
+            state.decision_log.append("SleepQuality: no HRV or sleep data → default 0.7")
 
         state.sleep_quality_estimate = max(0.0, min(1.0, quality))
 
@@ -684,9 +667,7 @@ class MetabolicStateEstimator:
         if MetabolicPhase.RECOVERY_IMMEDIATE in state.active_phases:
             sensitivity += 0.15
         elif MetabolicPhase.RECOVERY_DELAYED in state.active_phases:
-            intensity = state.phase_intensities.get(
-                MetabolicPhase.RECOVERY_DELAYED, 0
-            )
+            intensity = state.phase_intensities.get(MetabolicPhase.RECOVERY_DELAYED, 0)
             sensitivity += 0.10 * intensity
 
         # Postprandial reduces sensitivity temporarily
@@ -695,9 +676,7 @@ class MetabolicStateEstimator:
 
         # Stress reduces sensitivity
         if MetabolicPhase.METABOLIC_STRESS in state.active_phases:
-            intensity = state.phase_intensities.get(
-                MetabolicPhase.METABOLIC_STRESS, 0
-            )
+            intensity = state.phase_intensities.get(MetabolicPhase.METABOLIC_STRESS, 0)
             sensitivity -= 0.15 * intensity
 
         # Poor sleep reduces next-day insulin sensitivity
@@ -764,9 +743,7 @@ class MetabolicStateEstimator:
 
         return MetabolicPhase.FASTING
 
-    def _compute_nutrient_shifts(
-        self, state: MetabolicState
-    ) -> Dict[str, float]:
+    def _compute_nutrient_shifts(self, state: MetabolicState) -> dict[str, float]:
         """Compute combined nutrient priority shifts from all active phases.
 
         Patent-relevant: Multiple simultaneous metabolic phases create
@@ -778,7 +755,7 @@ class MetabolicStateEstimator:
           protein_priority: 1.4 × 1.2 = 1.68 (extra protein from both)
           water_priority: 1.5 × 1.4 = 2.1 (compounded hydration need)
         """
-        combined: Dict[str, float] = {}
+        combined: dict[str, float] = {}
 
         for phase in state.active_phases:
             modifiers = PHASE_NUTRIENT_MODIFIERS.get(phase, {})
@@ -795,4 +772,3 @@ class MetabolicStateEstimator:
                     combined[nutrient] = scaled
 
         return {k: round(v, 3) for k, v in combined.items()}
-

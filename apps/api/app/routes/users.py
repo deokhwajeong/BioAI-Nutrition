@@ -4,9 +4,10 @@ apps/api/app/routes/users.py
 User management routes for privacy features.
 """
 
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status
 
 router = APIRouter()
+
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(user_id: str):

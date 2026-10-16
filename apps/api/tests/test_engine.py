@@ -13,12 +13,12 @@ Tests cover:
 
 from __future__ import annotations
 
-import asyncio
 import math
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List
+from datetime import UTC, datetime, timedelta
 
 import pytest
+
+from app.biomarkers.activity_adapter import ActivityAdapter
 
 # ── Biomarker adapters ──────────────────────────────────────────────
 from app.biomarkers.base import (
@@ -28,48 +28,45 @@ from app.biomarkers.base import (
     TemporalBehavior,
 )
 from app.biomarkers.cgm_adapter import CGMAdapter
-from app.biomarkers.activity_adapter import ActivityAdapter
-from app.biomarkers.sleep_adapter import SleepAdapter
 from app.biomarkers.genetic_adapter import GeneticAdapter
+from app.biomarkers.sleep_adapter import SleepAdapter
+from app.engine.interpolation import CircadianInterpolator
+from app.engine.metabolic_state import (
+    MetabolicPhase,
+    MetabolicState,
+    MetabolicStateEstimator,
+)
+from app.engine.normalization import (
+    NormalizedSignal,
+    PhysiologicalNormalizer,
+)
+from app.engine.nutrient_calculator import (
+    NutrientBudget,
+    NutrientDemandCalculator,
+    create_default_targets,
+)
 
 # ── Engine modules ──────────────────────────────────────────────────
 from app.engine.temporal_sync import (
-    TemporalSynchronizer,
+    CIRCADIAN_LAG_MODIFIERS,
+    LagComputation,
+    PhysiologicalLagModel,
     Resolution,
     SynchronizedFrame,
-    PhysiologicalLagModel,
-    LagComputation,
-    CIRCADIAN_LAG_MODIFIERS,
+    TemporalSynchronizer,
 )
-from app.engine.normalization import (
-    PhysiologicalNormalizer,
-    PersonalBaseline,
-    NormalizedSignal,
-)
-from app.engine.interpolation import CircadianInterpolator
-from app.engine.metabolic_state import (
-    MetabolicStateEstimator,
-    MetabolicState,
-    MetabolicPhase,
-)
-from app.engine.nutrient_calculator import (
-    NutrientDemandCalculator,
-    NutrientTarget,
-    NutrientBudget,
-    create_default_targets,
+from app.privacy.consent_manager import (
+    ConsentScope,
+    ConsentState,
+    DynamicConsentManager,
 )
 
 # ── Privacy modules ─────────────────────────────────────────────────
 from app.privacy.differential_privacy import DifferentialPrivacyEngine, PrivacyBudget
-from app.privacy.consent_manager import (
-    DynamicConsentManager,
-    ConsentScope,
-    ConsentState,
-)
 from app.privacy.graph_embedding import (
-    HealthGraphEmbedding,
-    GraphNode,
     GraphEdge,
+    GraphNode,
+    HealthGraphEmbedding,
 )
 
 # ═══════════════════════════════════════════════════════════════════
@@ -79,12 +76,13 @@ from app.privacy.graph_embedding import (
 NOW = datetime(2025, 1, 15, 12, 0, 0)  # noon
 USER = "test-user-001"
 
+
 def _make_glucose_readings(
     n: int = 12,
     start: datetime = NOW - timedelta(hours=1),
     interval_minutes: int = 5,
     base_value: float = 110.0,
-) -> List[BiomarkerReading]:
+) -> list[BiomarkerReading]:
     """Generate n CGM readings at regular intervals."""
     readings = []
     for i in range(n):
@@ -102,11 +100,12 @@ def _make_glucose_readings(
         )
     return readings
 
+
 def _make_hr_readings(
     n: int = 6,
     start: datetime = NOW - timedelta(hours=1),
     interval_minutes: int = 10,
-) -> List[BiomarkerReading]:
+) -> list[BiomarkerReading]:
     readings = []
     for i in range(n):
         ts = start + timedelta(minutes=i * interval_minutes)
@@ -122,9 +121,11 @@ def _make_hr_readings(
         )
     return readings
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  1. Biomarker Adapters
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestCGMAdapter:
     """Test CGM adapter ingestion, retrieval, and classification."""
@@ -182,6 +183,7 @@ class TestCGMAdapter:
         assert chars.typical_interval == timedelta(minutes=5)
         assert chars.temporal_behavior == TemporalBehavior.CONTINUOUS
 
+
 class TestActivityAdapter:
     """Test activity adapter."""
 
@@ -226,6 +228,7 @@ class TestActivityAdapter:
         tdee = ActivityAdapter.estimate_tdee(70, 175, 30, "male", readings)
         assert 1500 < tdee < 4000  # reasonable range
 
+
 class TestSleepAdapter:
     def setup_method(self):
         self.adapter = SleepAdapter()
@@ -243,6 +246,7 @@ class TestSleepAdapter:
         )
         ok = await self.adapter.push_reading(reading)
         assert ok is True
+
 
 class TestGeneticAdapter:
     def setup_method(self):
@@ -292,9 +296,11 @@ class TestGeneticAdapter:
         assert "folate_requirement_modifier" in modifiers
         assert modifiers["folate_requirement_modifier"] > 1.0  # increased demand
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  2a. Physiological Lag Model — Core Patent Formula Unit Tests
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestPhysiologicalLagModel:
     """Unit tests proving the core patent formula:
@@ -335,17 +341,13 @@ class TestPhysiologicalLagModel:
     def test_base_lag_glucose_is_60_minutes(self):
         """Δt_base(glucose) = 60 minutes."""
         event_time = datetime(2026, 2, 10, 12, 0, 0)  # noon
-        lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time
-        )
+        lag = self.model.compute_lag(BiomarkerType.GLUCOSE, self.glucose_chars, event_time)
         assert lag.base_lag_seconds == 3600.0  # 60 min = 3600 sec
 
     def test_zero_lag_signal_returns_immediately(self):
         """Signals with zero base lag (HR) skip computation entirely."""
         event_time = datetime(2026, 2, 10, 12, 0, 0)
-        lag = self.model.compute_lag(
-            BiomarkerType.HEART_RATE, self.hr_chars, event_time
-        )
+        lag = self.model.compute_lag(BiomarkerType.HEART_RATE, self.hr_chars, event_time)
         assert lag.effective_lag_seconds == 0
         assert lag.genetic_modifier == 1.0
         assert lag.circadian_modifier == 1.0
@@ -355,9 +357,7 @@ class TestPhysiologicalLagModel:
     def test_circadian_modifier_morning_is_less_than_one(self):
         """φ_circadian at 8:00 AM < 1.0 (faster metabolism in the morning)."""
         morning = datetime(2026, 2, 10, 8, 0, 0)
-        lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, morning
-        )
+        lag = self.model.compute_lag(BiomarkerType.GLUCOSE, self.glucose_chars, morning)
         assert lag.circadian_modifier < 1.0, (
             f"Morning φ should be <1.0, got {lag.circadian_modifier}"
         )
@@ -365,12 +365,8 @@ class TestPhysiologicalLagModel:
     def test_circadian_modifier_night_is_greater_than_one(self):
         """φ_circadian at 2:00 AM > 1.0 (slower metabolism at night)."""
         night = datetime(2026, 2, 10, 2, 0, 0)
-        lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, night
-        )
-        assert lag.circadian_modifier > 1.0, (
-            f"Night φ should be >1.0, got {lag.circadian_modifier}"
-        )
+        lag = self.model.compute_lag(BiomarkerType.GLUCOSE, self.glucose_chars, night)
+        assert lag.circadian_modifier > 1.0, f"Night φ should be >1.0, got {lag.circadian_modifier}"
 
     def test_circadian_modifier_smooth_interpolation(self):
         """φ at 8:30 should be between φ(8:00) and φ(9:00)."""
@@ -409,8 +405,7 @@ class TestPhysiologicalLagModel:
         """Without genetic data, γ_genetic = 1.0."""
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-no-genetics"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-no-genetics"
         )
         assert lag.genetic_modifier == 1.0
         assert lag.genetic_factors_used == []
@@ -421,14 +416,10 @@ class TestPhysiologicalLagModel:
         The inverse of 0.8 = 1.25, meaning glucose stays elevated 25%
         longer because insulin response is 20% weaker.
         """
-        self.model.set_genetic_modifiers(
-            "user-tcf7l2-tt",
-            {"insulin_response_modifier": 0.8}
-        )
+        self.model.set_genetic_modifiers("user-tcf7l2-tt", {"insulin_response_modifier": 0.8})
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-tcf7l2-tt"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-tcf7l2-tt"
         )
         assert abs(lag.genetic_modifier - 1.25) < 0.01, (
             f"Expected γ≈1.25, got {lag.genetic_modifier}"
@@ -438,13 +429,11 @@ class TestPhysiologicalLagModel:
     def test_high_carb_sensitivity_decreases_lag(self):
         """High carb sensitivity (>1.0) → γ < 1.0 → shorter lag."""
         self.model.set_genetic_modifiers(
-            "user-fast-metabolizer",
-            {"carb_sensitivity_modifier": 1.3}
+            "user-fast-metabolizer", {"carb_sensitivity_modifier": 1.3}
         )
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-fast-metabolizer"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-fast-metabolizer"
         )
         assert lag.genetic_modifier < 1.0, (
             f"High sensitivity should give γ<1.0, got {lag.genetic_modifier}"
@@ -462,17 +451,14 @@ class TestPhysiologicalLagModel:
             {
                 "insulin_response_modifier": 0.8,
                 "carb_sensitivity_modifier": 1.3,
-            }
+            },
         )
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-multi-snp"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-multi-snp"
         )
         # Geometric mean of 1/0.8=1.25 and 1/1.3≈0.769
-        expected_gamma = math.exp(
-            (math.log(1.0 / 0.8) + math.log(1.0 / 1.3)) / 2
-        )
+        expected_gamma = math.exp((math.log(1.0 / 0.8) + math.log(1.0 / 1.3)) / 2)
         assert abs(lag.genetic_modifier - round(expected_gamma, 4)) < 0.01, (
             f"Expected γ≈{expected_gamma:.4f}, got {lag.genetic_modifier}"
         )
@@ -481,14 +467,10 @@ class TestPhysiologicalLagModel:
     def test_genetic_modifier_clamped_to_bounds(self):
         """γ is clamped to [0.5, 2.0] for safety."""
         # Extreme value: modifier=0.1 → γ=10.0 → clamped to 2.0
-        self.model.set_genetic_modifiers(
-            "user-extreme",
-            {"insulin_response_modifier": 0.1}
-        )
+        self.model.set_genetic_modifiers("user-extreme", {"insulin_response_modifier": 0.1})
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-extreme"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-extreme"
         )
         assert lag.genetic_modifier <= 2.0
         assert lag.genetic_modifier >= 0.5
@@ -505,19 +487,17 @@ class TestPhysiologicalLagModel:
         """
         self.model.set_genetic_modifiers(
             "user-demo",
-            {"insulin_response_modifier": 0.8}  # γ = 1.25
+            {"insulin_response_modifier": 0.8},  # γ = 1.25
         )
 
         morning = datetime(2026, 2, 10, 8, 0, 0)
         night = datetime(2026, 2, 10, 2, 0, 0)
 
         lag_morning = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, morning,
-            user_id="user-demo"
+            BiomarkerType.GLUCOSE, self.glucose_chars, morning, user_id="user-demo"
         )
         lag_night = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, night,
-            user_id="user-demo"
+            BiomarkerType.GLUCOSE, self.glucose_chars, night, user_id="user-demo"
         )
 
         # Morning lag should be shorter than night lag
@@ -541,14 +521,10 @@ class TestPhysiologicalLagModel:
 
     def test_audit_trail_completeness(self):
         """LagComputation captures full audit trail for patent claims."""
-        self.model.set_genetic_modifiers(
-            "user-audit",
-            {"insulin_response_modifier": 0.8}
-        )
+        self.model.set_genetic_modifiers("user-audit", {"insulin_response_modifier": 0.8})
         event_time = datetime(2026, 2, 10, 14, 30, 0)  # 2:30 PM
         lag = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time,
-            user_id="user-audit"
+            BiomarkerType.GLUCOSE, self.glucose_chars, event_time, user_id="user-audit"
         )
 
         # All fields are populated
@@ -568,33 +544,27 @@ class TestPhysiologicalLagModel:
     def test_different_biomarkers_different_lags(self):
         """Different biomarker types have different base lags."""
         event_time = datetime(2026, 2, 10, 12, 0, 0)
-        lag_glucose = self.model.compute_lag(
-            BiomarkerType.GLUCOSE, self.glucose_chars, event_time
-        )
-        lag_hr = self.model.compute_lag(
-            BiomarkerType.HEART_RATE, self.hr_chars, event_time
-        )
+        lag_glucose = self.model.compute_lag(BiomarkerType.GLUCOSE, self.glucose_chars, event_time)
+        lag_hr = self.model.compute_lag(BiomarkerType.HEART_RATE, self.hr_chars, event_time)
         # Glucose has 60min base lag, HR has 0
         assert lag_glucose.effective_lag_seconds > 0
         assert lag_hr.effective_lag_seconds == 0
 
     def test_non_glucose_ignores_glucose_genetics(self):
         """Genetic modifiers for glucose don't affect heart rate lag."""
-        self.model.set_genetic_modifiers(
-            "user-glucose-only",
-            {"insulin_response_modifier": 0.8}
-        )
+        self.model.set_genetic_modifiers("user-glucose-only", {"insulin_response_modifier": 0.8})
         event_time = datetime(2026, 2, 10, 12, 0, 0)
         lag_hr = self.model.compute_lag(
-            BiomarkerType.HEART_RATE, self.hr_chars, event_time,
-            user_id="user-glucose-only"
+            BiomarkerType.HEART_RATE, self.hr_chars, event_time, user_id="user-glucose-only"
         )
         # HR has zero base lag, so genetic modifier is irrelevant
         assert lag_hr.effective_lag_seconds == 0
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  2b. Temporal Synchronization
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestTemporalSynchronizer:
     """Test the patent-core temporal synchronization engine."""
@@ -686,9 +656,7 @@ class TestTemporalSynchronizer:
         glucose_readings = _make_glucose_readings(12)
         readings = {BiomarkerType.GLUCOSE: glucose_readings}
 
-        frames = self.sync.synchronize(
-            readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM
-        )
+        frames = self.sync.synchronize(readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM)
         frame = frames[0]
         assert 0 <= frame.frame_confidence <= 1
         assert 0 <= frame.completeness <= 1
@@ -706,9 +674,11 @@ class TestTemporalSynchronizer:
         )
         assert len(frames_fine) >= len(frames_medium)
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  3. Physiological Normalization
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestPhysiologicalNormalizer:
     """Test circadian-aware normalization pipeline."""
@@ -717,9 +687,7 @@ class TestPhysiologicalNormalizer:
         self.normalizer = PhysiologicalNormalizer()
 
     def test_normalize_single_value(self):
-        result = self.normalizer.normalize(
-            USER, BiomarkerType.GLUCOSE, 110.0, NOW
-        )
+        result = self.normalizer.normalize(USER, BiomarkerType.GLUCOSE, 110.0, NOW)
         assert isinstance(result, NormalizedSignal)
         assert result.raw_value == 110.0
         assert result.normalized_value != 0  # should be non-trivial
@@ -729,22 +697,16 @@ class TestPhysiologicalNormalizer:
         """Baseline should converge after multiple observations."""
         for i in range(60):
             ts = NOW - timedelta(hours=60 - i)
-            self.normalizer.normalize(
-                USER, BiomarkerType.GLUCOSE, 100 + i * 0.5, ts
-            )
+            self.normalizer.normalize(USER, BiomarkerType.GLUCOSE, 100 + i * 0.5, ts)
 
-        baseline = self.normalizer.get_or_create_baseline(
-            USER, BiomarkerType.GLUCOSE
-        )
+        baseline = self.normalizer.get_or_create_baseline(USER, BiomarkerType.GLUCOSE)
         assert baseline.sample_count >= 50
         assert baseline.is_mature is True
 
     def test_genetic_modifier_application(self):
         """Genetic modifiers should alter normalization output."""
         # Without genetic modifier
-        result_base = self.normalizer.normalize(
-            USER, BiomarkerType.GLUCOSE, 110, NOW
-        )
+        result_base = self.normalizer.normalize(USER, BiomarkerType.GLUCOSE, 110, NOW)
 
         # Set modifier that maps to the glucose biomarker key
         self.normalizer.set_genetic_modifiers(
@@ -767,9 +729,7 @@ class TestPhysiologicalNormalizer:
                 "insulin_response_modifier": 1.3,
             },
         )
-        result_g = self.normalizer.normalize(
-            "user-genetic-test", BiomarkerType.GLUCOSE, 110, NOW
-        )
+        result_g = self.normalizer.normalize("user-genetic-test", BiomarkerType.GLUCOSE, 110, NOW)
         # genetic_modified should reflect the modifier (≠1.0)
         # The factor is the average of 1.5 and 1.3 = 1.4
         # So genetic_modified = normalized * 1.4 (approx)
@@ -787,9 +747,7 @@ class TestPhysiologicalNormalizer:
             )
 
         # Anomalous value
-        result = self.normalizer.normalize(
-            USER, BiomarkerType.GLUCOSE, 300, NOW
-        )
+        result = self.normalizer.normalize(USER, BiomarkerType.GLUCOSE, 300, NOW)
         assert result.anomaly_score > 0.5
 
     def test_normalize_frame_signals(self):
@@ -797,15 +755,15 @@ class TestPhysiologicalNormalizer:
             BiomarkerType.GLUCOSE: 110.0,
             BiomarkerType.HEART_RATE: 72.0,
         }
-        results = self.normalizer.normalize_frame_signals(
-            USER, signals, NOW
-        )
+        results = self.normalizer.normalize_frame_signals(USER, signals, NOW)
         assert BiomarkerType.GLUCOSE in results
         assert BiomarkerType.HEART_RATE in results
+
 
 # ═══════════════════════════════════════════════════════════════════
 #  4. Circadian Interpolation
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestCircadianInterpolator:
     def setup_method(self):
@@ -852,9 +810,11 @@ class TestCircadianInterpolator:
         )
         assert len(result) > len(readings)  # gaps should be filled
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  5. Metabolic State Estimator
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestMetabolicStateEstimator:
     def setup_method(self):
@@ -873,9 +833,7 @@ class TestMetabolicStateEstimator:
         """No recent meal → fasting phase."""
         glucose = _make_glucose_readings(12)
         readings = {BiomarkerType.GLUCOSE: glucose}
-        frames = self.sync.synchronize(
-            readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM
-        )
+        frames = self.sync.synchronize(readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM)
         state = self.estimator.estimate(USER, frames[0], NOW)
         assert isinstance(state, MetabolicState)
         # Without meal events, should be in fasting-like state
@@ -886,9 +844,7 @@ class TestMetabolicStateEstimator:
         self.estimator.record_meal_event(USER, NOW - timedelta(minutes=30))
         glucose = _make_glucose_readings(12)
         readings = {BiomarkerType.GLUCOSE: glucose}
-        frames = self.sync.synchronize(
-            readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM
-        )
+        frames = self.sync.synchronize(readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM)
         state = self.estimator.estimate(USER, frames[0], NOW)
         postprandial_phases = {
             MetabolicPhase.POSTPRANDIAL_EARLY,
@@ -898,14 +854,10 @@ class TestMetabolicStateEstimator:
 
     def test_exercise_recovery(self):
         """Recent exercise → recovery phase."""
-        self.estimator.record_exercise_event(
-            USER, NOW - timedelta(minutes=15), 45, "high"
-        )
+        self.estimator.record_exercise_event(USER, NOW - timedelta(minutes=15), 45, "high")
         glucose = _make_glucose_readings(12)
         readings = {BiomarkerType.GLUCOSE: glucose}
-        frames = self.sync.synchronize(
-            readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM
-        )
+        frames = self.sync.synchronize(readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM)
         state = self.estimator.estimate(USER, frames[0], NOW)
         recovery_phases = {
             MetabolicPhase.RECOVERY_IMMEDIATE,
@@ -919,9 +871,7 @@ class TestMetabolicStateEstimator:
         self.estimator.record_meal_event(USER, NOW - timedelta(hours=6))
         glucose = _make_glucose_readings(12, base_value=85)
         readings = {BiomarkerType.GLUCOSE: glucose}
-        frames = self.sync.synchronize(
-            readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM
-        )
+        frames = self.sync.synchronize(readings, NOW - timedelta(hours=1), NOW, Resolution.MEDIUM)
         state = self.estimator.estimate(USER, frames[0], NOW)
         # Should have nutrient priority shifts
         assert isinstance(state.nutrient_priority_shifts, dict)
@@ -932,9 +882,11 @@ class TestMetabolicStateEstimator:
         assert isinstance(ctx, str)
         assert len(ctx) > 0
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  6. Nutrient Demand Calculator
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestNutrientDemandCalculator:
     def setup_method(self):
@@ -1059,9 +1011,11 @@ class TestNutrientDemandCalculator:
         assert "kcal" in modified_nutrients
         assert "carbs_g" in modified_nutrients
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  7. Differential Privacy
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestDifferentialPrivacy:
     def setup_method(self):
@@ -1076,9 +1030,7 @@ class TestDifferentialPrivacy:
         assert isinstance(noisy, float)
 
     def test_gaussian_noise(self):
-        noisy = self.engine.add_gaussian_noise(
-            USER, 100.0, sensitivity=1.0, epsilon=0.5
-        )
+        noisy = self.engine.add_gaussian_noise(USER, 100.0, sensitivity=1.0, epsilon=0.5)
         assert noisy is not None
 
     def test_budget_exhaustion(self):
@@ -1087,9 +1039,7 @@ class TestDifferentialPrivacy:
         # Each query consumes default epsilon. Keep calling until budget runs out.
         none_count = 0
         for _ in range(50):
-            result = self.engine.add_laplace_noise(
-                USER, 50.0, sensitivity=1.0, epsilon=0.1
-            )
+            result = self.engine.add_laplace_noise(USER, 50.0, sensitivity=1.0, epsilon=0.1)
             if result is None:
                 none_count += 1
         # After exhaustion, calls should return None
@@ -1099,7 +1049,7 @@ class TestDifferentialPrivacy:
         budget = PrivacyBudget(
             epsilon_total=1.0,
             epsilon_spent=0.9,
-            last_reset=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=25),
+            last_reset=datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=25),
         )
         did_reset = budget.maybe_reset()
         assert did_reset is True
@@ -1116,9 +1066,11 @@ class TestDifferentialPrivacy:
         assert "calories" in result
         assert "protein" in result
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  8. Consent Manager
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestConsentManager:
     def setup_method(self):
@@ -1181,9 +1133,11 @@ class TestConsentManager:
         assert "glucose_level" in filtered
         assert "genotype_data" not in filtered
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  9. Graph Embedding (Privacy)
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestGraphEmbedding:
     def setup_method(self):
@@ -1194,7 +1148,11 @@ class TestGraphEmbedding:
             GraphNode(node_id="user1", node_type="user", properties={"age": "30", "sex": "male"})
         )
         self.graph.add_node(
-            GraphNode(node_id="glucose1", node_type="biomarker", properties={"type": "glucose", "value": "110"})
+            GraphNode(
+                node_id="glucose1",
+                node_type="biomarker",
+                properties={"type": "glucose", "value": "110"},
+            )
         )
         self.graph.add_edge(
             GraphEdge(source_id="user1", target_id="glucose1", edge_type="has_reading", weight=0.9)
@@ -1207,10 +1165,18 @@ class TestGraphEmbedding:
     def test_consent_based_severing(self):
         self.graph.add_node(GraphNode(node_id="u1", node_type="user"))
         self.graph.add_node(
-            GraphNode(node_id="g1", node_type="biomarker", properties={"consent_scope": "genetic_data"})
+            GraphNode(
+                node_id="g1", node_type="biomarker", properties={"consent_scope": "genetic_data"}
+            )
         )
         self.graph.add_edge(
-            GraphEdge(source_id="u1", target_id="g1", edge_type="has_reading", weight=1.0, consent_required="genetic_data")
+            GraphEdge(
+                source_id="u1",
+                target_id="g1",
+                edge_type="has_reading",
+                weight=1.0,
+                consent_required="genetic_data",
+            )
         )
 
         self.graph.sever_edges_by_consent("genetic_data")
@@ -1218,9 +1184,11 @@ class TestGraphEmbedding:
         # After severing, should still compute but with reduced connectivity
         assert emb is not None
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  10. Integration — Full Pipeline
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestFullPipeline:
     """End-to-end pipeline: ingest → sync → normalize → state → budget."""
@@ -1300,9 +1268,11 @@ class TestFullPipeline:
         assert "user_id" in summary
         assert "targets" in summary
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  11. API Router (FastAPI integration)
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestAPIRouter:
     """Test the FastAPI endpoints via TestClient."""
@@ -1310,6 +1280,7 @@ class TestAPIRouter:
     @pytest.fixture(autouse=True)
     def setup_client(self):
         from fastapi.testclient import TestClient
+
         from app.main import app
 
         self.client = TestClient(app)
@@ -1342,9 +1313,7 @@ class TestAPIRouter:
                 }
             ]
         }
-        resp = self.client.post(
-            "/engine/ingest", json=payload, headers=self.headers
-        )
+        resp = self.client.post("/engine/ingest", json=payload, headers=self.headers)
         assert resp.status_code == 200
         data = resp.json()
         assert data["accepted"] >= 1
@@ -1362,9 +1331,7 @@ class TestAPIRouter:
                 }
             ]
         }
-        resp = self.client.post(
-            "/engine/ingest", json=payload, headers=self.headers
-        )
+        resp = self.client.post("/engine/ingest", json=payload, headers=self.headers)
         assert resp.status_code in (200, 400)
 
     def test_consent_grant_and_get(self):
@@ -1384,9 +1351,7 @@ class TestAPIRouter:
         assert "glucose_data" in data["granted_scopes"]
 
         # Get status
-        resp = self.client.get(
-            f"/engine/consent/{USER}", headers=self.headers
-        )
+        resp = self.client.get(f"/engine/consent/{USER}", headers=self.headers)
         assert resp.status_code == 200
 
     def test_genetic_profile(self):
@@ -1394,9 +1359,7 @@ class TestAPIRouter:
             "user_id": USER,
             "genotypes": {"rs1801133": "CT", "rs9939609": "AT"},
         }
-        resp = self.client.post(
-            "/engine/genetic-profile", json=payload, headers=self.headers
-        )
+        resp = self.client.post("/engine/genetic-profile", json=payload, headers=self.headers)
         assert resp.status_code == 200
         data = resp.json()
         assert data["variant_count"] == 2
@@ -1406,14 +1369,16 @@ class TestAPIRouter:
         # Ingest some data first
         readings = []
         for i in range(5):
-            readings.append({
-                "source_id": "cgm_generic",
-                "user_id": USER,
-                "biomarker_type": "glucose",
-                "timestamp": (NOW - timedelta(minutes=i * 5)).isoformat(),
-                "value": 105 + i,
-                "unit": "mg/dL",
-            })
+            readings.append(
+                {
+                    "source_id": "cgm_generic",
+                    "user_id": USER,
+                    "biomarker_type": "glucose",
+                    "timestamp": (NOW - timedelta(minutes=i * 5)).isoformat(),
+                    "value": 105 + i,
+                    "unit": "mg/dL",
+                }
+            )
         self.client.post(
             "/engine/ingest",
             json={"readings": readings},
@@ -1440,11 +1405,13 @@ class TestAPIRouter:
         resp = self.client.get("/engine/status")
         assert resp.status_code == 401
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  CircadianInterpolator – Pipeline Integration Tests
 #  Proves the whitepaper claim: "gaps are filled by biological-rhythm
 #  models, not naïve zero-fill." (Patent Section 4.3)
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestCircadianInterpolatorIntegration:
     """End-to-end: TemporalSynchronizer uses CircadianInterpolator to
@@ -1453,8 +1420,8 @@ class TestCircadianInterpolatorIntegration:
     def _make_readings(
         self,
         biomarker: BiomarkerType,
-        times_and_values: List[tuple],
-    ) -> List[BiomarkerReading]:
+        times_and_values: list[tuple],
+    ) -> list[BiomarkerReading]:
         return [
             BiomarkerReading(
                 biomarker_type=biomarker,
@@ -1496,18 +1463,18 @@ class TestCircadianInterpolatorIntegration:
         readings = self._make_readings(
             BiomarkerType.GLUCOSE,
             [
-                (t0, 95.0),                                       # 10:00
-                (t0 + timedelta(minutes=5), 98.0),                # 10:05
+                (t0, 95.0),  # 10:00
+                (t0 + timedelta(minutes=5), 98.0),  # 10:05
                 # --- 2 hour gap (10:10 – 12:05) ---
-                (t0 + timedelta(hours=2, minutes=10), 105.0),     # 12:10
-                (t0 + timedelta(hours=2, minutes=15), 102.0),     # 12:15
+                (t0 + timedelta(hours=2, minutes=10), 105.0),  # 12:10
+                (t0 + timedelta(hours=2, minutes=15), 102.0),  # 12:15
             ],
         )
 
         # Use synchronize() to get frames across the gap
         frames = sync.synchronize(
             readings={BiomarkerType.GLUCOSE: readings},
-            window_start=t0 + timedelta(hours=1),      # 11:00
+            window_start=t0 + timedelta(hours=1),  # 11:00
             window_end=t0 + timedelta(hours=1, minutes=10),  # 11:10
             resolution=Resolution.FINE,
             user_id=user_id,
@@ -1578,4 +1545,3 @@ class TestCircadianInterpolatorIntegration:
                 # Without explicit baseline, confidence should be near-zero
                 # (population fallback may produce tiny residual confidence)
                 assert glucose_signal.confidence < 0.01
-
