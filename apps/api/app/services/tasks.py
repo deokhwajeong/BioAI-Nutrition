@@ -5,7 +5,7 @@ import os
 
 from celery import Celery
 
-from .recommendations import aggregate_metrics, generate_rule_based_recommendations  # noqa: F401
+from .recommendations import aggregate_metrics, generate_recommendations  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -39,5 +39,5 @@ def process_event(event_type: str, event_data: dict) -> None:
 
     # events = fetch_events_for_user(user_id=event_data["user_id"], date=date.today())
     # metrics = aggregate_metrics(events)
-    # recs = generate_rule_based_recommendations(metrics)
+    # recs = generate_recommendations(metrics, user_targets)
     # save_recommendations(user_id=event_data["user_id"], date=date.today(), recs=recs)

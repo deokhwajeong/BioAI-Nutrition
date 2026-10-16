@@ -50,9 +50,9 @@
 
   ✅ Ingested 100 biomarker readings:
      • CGM Glucose:  30 readings  (Dexcom G7)
-     • Heart Rate:   30 readings  (Apple Watch Ultra)
-     • HRV:          10 readings  (Apple Watch Ultra)
-     • Steps:        30 readings  (Apple Watch Ultra)
+     • Heart Rate:   30 readings  (smartwatch)
+     • HRV:          10 readings  (smartwatch)
+     • Steps:        30 readings  (smartwatch)
      Total accepted: 100
 
 ──────────────────────────────────────────────────────────────────────

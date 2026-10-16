@@ -366,7 +366,31 @@
         "type": "object"
       },
       "DailyFeatures": {
+        "description": "One day of intake, activity, and sleep. Missing values never trigger a rule.",
         "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Energy intake (kcal)",
+            "title": "Calories"
+          },
+          "carbs_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbs G"
+          },
           "date": {
             "anyOf": [
               {
@@ -390,7 +414,7 @@
             ],
             "title": "Fiber G"
           },
-          "kcal_avg": {
+          "omega3_g": {
             "anyOf": [
               {
                 "type": "number"
@@ -399,29 +423,7 @@
                 "type": "null"
               }
             ],
-            "title": "Kcal Avg"
-          },
-          "late_meal_freq": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Late Meal Freq"
-          },
-          "persona": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Persona"
+            "title": "Omega3 G"
           },
           "protein_g": {
             "anyOf": [
@@ -445,17 +447,6 @@
             ],
             "title": "Sleep Hours"
           },
-          "sleep_regularity": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sleep Regularity"
-          },
           "steps": {
             "anyOf": [
               {
@@ -467,7 +458,7 @@
             ],
             "title": "Steps"
           },
-          "ultra_processed_ratio": {
+          "sugar_g": {
             "anyOf": [
               {
                 "type": "number"
@@ -476,7 +467,18 @@
                 "type": "null"
               }
             ],
-            "title": "Ultra Processed Ratio"
+            "title": "Sugar G"
+          },
+          "water_ml": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Ml"
           }
         },
         "title": "DailyFeatures",
@@ -1327,7 +1329,16 @@
       },
       "Recommendation": {
         "properties": {
+          "guardrails": {
+            "description": "Always includes 'non-diagnostic'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Guardrails",
+            "type": "array"
+          },
           "id": {
+            "description": "Rule id from rules/*.yaml",
             "title": "Id",
             "type": "string"
           },
@@ -1335,23 +1346,35 @@
             "title": "Message",
             "type": "string"
           },
+          "priority": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Priority",
+            "type": "string"
+          },
           "rationale": {
             "title": "Rationale",
             "type": "string"
           },
-          "tags": {
-            "default": [],
+          "triggered_by": {
+            "description": "The rule conditions that matched",
             "items": {
               "type": "string"
             },
-            "title": "Tags",
+            "title": "Triggered By",
             "type": "array"
           }
         },
         "required": [
           "id",
           "message",
-          "rationale"
+          "rationale",
+          "priority",
+          "guardrails",
+          "triggered_by"
         ],
         "title": "Recommendation",
         "type": "object"
@@ -1361,19 +1384,37 @@
           "daily_features": {
             "$ref": "#/components/schemas/DailyFeatures"
           },
+          "top_n": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Return at most this many",
+            "title": "Top N"
+          },
           "user_targets": {
             "$ref": "#/components/schemas/UserTargets"
           }
         },
         "required": [
-          "daily_features",
-          "user_targets"
+          "daily_features"
         ],
         "title": "RecommendationRequest",
         "type": "object"
       },
       "RecommendationResponse": {
         "properties": {
+          "disclaimer": {
+            "default": "General wellness suggestions from fixed rules. Not medical advice.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
           "recommendations": {
             "items": {
               "$ref": "#/components/schemas/Recommendation"
@@ -1605,7 +1646,20 @@
         "type": "object"
       },
       "UserTargets": {
+        "description": "Daily targets. Anything left out falls back to the engine's defaults.",
         "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily calorie target (kcal)",
+            "title": "Calories"
+          },
           "fiber_g": {
             "anyOf": [
               {
@@ -1618,7 +1672,7 @@
             "description": "Daily fiber target (g)",
             "title": "Fiber G"
           },
-          "kcal": {
+          "omega3_g": {
             "anyOf": [
               {
                 "type": "number"
@@ -1627,8 +1681,8 @@
                 "type": "null"
               }
             ],
-            "description": "Daily calorie target",
-            "title": "Kcal"
+            "description": "Daily omega-3 target (g)",
+            "title": "Omega3 G"
           },
           "protein_g": {
             "anyOf": [
@@ -1641,6 +1695,18 @@
             ],
             "description": "Daily protein target (g)",
             "title": "Protein G"
+          },
+          "water_ml": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily water target (mL)",
+            "title": "Water Ml"
           }
         },
         "title": "UserTargets",
@@ -2704,7 +2770,7 @@
     },
     "/recommendations": {
       "post": {
-        "description": "Rank rule-based nutrition recommendations for one day of features against user targets.",
+        "description": "Evaluate the YAML rules in rules/ against one day of features and the user's targets.\n\nEvery matching rule is returned, highest priority first. An empty list means no rule\nfired. Suggestions are general wellness guidance, not medical advice.",
         "operationId": "post_recommendations_recommendations_post",
         "requestBody": {
           "content": {

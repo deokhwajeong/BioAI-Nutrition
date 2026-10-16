@@ -12,7 +12,7 @@ Defensive Scope (H04L 9/32):
     (SHA-256 hash projection + tanh activation → 64-dim vector), DP-protected
     aggregations, and categorical metabolic state labels traverse the network
     boundary. The EdgeProcessingManifest provides auditable proof of data
-    locality - a multi-layer privacy guarantee exceeding HIPAA requirements.
+    locality as a layered privacy design. It is not a compliance certification.
 
 Defensive Scope (G06F 21/62):
     The combination of on-device temporal sync + local normalization +
@@ -45,7 +45,7 @@ of edge computing applied to health data privacy. The combination of:
   (a) local temporal synchronization
   (b) on-device normalization with genetic baselines
   (c) differential privacy on transmitted aggregations
-creates a multi-layer privacy guarantee that exceeds HIPAA requirements.
+creates a layered privacy design (a prototype, not a compliance certification).
 """
 
 from __future__ import annotations

@@ -20,8 +20,8 @@
    - 3.4 [Meal Analysis](#34-meal-analysis)
    - 3.5 [Food Image AI](#35-food-image-ai)
    - 3.6 [Synthea FHIR](#36-synthea-fhir)
-4. [Metrics Dashboard](#4-metrics-dashboard)
-5. [Account Settings](#5-account-settings)
+4. [Rule-Based Suggestions](#4-rule-based-suggestions)
+5. [Data Deletion](#5-data-deletion)
 6. [API Reference Quick Guide](#6-api-reference-quick-guide)
 7. [Demo Scenario Walkthrough](#7-demo-scenario-walkthrough)
 8. [Troubleshooting](#8-troubleshooting)
@@ -138,13 +138,13 @@ The main page features 6 tabs across the top navigation bar. Each tab correspond
 
 ### 3.1 BioSync Pipeline
 
-**Icon:** 🧬 | **Path:** Main page → "BioSync Pipeline" tab
+**Icon:** 🧬 | **Path:** Main page → "Pipeline" tab
 
 This is the core feature that runs the full personalized nutrition pipeline.
 
 #### How to Use
 
-1. Click the **"Run Full Pipeline"** button
+1. Click the **"Run full pipeline"** button
 2. Watch the 6-step UI pipeline execute sequentially:
 
 | UI Step | Name | What It Does |
@@ -215,7 +215,7 @@ The nutrient budget shows progress bars for each target nutrient:
 
 ### 3.2 Privacy & Consent
 
-**Icon:** 🔐 | **Path:** Main page → "Privacy & Consent" tab
+**Icon:** 🔐 | **Path:** Main page → "Consent" tab
 
 Manage which types of data the system can access and process.
 
@@ -300,7 +300,7 @@ For a user with MTHFR CT + FTO TA + TCF7L2 CT:
 
 ### 3.4 Meal Analysis
 
-**Icon:** 🍽️ | **Path:** Main page → "Meal Analysis" tab
+**Icon:** 🍽️ | **Path:** Main page → "Meal check" tab (text input)
 
 Analyze food items by entering them as text.
 
@@ -330,7 +330,7 @@ The database includes:
 
 ### 3.5 Food Image AI
 
-**Icon:** 📸 | **Path:** Main page → "Food Image AI" tab
+**Icon:** 📸 | **Path:** Main page → "Meal check" tab (image upload)
 
 Upload or capture a photo of your meal for AI-powered nutrition analysis.
 
@@ -353,7 +353,7 @@ Upload or capture a photo of your meal for AI-powered nutrition analysis.
 
 ### 3.6 Synthea FHIR
 
-**Icon:** 🏥 | **Path:** Main page → "Synthea FHIR" tab
+**Icon:** 🏥 | **Path:** Main page → "Sample patients" tab
 
 Explore and import synthetic patient data in HL7 FHIR R4 format.
 
@@ -382,33 +382,30 @@ The system automatically maps 30+ LOINC observation codes to BioAI biomarker typ
 
 ---
 
-## 4. Metrics Dashboard
+## 4. Rule-Based Suggestions
 
-**Path:** `/dashboard`
+The last pipeline stage sends a synthetic logged day (intake, water, steps, sleep) and the computed daily targets to `POST /recommendations`. The API evaluates every YAML file in `rules/` and returns the rules that fired, highest priority first, each with its message, rationale, and the conditions that matched.
 
-The metrics dashboard provides an aggregated overview of your health data.
+Adding a rule means adding a file:
 
-#### Displayed Metrics
+```yaml
+id: hydration_low
+when:
+  cond_water: "daily_features.water_ml < 1500"
+then:
+  message: "Water intake is below 1.5 L today. ..."
+  rationale: "..."
+  priority: medium            # high | medium | low
+  guardrails: ["non-diagnostic"]
+```
 
-| Metric | Source | Display |
-|--------|--------|---------|
-| **Calories** | Diet events | Total consumed today |
-| **Steps** | Activity events | Daily step count |
-| **Sleep** | Sleep events | Duration (hours) |
-| **Fiber** | Diet analysis | Grams consumed |
-
-The dashboard also features a **Neural Network Graph** visualization showing the AI processing flow from raw biomarker data through the pipeline to personalized recommendations.
+Conditions compare a daily feature with a number, another feature, or a target (optionally times a factor). All conditions in `when` must hold. A rule that does not parse, lacks a message, or lacks the `non-diagnostic` guardrail fails at load time instead of silently never firing.
 
 ---
 
-## 5. Account Settings
+## 5. Data Deletion
 
-**Path:** `/account`
-
-- **Email Settings**: Update your notification email
-- **Notification Preferences**: Toggle push/email notifications
-- **Data Export**: Download all your data (JSON format)
-- **Data Deletion**: Request complete data erasure (GDPR "Right to be Forgotten")
+`DELETE /users/{user_id}` is the erasure endpoint (GDPR-style). It is a stub today: it returns 204 without deleting anything, and wiring it to the data store is on the roadmap. The dashboard has no account page; it always runs as the synthetic `demo-user-001`.
 
 ---
 
@@ -509,7 +506,7 @@ python scripts/run_demo.py
 To demonstrate the web UI manually:
 
 1. **Open** http://localhost:3000
-2. **Pipeline Tab**: Click "Run Full Pipeline" → Watch all 6 stages light up green
+2. **Pipeline Tab**: Click "Run full pipeline" → watch all 7 stages finish, ending with rule-based suggestions
 3. **Privacy Tab**: Show the 14 consent toggles and ε-privacy budget meter
 4. **Genetic Tab**: Select genotypes for 8 SNPs → Click "Compute Modifiers"
 5. **Meal Tab**: Type "salmon, quinoa, spinach" → Click Analyze → Show nutrition breakdown

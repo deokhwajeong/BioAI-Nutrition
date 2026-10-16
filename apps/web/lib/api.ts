@@ -6,17 +6,20 @@ import type {
   AnalyzeMealResponse,
   BiomarkerReadingIn,
   ConsentStatus,
+  DailyFeatures,
   EngineStatusView,
   GeneticModifiers,
   IngestionResult,
   JsonObject,
   MetabolicStateView,
   NutrientBudgetView,
+  RecommendationsView,
   Resolution,
   Sex,
   SyncResponse,
   SyntheaLoadResult,
   SyntheaStatus,
+  UserTargets,
 } from "./types";
 import type { components } from "./api-schema";
 
@@ -195,7 +198,30 @@ export async function engineStatus(): Promise<EngineStatusView> {
 
 export const engineEdgeManifest = <T = JsonObject>() => request<T>("/engine/edge-manifest");
 
-export const getMetrics = <T = JsonObject>() => request<T>("/api/metrics");
+/* ── Rule-based suggestions (rules/*.yaml) ─────────────────────── */
+
+export async function getRecommendations(
+  dailyFeatures: DailyFeatures,
+  userTargets: UserTargets,
+  topN = 5,
+): Promise<RecommendationsView> {
+  const raw = await post<Schemas["RecommendationResponse"]>("/recommendations", {
+    daily_features: dailyFeatures,
+    user_targets: userTargets,
+    top_n: topN,
+  } satisfies Schemas["RecommendationRequest"]);
+  return {
+    items: raw.recommendations.map((r) => ({
+      id: r.id,
+      message: r.message,
+      rationale: r.rationale,
+      priority: r.priority,
+      triggeredBy: r.triggered_by,
+    })),
+    disclaimer: raw.disclaimer ?? "",
+  };
+}
+
 
 /* ── Synthea (synthetic FHIR patients) ─────────────────────────── */
 

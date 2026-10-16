@@ -121,8 +121,8 @@ class DynamicEpsilonAllocator:
     smaller epsilon (more noise, stronger privacy) to sensitive data
     and larger epsilon (less noise) to less sensitive data.
 
-    This mirrors privacy approaches used by Apple (local DP with
-    per-domain budgets) and Google (RAPPOR with tiered sensitivity).
+    This follows published local-DP designs that keep per-domain budgets
+    and tiered sensitivity (for example RAPPOR).
 
     Patent claim: "A dynamic privacy budget allocation system that
     assigns differential privacy parameters based on biomarker data

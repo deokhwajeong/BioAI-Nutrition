@@ -224,7 +224,7 @@ class DemoRunner:
             if 0 <= hour < 6:
                 hr -= 8
             readings.append({
-                "source_id": "watch-apple-ultra",
+                "source_id": "smartwatch-hr",
                 "user_id": USER_ID,
                 "biomarker_type": "heart_rate",
                 "timestamp": ts(t),
@@ -241,7 +241,7 @@ class DemoRunner:
             hr = 65 + 5 * math.sin(2 * math.pi * (t.hour - 14) / 24)
             hrv = max(15, 120 - 0.8 * hr + random.gauss(0, 5))
             readings.append({
-                "source_id": "watch-apple-ultra",
+                "source_id": "smartwatch-hr",
                 "user_id": USER_ID,
                 "biomarker_type": "hrv",
                 "timestamp": ts(t),
@@ -258,7 +258,7 @@ class DemoRunner:
             hour = t.hour + t.minute / 60.0
             steps = max(0, int(20 + 100 * abs(math.sin(math.pi * hour / 12)) + random.gauss(0, 15)))
             readings.append({
-                "source_id": "watch-apple-ultra",
+                "source_id": "smartwatch-hr",
                 "user_id": USER_ID,
                 "biomarker_type": "steps",
                 "timestamp": ts(t),
@@ -272,9 +272,9 @@ class DemoRunner:
 
         self._print(f"\n  ✅ Ingested {len(readings)} biomarker readings:")
         self._print(f"     • CGM Glucose:  30 readings  (Dexcom G7)")
-        self._print(f"     • Heart Rate:   30 readings  (Apple Watch Ultra)")
-        self._print(f"     • HRV:          10 readings  (Apple Watch Ultra)")
-        self._print(f"     • Steps:        30 readings  (Apple Watch Ultra)")
+        self._print(f"     • Heart Rate:   30 readings  (smartwatch)")
+        self._print(f"     • HRV:          10 readings  (smartwatch)")
+        self._print(f"     • Steps:        30 readings  (smartwatch)")
         self._print(f"     Total accepted: {result.get('accepted', 'N/A')}")
         self.results["ingest"] = result
 

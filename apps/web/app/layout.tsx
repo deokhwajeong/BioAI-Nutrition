@@ -1,22 +1,22 @@
-// apps/web/app/layout.tsx
 import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "BioAI Nutrition – Demo",
-  description: "Simple recommendation demo",
+  title: "Nutri-Node",
+  description:
+    "Research prototype: aligns wearable and lab signals in time, estimates body state, and sets daily nutrient targets. Synthetic data only.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className="bg-background text-foreground">
         {process.env.NEXT_PUBLIC_DEMO === "1" && (
           <div
             role="status"
-            className="bg-amber-400 text-slate-950 text-center text-xs sm:text-sm font-medium px-4 py-2"
+            className="bg-amber-300 text-slate-950 text-center text-xs sm:text-sm font-medium px-4 py-2"
           >
-            Demo mode: synthetic profiles, precomputed results
+            Static demo: synthetic data, responses precomputed from the real API
           </div>
         )}
         {children}

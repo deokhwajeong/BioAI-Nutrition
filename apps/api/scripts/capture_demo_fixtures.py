@@ -6,7 +6,7 @@ Run against a live API started from the repo root, so Synthea fixtures resolve:
     uv run --project apps/api python apps/api/scripts/capture_demo_fixtures.py
 
 It replays the same flows the dashboard runs (full pipeline, genetic panel, meal text and
-image analysis, Synthea explorer) and writes the wire responses to
+image analysis, rule-based suggestions, Synthea explorer) and writes the wire responses to
 apps/web/lib/demo-fixtures.json. All inputs are synthetic.
 """
 
@@ -58,6 +58,19 @@ PANEL_VARIANTS = {
     "rs12255372": ["GG", "GT", "TT"],
     "rs1801282": ["CC", "CG", "GG"],
     "rs4680": ["GG", "GA", "AA"],
+}
+
+# Synthetic logged day for the suggestions stage (SAMPLE_DAY in apps/web/app/page.tsx).
+SAMPLE_DAY = {
+    "calories": 2450,
+    "protein_g": 62,
+    "carbs_g": 290,
+    "fiber_g": 14,
+    "sugar_g": 68,
+    "omega3_g": 0.6,
+    "water_ml": 1300,
+    "steps": 6200,
+    "sleep_hours": 6.1,
 }
 
 # Representative mean colours for the image analyzer's colour-histogram fallback.
@@ -192,6 +205,22 @@ def capture_pipeline() -> dict[str, Any]:
     }
 
 
+def capture_recommendations(budget: dict[str, Any]) -> Any:
+    """Rule-based suggestions for SAMPLE_DAY against the pipeline's nutrient targets."""
+    t = {k: v["daily_target"] for k, v in budget["targets"].items()}
+    targets = {
+        "calories": t.get("kcal"),
+        "protein_g": t.get("protein_g"),
+        "fiber_g": t.get("fiber_g"),
+        "water_ml": t.get("water_ml"),
+    }
+    return call(
+        "POST",
+        "/recommendations",
+        {"daily_features": SAMPLE_DAY, "user_targets": targets, "top_n": 5},
+    )
+
+
 def capture_genetic_panel() -> list[dict[str, Any]]:
     """Every combination of the panel SNPs the engine scores (unselected or one of 3 genotypes).
 
@@ -248,10 +277,12 @@ def capture_synthea() -> dict[str, Any]:
 
 
 def main() -> None:
+    pipeline = capture_pipeline()
     fixtures = {
         "captured_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "user_id": USER_ID,
-        "pipeline": capture_pipeline(),
+        "pipeline": pipeline,
+        "recommendations": capture_recommendations(pipeline["nutrient_budget"]),
         "genetic_panel": capture_genetic_panel(),
         "meals": capture_meals(),
         "images": capture_images(),

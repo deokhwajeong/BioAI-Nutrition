@@ -48,7 +48,7 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300">
+                  <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300">
                     {v.rsid}
                   </span>
                   <span className="text-sm font-bold text-gray-900 dark:text-white">{v.gene}</span>
@@ -62,8 +62,8 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
                     onClick={() => setSelections((prev) => ({ ...prev, [v.rsid]: g }))}
                     className={`px-3 py-1.5 text-xs font-mono font-bold rounded-lg border-2 transition-all ${
                       selections[v.rsid] === g
-                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white border-transparent shadow"
-                        : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-violet-400"
+                        ? "bg-teal-700 text-white border-transparent shadow"
+                        : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-sky-400"
                     }`}
                   >
                     {g}
@@ -83,7 +83,7 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
         <button
           onClick={handleSubmit}
           disabled={completedCount === 0 || loading}
-          className="px-5 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow disabled:opacity-50 transition"
+          className="px-5 py-2 text-sm font-semibold rounded-lg bg-teal-700 hover:bg-teal-600 text-white shadow disabled:opacity-50 transition"
         >
           {loading ? "Processing\u2026" : "Compute Modifiers"}
         </button>
@@ -91,8 +91,8 @@ export default function GeneticProfilePanel({ modifiers, onSubmit, loading }: Pr
 
       {/* Modifier output */}
       {modifiers && Object.keys(modifiers).length > 0 && (
-        <div className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-200 dark:border-violet-700 rounded-xl p-4">
-          <div className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wider mb-3">
+        <div className="bg-sky-50 dark:from-sky-900/20 dark:to-sky-900/20 border border-sky-200 dark:border-sky-700 rounded-xl p-4">
+          <div className="text-xs font-semibold text-sky-700 dark:text-sky-300 uppercase tracking-wider mb-3">
             Genetic Metabolic Modifiers
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
