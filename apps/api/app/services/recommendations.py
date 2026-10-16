@@ -7,6 +7,7 @@ operator-dispatch approach instead of eval() to prevent code injection.
 """
 
 import operator
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -34,7 +35,8 @@ _CONDITION_RE = re.compile(
 
 def load_rules() -> list[dict[str, Any]]:
     """Load recommendation rules from YAML files in the rules directory."""
-    rules_dir = Path(__file__).parent.parent.parent.parent / "rules"
+    # <repo>/apps/api/app/services/recommendations.py -> <repo>/rules (override with RULES_DIR)
+    rules_dir = Path(os.getenv("RULES_DIR", Path(__file__).resolve().parents[4] / "rules"))
     rules: list[dict[str, Any]] = []
     for yaml_file in sorted(rules_dir.glob("*.yaml")):
         with open(yaml_file, encoding="utf-8") as f:
