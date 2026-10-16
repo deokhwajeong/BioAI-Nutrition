@@ -387,7 +387,7 @@ async def seed_default_data(
     while t < now:
         hr = round(_heart_rate_at(t), 1)
         await activity_adapter.push_reading(BiomarkerReading(
-            source_id="watch-apple-ultra",
+            source_id="smartwatch-hr",
             user_id=DEMO_USER,
             biomarker_type=BiomarkerType.HEART_RATE,
             timestamp=t,
@@ -399,7 +399,7 @@ async def seed_default_data(
         if t.minute % 15 == 0:
             hrv = round(_hrv_at(t, hr), 1)
             await activity_adapter.push_reading(BiomarkerReading(
-                source_id="watch-apple-ultra",
+                source_id="smartwatch-hr",
                 user_id=DEMO_USER,
                 biomarker_type=BiomarkerType.HRV,
                 timestamp=t,
@@ -416,7 +416,7 @@ async def seed_default_data(
     t = start
     while t < now:
         await activity_adapter.push_reading(BiomarkerReading(
-            source_id="watch-apple-ultra",
+            source_id="smartwatch-hr",
             user_id=DEMO_USER,
             biomarker_type=BiomarkerType.STEPS,
             timestamp=t,
@@ -665,7 +665,7 @@ async def seed_default_data(
         quality_score = {"excellent": 0.92, "good": 0.78, "fair": 0.58}[quality]
 
         await sleep_adapter.push_reading(BiomarkerReading(
-            source_id="watch-apple-ultra",
+            source_id="smartwatch-hr",
             user_id=DEMO_USER,
             biomarker_type=BiomarkerType.SLEEP,
             timestamp=wake_time,

@@ -16,8 +16,7 @@ from sqlalchemy.orm import sessionmaker
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-# Mock Celery before importing the app
-sys.modules["celery"] = MagicMock()
+# No Celery mock needed: without CELERY_BROKER_URL, tasks run inline (app/services/tasks.py).
 
 # Create test database
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_nutrition.db"

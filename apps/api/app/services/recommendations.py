@@ -1,21 +1,52 @@
 """
-Rule-based recommendation engine for BioAI-Nutrition.
+Rule-based recommendation engine backed by the YAML files in <repo>/rules.
 
-Aggregates metrics from raw events and generates non-clinical recommendations
-based on YAML-defined rules. Conditions are evaluated using a safe
-operator-dispatch approach instead of eval() to prevent code injection.
+Each rule file has the shape::
+
+    id: protein_intake_low
+    when:                                   # every condition must hold (AND)
+      cond_protein: "daily_features.protein_g < user_targets.protein_g * 0.8"
+    then:
+      message: "..."                        # what the user sees
+      rationale: "..."                      # why the rule fired
+      priority: high | medium | low
+      guardrails: ["non-diagnostic", ...]
+
+Conditions are parsed with a small regex and an operator table, never eval(), so a
+rule file cannot execute code. Rules are validated when they load: a condition that does
+not parse, a missing message, or a missing "non-diagnostic" guardrail is an error rather
+than a rule that silently never fires.
+
+Recommendations are general wellness suggestions, not medical advice.
 """
+
+from __future__ import annotations
 
 import operator
 import os
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-# Safe operator map - no eval() used anywhere in condition parsing
-_OPS: dict[str, Any] = {
+PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+# Used for any target the request leaves out.
+DEFAULT_TARGETS: dict[str, float] = {
+    "calories": 2000,
+    "protein_g": 55,
+    "fiber_g": 25,
+    "omega3_g": 1.6,
+    "water_ml": 2000,
+    "sleep_hours": 7,
+    "steps": 8000,
+}
+
+_OPS: dict[str, Callable[[float, float], bool]] = {
     "<": operator.lt,
     "<=": operator.le,
     ">": operator.gt,
@@ -24,115 +55,167 @@ _OPS: dict[str, Any] = {
     "!=": operator.ne,
 }
 
-# Regex: <metric_key> <op> <rhs_token> (optional: * <factor>)
+# <feature> <op> <target | feature | number> [* <factor>]
 _CONDITION_RE = re.compile(
-    r"^(?:daily_features\.|metrics\.)?(?P<key>[\w]+)\s*"
+    r"^(?:daily_features\.|metrics\.)?(?P<key>\w+)\s*"
     r"(?P<op><=|>=|!=|<|>|==)\s*"
-    r"(?:user_targets\.|targets\.)?(?P<rhs>[\w.]+)"
-    r"(?:\s*\*\s*(?P<factor>[\d.]+))?$"
+    r"(?P<rhs_scope>user_targets\.|targets\.|daily_features\.)?(?P<rhs>[\w.]+)"
+    r"(?:\s*\*\s*(?P<factor>\d+(?:\.\d+)?))?$"
 )
 
 
-def load_rules() -> list[dict[str, Any]]:
-    """Load recommendation rules from YAML files in the rules directory."""
+class RuleError(ValueError):
+    """A rule file is malformed."""
+
+
+@dataclass(frozen=True)
+class Condition:
+    """One parsed comparison, e.g. ``daily_features.fiber_g < user_targets.fiber_g * 0.8``."""
+
+    source: str
+    feature: str
+    op: str
+    rhs: str
+    rhs_is_target: bool
+    factor: float = 1.0
+
+    @classmethod
+    def parse(cls, source: str) -> Condition:
+        m = _CONDITION_RE.match(source.strip())
+        if not m:
+            raise RuleError(f"cannot parse condition: {source!r}")
+        rhs = m.group("rhs")
+        scope = m.group("rhs_scope") or ""
+        if scope == "" and not _is_number(rhs):
+            raise RuleError(f"right-hand side must be a number or a scoped name: {source!r}")
+        return cls(
+            source=source.strip(),
+            feature=m.group("key"),
+            op=m.group("op"),
+            rhs=rhs,
+            rhs_is_target=scope in ("user_targets.", "targets."),
+            factor=float(m.group("factor") or 1.0),
+        )
+
+    def evaluate(self, features: dict[str, float], targets: dict[str, float]) -> bool:
+        """True only when both sides resolve; a missing input never triggers a rule."""
+        lhs = features.get(self.feature)
+        if _is_number(self.rhs):
+            rhs: float | None = float(self.rhs)
+        else:
+            rhs = (targets if self.rhs_is_target else features).get(self.rhs)
+        if lhs is None or rhs is None:
+            return False
+        return _OPS[self.op](float(lhs), float(rhs) * self.factor)
+
+
+@dataclass(frozen=True)
+class Rule:
+    id: str
+    conditions: tuple[Condition, ...]
+    message: str
+    rationale: str
+    priority: str
+    guardrails: tuple[str, ...]
+    source_file: str
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any], source_file: str) -> Rule:
+        rule_id = raw.get("id")
+        when = raw.get("when")
+        then = raw.get("then") or {}
+        if not isinstance(rule_id, str) or not rule_id:
+            raise RuleError(f"{source_file}: missing id")
+        if not isinstance(when, dict) or not when:
+            raise RuleError(f"{source_file}: 'when' must be a non-empty mapping")
+        if not then.get("message"):
+            raise RuleError(f"{source_file}: 'then.message' is required")
+        priority = then.get("priority", "low")
+        if priority not in PRIORITY_ORDER:
+            raise RuleError(f"{source_file}: unknown priority {priority!r}")
+        guardrails = tuple(then.get("guardrails") or ())
+        if "non-diagnostic" not in guardrails:
+            raise RuleError(f"{source_file}: every rule must carry the 'non-diagnostic' guardrail")
+        return cls(
+            id=rule_id,
+            conditions=tuple(Condition.parse(str(c)) for c in when.values()),
+            message=str(then["message"]),
+            rationale=str(then.get("rationale", "")),
+            priority=priority,
+            guardrails=guardrails,
+            source_file=source_file,
+        )
+
+    def matches(self, features: dict[str, float], targets: dict[str, float]) -> bool:
+        return all(c.evaluate(features, targets) for c in self.conditions)
+
+
+def _is_number(token: str) -> bool:
+    try:
+        float(token)
+    except ValueError:
+        return False
+    return True
+
+
+def rules_dir() -> Path:
     # <repo>/apps/api/app/services/recommendations.py -> <repo>/rules (override with RULES_DIR)
-    rules_dir = Path(os.getenv("RULES_DIR", Path(__file__).resolve().parents[4] / "rules"))
-    rules: list[dict[str, Any]] = []
-    for yaml_file in sorted(rules_dir.glob("*.yaml")):
-        with open(yaml_file, encoding="utf-8") as f:
-            rule = yaml.safe_load(f)
-            if rule:
-                rules.append(rule)
+    return Path(os.getenv("RULES_DIR", Path(__file__).resolve().parents[4] / "rules"))
+
+
+def load_rules(directory: Path | None = None) -> list[Rule]:
+    """Parse and validate every ``*.yaml`` rule in ``directory`` (default: the rules dir)."""
+    directory = directory or rules_dir()
+    rules: list[Rule] = []
+    for path in sorted(directory.glob("*.yaml")):
+        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if raw:
+            rules.append(Rule.from_dict(raw, path.name))
+    ids = [r.id for r in rules]
+    duplicates = sorted({i for i in ids if ids.count(i) > 1})
+    if duplicates:
+        raise RuleError(f"duplicate rule ids: {duplicates}")
     return rules
 
 
-def _resolve_value(token: str, metrics: dict[str, Any], targets: dict[str, Any]) -> float | None:
-    """Resolve a token to float from metrics, targets, or as a numeric literal."""
-    if token in metrics:
-        v = metrics[token]
-        return float(v) if v is not None else None
-    if token in targets:
-        v = targets[token]
-        return float(v) if v is not None else None
-    try:
-        return float(token)
-    except (ValueError, TypeError):
-        return None
-
-
-def evaluate_condition(condition: str, metrics: dict[str, Any], targets: dict[str, Any]) -> bool:
-    """Safely evaluate a rule condition string without using eval().
-
-    Supports patterns like:
-        daily_features.fiber_g < user_targets.fiber_g * 0.8
-        daily_features.sleep_hours < 6
-        daily_features.steps < 5000
-    """
-    m = _CONDITION_RE.match(condition.strip())
-    if not m:
-        return False
-
-    lhs_val = _resolve_value(m.group("key"), metrics, targets)
-    rhs_val = _resolve_value(m.group("rhs"), metrics, targets)
-    if lhs_val is None or rhs_val is None:
-        return False
-
-    factor_str = m.group("factor")
-    if factor_str:
-        try:
-            rhs_val *= float(factor_str)
-        except (ValueError, TypeError):
-            return False
-
-    op_fn = _OPS.get(m.group("op"))
-    if op_fn is None:
-        return False
-
-    return bool(op_fn(lhs_val, rhs_val))
+@lru_cache(maxsize=1)
+def _cached_rules(directory: str) -> tuple[Rule, ...]:
+    return tuple(load_rules(Path(directory)))
 
 
 def generate_recommendations(
-    metrics: dict[str, Any], targets: dict[str, Any] | None = None
+    daily_features: dict[str, Any],
+    user_targets: dict[str, Any] | None = None,
+    top_n: int | None = None,
 ) -> list[dict[str, Any]]:
-    """Generate recommendations based on YAML rules and current metrics."""
-    if targets is None:
-        targets = {
-            "fiber_g": 25,
-            "protein_g": 55,
-            "calories": 2000,
-            "sleep_hours": 7,
-            "steps": 8000,
-            "water_ml": 2000,
-            "omega3_g": 1.6,
+    """Fire every matching rule, highest priority first (ties broken by id).
+
+    Missing targets fall back to DEFAULT_TARGETS. Returns an empty list when no rule
+    matches; callers should not invent advice to fill the gap.
+    """
+    features = {k: float(v) for k, v in daily_features.items() if isinstance(v, int | float)}
+    targets = {**DEFAULT_TARGETS}
+    targets.update({k: float(v) for k, v in (user_targets or {}).items() if v is not None})
+
+    fired = [r for r in _cached_rules(str(rules_dir())) if r.matches(features, targets)]
+    fired.sort(key=lambda r: (PRIORITY_ORDER[r.priority], r.id))
+    if top_n is not None:
+        fired = fired[:top_n]
+    return [
+        {
+            "id": r.id,
+            "message": r.message,
+            "rationale": r.rationale,
+            "priority": r.priority,
+            "guardrails": list(r.guardrails),
+            "triggered_by": [c.source for c in r.conditions],
         }
-
-    rules = load_rules()
-    recommendations: list[dict[str, Any]] = []
-
-    for rule in rules:
-        rule_id = rule.get("id")
-        when_block = rule.get("when", {})
-        # All conditions in `when` must be satisfied (AND logic)
-        if all(evaluate_condition(cond_str, metrics, targets) for cond_str in when_block.values()):
-            then = rule.get("then", {})
-            recommendations.append(
-                {
-                    "id": rule_id,
-                    "message": then.get("message", ""),
-                    "rationale": then.get("rationale", ""),
-                    "priority": then.get("priority", "low"),
-                    "guardrails": then.get("guardrails", []),
-                }
-            )
-
-    if not recommendations:
-        recommendations.extend(generate_rule_based_recommendations(metrics))
-
-    return recommendations
+        for r in fired
+    ]
 
 
 def aggregate_metrics(events: list[dict[str, Any]]) -> dict[str, Any]:
-    """Aggregate raw events into summary metrics."""
+    """Aggregate raw events into the daily features the rules read."""
     metrics: dict[str, Any] = {
         "calories": 0,
         "sleep_hours": 0.0,
@@ -160,78 +243,3 @@ def aggregate_metrics(events: list[dict[str, Any]]) -> dict[str, Any]:
         elif event_type == "water":
             metrics["water_ml"] += event.get("volume_ml", 0)
     return metrics
-
-
-def generate_rule_based_recommendations(metrics: dict[str, Any]) -> list[dict[str, Any]]:
-    """Generate recommendations from simple heuristics when no YAML rules match."""
-    recommendations: list[dict[str, Any]] = []
-
-    calories = metrics.get("calories", 0)
-    if calories > 2200:
-        recommendations.append(
-            {
-                "id": "high_calories",
-                "message": (
-                    f"Today's intake is {calories} kcal. "
-                    "Consider a lighter, vegetable-forward next meal."
-                ),
-                "rationale": "Calorie intake exceeds daily target.",
-                "priority": "medium",
-                "guardrails": ["non-diagnostic"],
-            }
-        )
-
-    sleep_hours = metrics.get("sleep_hours", 0.0)
-    if sleep_hours < 6:
-        recommendations.append(
-            {
-                "id": "low_sleep",
-                "message": (
-                    f"Last night's sleep was {sleep_hours:.1f} h. "
-                    "Aim for 7-9 hours to support metabolic health."
-                ),
-                "rationale": "Short sleep impairs insulin sensitivity and appetite regulation.",
-                "priority": "high",
-                "guardrails": ["non-diagnostic"],
-            }
-        )
-
-    steps = metrics.get("steps", 0)
-    if steps < 5000:
-        recommendations.append(
-            {
-                "id": "low_activity",
-                "message": (
-                    f"You've logged {steps} steps so far. "
-                    "A 15-minute walk can meaningfully improve post-meal glucose response."
-                ),
-                "rationale": "Low activity reduces daily energy expenditure.",
-                "priority": "medium",
-                "guardrails": ["non-diagnostic"],
-            }
-        )
-
-    water_ml = metrics.get("water_ml", 0.0)
-    if water_ml < 1000:
-        recommendations.append(
-            {
-                "id": "low_hydration",
-                "message": "Hydration looks low today. Aim for at least 2 L of water.",
-                "rationale": "Adequate hydration supports kidney function and satiety.",
-                "priority": "low",
-                "guardrails": ["non-diagnostic"],
-            }
-        )
-
-    if not recommendations:
-        recommendations.append(
-            {
-                "id": "good_habits",
-                "message": "You're maintaining good habits today. Keep up the healthy lifestyle!",
-                "rationale": "All metrics are within healthy ranges.",
-                "priority": "info",
-                "guardrails": ["non-diagnostic"],
-            }
-        )
-
-    return recommendations

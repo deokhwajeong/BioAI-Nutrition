@@ -25,6 +25,7 @@ interface Fixtures {
   meals: { foods: Schemas["FoodNutrition"][]; unknown: Schemas["FoodNutrition"] };
   images: { label: string; rgb: number[]; response: Schemas["AnalyzeMealResponse"] }[];
   metrics: Json;
+  recommendations: Json;
   synthea: { status: Json; detail: Record<string, Json>; load: Record<string, Json> };
 }
 
@@ -128,6 +129,8 @@ async function route(path: string, method: string, body: BodyInit | null | undef
       return json(p.metabolic_state);
     case "/engine/nutrient-budget":
       return json(p.nutrient_budget);
+    case "/recommendations":
+      return json(fx.recommendations);
     case "/analyze-meal": {
       const items = (payload.items ?? []) as { name: string }[];
       return json({ items: items.map((i) => foodFor(i.name)) });

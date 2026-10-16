@@ -2,7 +2,7 @@ id: protein_intake_low
 when:
   cond_protein: "daily_features.protein_g < user_targets.protein_g * 0.8"
 then:
-  message: "Protein intake is below target. Add a palm-sized serving of chicken, fish, legumes, or Greek yogurt to your next meal."
-  rationale: "Your 3-day average protein intake is under 80% of your personalized target, which may impair muscle protein synthesis and satiety."
+  message: "Protein intake is below target. A palm-sized serving of chicken, fish, legumes, or Greek yogurt at your next meal would help."
+  rationale: "Today's protein intake is under 80% of your personal target."
   priority: medium
   guardrails: ["non-diagnostic", "allergen-aware"]

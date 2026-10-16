@@ -12,6 +12,7 @@ import {
   engineStatus,
   engineLagComparison,
   engineEdgeManifest,
+  getRecommendations,
 } from "../lib/api";
 import type { FoodNutrition } from "../lib/types";
 import PipelineVisualizer from "./components/PipelineVisualizer";
@@ -28,7 +29,8 @@ import type { ConflictResolution } from "./components/SafetyOverrideNotice";
 import EdgeBoundaryBar from "./components/EdgeBoundaryBar";
 import type { EdgeManifest } from "./components/EdgeBoundaryBar";
 import type { LagComparison } from "./components/LagComparisonView";
-import type { EngineStatusView } from "../lib/types";
+import type { DailyFeatures, EngineStatusView, RecommendationsView } from "../lib/types";
+import RecommendationsPanel from "./components/RecommendationsPanel";
 
 /* ── Types ──────────────────────────────────────────── */
 
@@ -42,7 +44,6 @@ type TabType =
 interface PipelineStage {
   id: string;
   label: string;
-  icon: string;
   description: string;
   status: "idle" | "running" | "done" | "error";
   detail?: string;
@@ -51,13 +52,30 @@ interface PipelineStage {
 const USER_ID = "demo-user-001";
 
 const INITIAL_STAGES: PipelineStage[] = [
-  { id: "consent",  label: "Privacy Consent",              icon: "🔐", description: "Grant scopes under ε-differential privacy",           status: "idle" },
-  { id: "genetic",  label: "Genetic Profile",              icon: "🧬", description: "SNP variant analysis → metabolic modifiers",          status: "idle" },
-  { id: "ingest",   label: "Biomarker Ingest",             icon: "📡", description: "Heterogeneous sensor fusion (CGM, HR, HRV, steps)",  status: "idle" },
-  { id: "sync",     label: "Temporal Synchronization",     icon: "⏱️", description: "Multi-resolution alignment with circadian correction", status: "idle" },
-  { id: "metabolic",label: "Metabolic State Estimation",   icon: "🔥", description: "14-phase classifier (fasting → exercise → sleep → stress)",    status: "idle" },
-  { id: "nutrient", label: "Nutrient Demand Calculation",  icon: "🧮", description: "7-stage personalized budget with genetic modifiers",  status: "idle" },
+  { id: "consent",   label: "Check consent",              description: "Only data types the user has agreed to share are used; anything else is dropped before processing.", status: "idle" },
+  { id: "genetic",   label: "Read genetic profile",       description: "Looks up 8 common gene variants linked to how the body handles caffeine, folate, fat, and sugar. Each becomes a small adjustment factor.", status: "idle" },
+  { id: "ingest",    label: "Collect sensor readings",    description: "Loads glucose, heart rate, and activity readings: 72 hours of synthetic history plus a batch of fresh readings.", status: "idle" },
+  { id: "sync",      label: "Line up the timelines",      description: "Glucose reacts 10 to 20 minutes after a meal; heart rate reacts in seconds. Each reading is shifted back to when the event happened, then grouped into time windows.", status: "idle" },
+  { id: "metabolic", label: "Estimate body state",        description: "Labels the current state (for example fasting, after a meal, exercise recovery, sleep) from the aligned signals.", status: "idle" },
+  { id: "nutrient",  label: "Set daily nutrient targets", description: "Adjusts energy, protein, carb, fat, fiber, and water targets for that state and profile. Medical limits always win over genetic adjustments.", status: "idle" },
+  { id: "suggest",   label: "Suggest next steps",         description: "Compares a sample logged day with those targets using plain-text rules and lists what to adjust.", status: "idle" },
 ];
+
+/** Synthetic day of intake, activity, and sleep for the suggestions stage.
+ *  Mirrored in apps/api/scripts/capture_demo_fixtures.py (SAMPLE_DAY). */
+const SAMPLE_DAY: DailyFeatures = {
+  calories: 2450,
+  protein_g: 62,
+  carbs_g: 290,
+  fiber_g: 14,
+  sugar_g: 68,
+  omega3_g: 0.6,
+  water_ml: 1300,
+  steps: 6200,
+  sleep_hours: 6.1,
+};
+
+const phaseLabel = (phase: string) => phase.replace(/_/g, " ");
 
 /* ── Page Component ─────────────────────────────────── */
 
@@ -70,7 +88,6 @@ export default function HomePage() {
 
   /* Consent */
   const [grantedScopes, setGrantedScopes] = useState<string[]>([]);
-  const [consentLoaded, setConsentLoaded] = useState(false);
 
   /* Genetic */
   const [geneticModifiers, setGeneticModifiers] = useState<Record<string, number> | null>(null);
@@ -87,7 +104,7 @@ export default function HomePage() {
   const [nutrientModifications, setNutrientModifications] = useState<string[]>([]);
   const [nutrientState, setNutrientState] = useState<string | undefined>();
 
-  /* Patent-feature state */
+  /* Lag comparison, safety overrides, edge manifest */
   const [lagComparisonData, setLagComparisonData] = useState<LagComparison | null>(null);
   const [lagLoading, setLagLoading] = useState(false);
   const [conflictResolutions, setConflictResolutions] = useState<ConflictResolution[]>([]);
@@ -99,6 +116,10 @@ export default function HomePage() {
     epsilon_total: number;
     queries_count: number;
   }>({ epsilon_used: 0, epsilon_total: 10, queries_count: 0 });
+
+  /* Rule-based suggestions */
+  const [recommendations, setRecommendations] = useState<RecommendationsView | null>(null);
+  const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
 
   /* Engine status */
   const [engineStatusData, setEngineStatusData] = useState<EngineStatusView | null>(null);
@@ -115,7 +136,6 @@ export default function HomePage() {
     getConsentStatus(USER_ID)
       .then((data) => {
         setGrantedScopes(data.granted_scopes ?? []);
-        setConsentLoaded(true);
       })
       .catch(() => {
         // Backend not reachable yet - use sensible defaults
@@ -123,7 +143,6 @@ export default function HomePage() {
           "glucose_data", "activity_data", "heart_rate_data",
           "sleep_data", "genetic_data", "meal_data",
         ]);
-        setConsentLoaded(true);
       });
   }, []);
 
@@ -142,6 +161,8 @@ export default function HomePage() {
   const runFullPipeline = useCallback(async () => {
     setPipelineRunning(true);
     setStages(INITIAL_STAGES);
+    setRecommendations(null);
+    setRecommendationsError(null);
 
     try {
       /* 1 ── Consent ───────────────────────────────── */
@@ -173,7 +194,7 @@ export default function HomePage() {
       const genResult = await engineGeneticProfile(USER_ID, geno);
       setGeneticModifiers(genResult.modifiers ?? {});
       const modCount = Object.keys(genResult.modifiers ?? {}).length;
-      setStageStatus("genetic", "done", `${modCount} metabolic modifiers from 8 SNPs`);
+      setStageStatus("genetic", "done", `${modCount} adjustment factors from 8 variants`);
 
       /* 3 ── Ingest (add fresh readings on top of 72h seed) ──────── */
       setStageStatus("ingest", "running");
@@ -207,12 +228,12 @@ export default function HomePage() {
           value: Math.round((base + (Math.random() - 0.5) * 5) * 10) / 10,
           unit: "bpm",
           timestamp: t.toISOString(),
-          source_id: "watch-apple-ultra",
+          source_id: "smartwatch-hr",
         });
       }
       const ingestResult = await engineIngest(USER_ID, readings);
       setStageStatus("ingest", "done",
-        `${ingestResult.accepted}/${readings.length} fresh + 72h seed data in adapters`);
+        `${ingestResult.accepted} of ${readings.length} fresh readings accepted, plus 72 h of history`);
 
       /* 4 ── Temporal Synchronization ──────────────── */
       setStageStatus("sync", "running");
@@ -232,9 +253,9 @@ export default function HomePage() {
       const syncGlucoseMean = gluN > 0 ? Math.round(gluSum / gluN * 10) / 10 : undefined;
       const syncHRMean = hrN > 0 ? Math.round(hrSum / hrN * 10) / 10 : undefined;
       setStageStatus("sync", "done",
-        `${syncResult.total_frames} frames aligned · glucose μ=${syncGlucoseMean ?? "–"} · HR μ=${syncHRMean ?? "–"}`);
+        `${syncResult.total_frames} time windows · avg glucose ${syncGlucoseMean ?? "n/a"} mg/dL · avg heart rate ${syncHRMean ?? "n/a"} bpm`);
 
-      /* 4b ── Lag Comparison (patent visualization) ── */
+      /* 4b ── Lag comparison (before/after alignment) ── */
       setLagLoading(true);
       try {
         const lagResult = await engineLagComparison<LagComparison>(USER_ID, 180);
@@ -254,7 +275,7 @@ export default function HomePage() {
       setGlucoseMean(syncGlucoseMean);
       setHeartRateMean(syncHRMean);
       setStageStatus("metabolic", "done",
-        `Phase: ${metaResult.phase} (${Math.round((metaResult.confidence ?? 0) * 100)}%)`);
+        `${phaseLabel(metaResult.phase)} (${Math.round((metaResult.confidence ?? 0) * 100)}% confidence)`);
 
       /* 6 ── Nutrient Demand Budget ────────────────── */
       setStageStatus("nutrient", "running");
@@ -265,7 +286,25 @@ export default function HomePage() {
       setConflictResolutions(budgetResult.conflict_resolutions ?? []);
       const modNumBudget = (budgetResult.modifications ?? []).length;
       setStageStatus("nutrient", "done",
-        `${Object.keys(budgetResult.targets ?? {}).length} nutrients · ${modNumBudget} genetic/metabolic adjustments`);
+        `${Object.keys(budgetResult.targets ?? {}).length} nutrient targets · ${modNumBudget} adjustments`);
+
+      /* 7 ── Rule-based suggestions ─────────────── */
+      setStageStatus("suggest", "running");
+      const t = budgetResult.targets ?? {};
+      try {
+        const recs = await getRecommendations(SAMPLE_DAY, {
+          calories: t.kcal,
+          protein_g: t.protein_g,
+          fiber_g: t.fiber_g,
+          water_ml: t.water_ml,
+        });
+        setRecommendations(recs);
+        setStageStatus("suggest", "done", `${recs.items.length} suggestions from the rule files`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Unknown error";
+        setRecommendationsError(msg);
+        setStageStatus("suggest", "error", msg);
+      }
 
       /* Engine status for header badge */
       const es = await engineStatus();
@@ -330,68 +369,60 @@ export default function HomePage() {
 
   /* ── Tab Config ──────────────────────────────────── */
 
-  const TABS: { id: TabType; label: string; icon: string }[] = [
-    { id: "pipeline",     label: "BioSync Pipeline",  icon: "⚙️" },
-    { id: "consent",      label: "Privacy & Consent", icon: "🔐" },
-    { id: "genetic",      label: "Genetic Profile",   icon: "🧬" },
-    { id: "meal_predict", label: "Meal Predict",       icon: "🍽️" },
-    { id: "synthea",      label: "Synthea FHIR",       icon: "🏥" },
+  const TABS: { id: TabType; label: string }[] = [
+    { id: "pipeline",     label: "Pipeline" },
+    { id: "consent",      label: "Consent" },
+    { id: "genetic",      label: "Genetic profile" },
+    { id: "meal_predict", label: "Meal check" },
+    { id: "synthea",      label: "Sample patients" },
   ];
 
   /* ── Render ──────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white">
+    <div className="min-h-screen bg-background text-slate-100">
       {/* ─── Header ────────────────────────────────── */}
-      <header className="border-b border-white/10 backdrop-blur-lg bg-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-5">
+      <header className="border-b border-white/10 bg-slate-950/60">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
+          <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent">
-                  BioAI Nutrition
-                </span>
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                Adaptive Biomarker Synchronization Engine &middot; ε-Differential Privacy &middot; Circadian-Aware Nutrient Optimization
+              <h1 className="text-2xl font-semibold tracking-tight text-white">Nutri-Node</h1>
+              <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+                Turns wearable and lab signals that arrive at different times into a daily nutrient plan,
+                with consent and privacy checks built into each step. Research prototype on synthetic data.
               </p>
             </div>
 
             {engineStatusData && (
-              <div className="hidden md:flex items-center gap-3 text-xs">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-emerald-300 font-medium">Engine Active</span>
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 font-mono text-gray-400">
-                  {engineStatusData.registered_sources ?? 0} sources &middot; {engineStatusData.biomarker_types ?? 0} types
-                </div>
+              <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                API connected &middot; {engineStatusData.registered_sources ?? 0} data sources
               </div>
             )}
           </div>
 
           {/* ─── Tab Navigation ────────────────────── */}
-          <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+          <nav aria-label="Sections" className="flex gap-1 overflow-x-auto -mx-1 px-1">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                className={`shrink-0 px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? "bg-white/15 text-white shadow-lg shadow-white/5"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                    ? "bg-white/10 text-white"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
                 }`}
               >
-                <span>{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+                {tab.label}
               </button>
             ))}
-          </div>
+          </nav>
         </div>
       </header>
 
       {/* ─── Main Content ──────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* ── Pipeline Tab ──────────────────────────── */}
         {activeTab === "pipeline" && (
           <div className="space-y-8 animate-fade-in">
@@ -404,8 +435,8 @@ export default function HomePage() {
             {(metabolicPhase || nutrientTargets) && (
               <div className="grid lg:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    Metabolic State Detection
+                  <h3 className="text-sm font-semibold text-slate-300 mb-3">
+                    Estimated body state
                   </h3>
                   <MetabolicStateCard
                     phase={metabolicPhase}
@@ -416,8 +447,8 @@ export default function HomePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    Personalized Nutrient Budget
+                  <h3 className="text-sm font-semibold text-slate-300 mb-3">
+                    Daily nutrient targets
                   </h3>
                   <NutrientBudgetPanel
                     targets={nutrientTargets}
@@ -428,28 +459,34 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Patent Figure: Before/After t_sync Comparison */}
+            {(recommendations || recommendationsError) && (
+              <RecommendationsPanel day={SAMPLE_DAY} data={recommendations} error={recommendationsError} />
+            )}
+
+            {/* Before/after timeline alignment */}
             <LagComparisonView data={lagComparisonData} loading={lagLoading} />
 
-            {/* Patent Figure: Safety Override Notice */}
+            {/* Medical limits that overrode genetic adjustments */}
             <SafetyOverrideNotice conflicts={conflictResolutions} />
 
             {geneticModifiers && Object.keys(geneticModifiers).length > 0 && (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Genetic Metabolic Modifiers (from Pipeline)
+              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                <h3 className="text-sm font-semibold text-slate-300 mb-4">
+                  Genetic adjustment factors (1.00 = no change)
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {Object.entries(geneticModifiers).map(([key, val]) => {
-                    const isUp = val > 1;
-                    const isDown = val < 1;
+                    // Most entries are multipliers; a few (e.g. caffeine_max_daily_mg) are absolute limits.
+                    const unit = key.match(/_(mg|mcg|iu|g)$/)?.[1];
+                    const isUp = !unit && val > 1;
+                    const isDown = !unit && val < 1;
                     return (
                       <div key={key} className="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
                         <div className="text-[10px] text-gray-400 truncate">
-                          {key.replace(/_modifier$/, "").replace(/_/g, " ")}
+                          {key.replace(/_modifier$/, "").replace(/_(mg|mcg|iu)$/, "").replace(/_/g, " ")}
                         </div>
-                        <div className={`text-xl font-bold mt-1 ${isUp ? "text-red-400" : isDown ? "text-emerald-400" : "text-gray-300"}`}>
-                          {isUp ? "↑" : isDown ? "↓" : "="} {val.toFixed(2)}x
+                        <div className={`text-xl font-bold mt-1 ${isUp ? "text-amber-300" : isDown ? "text-sky-300" : "text-gray-300"}`}>
+                          {unit ? `${val} ${unit}` : `${isUp ? "↑" : isDown ? "↓" : "="} ${val.toFixed(2)}x`}
                         </div>
                       </div>
                     );
@@ -458,58 +495,47 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Architecture diagram */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                System Architecture
-              </h3>
-              <div className="grid grid-cols-3 md:grid-cols-7 gap-2 text-center text-xs">
+            {/* How the stages connect */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+              <h3 className="text-sm font-semibold text-slate-300 mb-4">How it fits together</h3>
+              <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                 {[
-                  { icon: "📡", label: "Sensor Fusion", sub: "CGM · Watch · DNA" },
-                  { icon: "→",  label: "",               sub: "" },
-                  { icon: "⏱️", label: "Temporal Sync",  sub: "Multi-resolution" },
-                  { icon: "→",  label: "",               sub: "" },
-                  { icon: "🔥", label: "Metabolic FSM",  sub: "13 phases" },
-                  { icon: "→",  label: "",               sub: "" },
-                  { icon: "🧮", label: "Nutrient Calc",  sub: "7-stage pipeline" },
-                ].map((item, i) =>
-                  item.label ? (
-                    <div key={i} className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-3 border border-white/10">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div className="font-semibold text-gray-200 mt-1">{item.label}</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{item.sub}</div>
-                    </div>
-                  ) : (
-                    <div key={i} className="flex items-center justify-center text-gray-600 text-lg">→</div>
-                  )
-                )}
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-6 text-[10px] text-gray-500">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> ε-Differential Privacy (Laplace + Gaussian)</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500" /> On-device Graph Embeddings</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-cyan-500" /> Dual-EWMA Baselines</span>
-              </div>
+                  { label: "Sensors and lab data", sub: "Glucose monitor, watch, genotype" },
+                  { label: "Align timelines", sub: "Correct each signal's delay" },
+                  { label: "Estimate body state", sub: "14 states such as fasting or sleep" },
+                  { label: "Targets and suggestions", sub: "Medical limits checked first" },
+                ].map((item, i) => (
+                  <li key={item.label} className="rounded-lg border border-white/10 bg-slate-900/60 p-3">
+                    <div className="text-xs text-slate-500">Step {i + 1}</div>
+                    <div className="font-medium text-slate-100 mt-0.5">{item.label}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.sub}</div>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4 text-xs text-slate-400">
+                Privacy throughout: data use is gated by consent, and shared statistics get calibrated random noise
+                (differential privacy) so no single reading can be recovered.
+              </p>
             </div>
 
             {/* ── Floating Meal Record Button ── */}
             <button
               onClick={() => setShowMealModal(true)}
-              className="fixed bottom-20 right-8 z-40 flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-600 to-violet-600 hover:from-cyan-700 hover:to-violet-700 text-white font-bold rounded-full shadow-2xl shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95"
+              className="fixed bottom-16 right-4 sm:right-8 z-40 px-4 py-2.5 bg-teal-700 hover:bg-teal-600 text-white text-sm font-semibold rounded-full shadow-lg transition-colors"
             >
-              <span className="text-lg">🍽️</span>
-              <span className="hidden sm:inline">Record Meal</span>
+              Log a meal
             </button>
 
             {/* ── Meal Prediction Modal (from Pipeline tab) ── */}
             {showMealModal && (
               <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMealModal(false)} />
-                <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 to-indigo-950 rounded-t-2xl sm:rounded-2xl border border-white/10 p-6 shadow-2xl animate-fade-in">
+                <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-slate-900 rounded-t-2xl sm:rounded-2xl border border-white/10 p-6 shadow-2xl animate-fade-in">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      🍽️ Meal Prediction
+                      Log a meal
                     </h3>
-                    <button onClick={() => setShowMealModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-gray-400 transition">✕</button>
+                    <button onClick={() => setShowMealModal(false)} aria-label="Close" className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-gray-400 transition">✕</button>
                   </div>
                   <MealPredictionFlow
                     modal
@@ -531,9 +557,10 @@ export default function HomePage() {
         {activeTab === "consent" && (
           <div className="max-w-2xl mx-auto animate-fade-in">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">Privacy & Consent Management</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Granular data scope control with real-time revocation and ε-differential privacy budget tracking.
+              <h2 className="text-xl font-semibold">Consent</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                Choose which kinds of data the pipeline may use. Turning a type off takes effect on the next run.
+                The privacy budget shows how much statistical detail has been released so far.
               </p>
             </div>
             <PrivacyConsentPanel
@@ -548,10 +575,10 @@ export default function HomePage() {
         {activeTab === "genetic" && (
           <div className="max-w-3xl mx-auto animate-fade-in">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">Genetic Profile & SNP Analysis</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Select genotypes for 8 metabolically significant SNPs. The engine computes dose-dependent modifiers
-                that adjust your nutrient budget in real-time.
+              <h2 className="text-xl font-semibold">Genetic profile</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                Pick a genotype for any of these gene variants. Each one the engine recognizes becomes an adjustment
+                factor on the nutrient targets (above 1.00 raises a target, below lowers it). Synthetic choices only.
               </p>
             </div>
             <GeneticProfilePanel
@@ -566,10 +593,10 @@ export default function HomePage() {
         {activeTab === "meal_predict" && (
           <div className="max-w-2xl mx-auto animate-fade-in">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold">Meal Prediction & Analysis</h2>
-              <p className="text-gray-400 text-sm mt-1">
-                Analyze food, predict your personalized glucose response using genetic (γ) &amp; circadian (φ) modifiers,
-                verify medical safety constraints, and apply to your nutrient budget - all in one flow.
+              <h2 className="text-xl font-semibold">Meal check</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                Describe or photograph a meal. The app estimates its nutrients, sketches the likely glucose curve
+                for this profile and time of day, checks it against medical limits, and adds it to today&apos;s totals.
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -595,13 +622,15 @@ export default function HomePage() {
 
       {/* ─── Footer ────────────────────────────────── */}
       <footer className="border-t border-white/10 mt-16">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
-          <span>BioSync Engine v0.1 &middot; ε-Differential Privacy &middot; HIPAA-compliant</span>
-          <span className="mt-2 md:mt-0">Built with BioAI &middot; FastAPI &middot; Next.js 16</span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row gap-2 md:items-center md:justify-between text-xs text-slate-400">
+          <span>Research prototype. Not a medical device and not medical advice. All data is synthetic.</span>
+          <a className="hover:text-slate-200 underline-offset-2 hover:underline" href="https://github.com/deokhwajeong/BioAI-Nutrition">
+            Source on GitHub
+          </a>
         </div>
       </footer>
 
-      {/* Patent Figure: Edge Boundary Privacy Bar (fixed bottom) */}
+      {/* Privacy boundary bar (fixed bottom) */}
       <EdgeBoundaryBar manifest={edgeManifest} />
 
       {/* Bottom spacer for fixed EdgeBoundaryBar */}

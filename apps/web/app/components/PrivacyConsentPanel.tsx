@@ -48,11 +48,10 @@ export default function PrivacyConsentPanel({ grantedScopes, onToggle, privacyBu
     <div className="space-y-5">
       {/* Privacy budget meter */}
       {privacyBudget && (
-        <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-xl p-5 text-white">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-5 text-white">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-lg">🔐</span>
-              <span className="font-bold text-sm">Differential Privacy Budget</span>
+              <span className="font-semibold text-sm">Privacy budget used</span>
             </div>
             <span className="text-xs font-mono opacity-70">
               ε = {privacyBudget.epsilon_used.toFixed(2)} / {privacyBudget.epsilon_total.toFixed(1)}
@@ -62,16 +61,16 @@ export default function PrivacyConsentPanel({ grantedScopes, onToggle, privacyBu
             <div
               className={`h-full rounded-full transition-all duration-1000 ${
                 budgetPct > 80
-                  ? "bg-gradient-to-r from-red-500 to-red-600"
+                  ? "bg-red-500"
                   : budgetPct > 50
-                    ? "bg-gradient-to-r from-yellow-500 to-amber-500"
-                    : "bg-gradient-to-r from-emerald-400 to-green-500"
+                    ? "bg-yellow-500"
+                    : "bg-emerald-400"
               }`}
               style={{ width: `${budgetPct}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 text-xs opacity-60">
-            <span>{privacyBudget.queries_count} queries processed</span>
+            <span>{privacyBudget.queries_count} noisy statistics released</span>
             <span>{(100 - budgetPct).toFixed(0)}% budget remaining</span>
           </div>
         </div>
@@ -97,7 +96,6 @@ export default function PrivacyConsentPanel({ grantedScopes, onToggle, privacyBu
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">{scope.icon}</span>
                     <div>
                       <span className="text-sm font-medium text-gray-900 dark:text-white">{scope.label}</span>
                       <span className="block text-[10px] font-mono text-gray-400">{scope.id}</span>
@@ -105,6 +103,9 @@ export default function PrivacyConsentPanel({ grantedScopes, onToggle, privacyBu
                   </div>
                   <button
                     onClick={() => handleToggle(scope.id)}
+                    role="switch"
+                    aria-checked={isOn}
+                    aria-label={scope.label}
                     disabled={isLoading}
                     className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
                       isOn ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"

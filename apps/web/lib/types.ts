@@ -15,6 +15,8 @@ export type SyncResponse = Schemas["SyncResponse"];
 export type ConflictResolution = Schemas["ConflictResolutionOut"];
 export type SyntheaStatus = Schemas["SyntheaStatusResponse"];
 export type SyntheaLoadResult = Schemas["LoadPatientResponse"];
+export type DailyFeatures = Schemas["DailyFeatures"];
+export type UserTargets = Schemas["UserTargets"];
 
 export type Resolution = "fine" | "medium" | "coarse";
 export type Sex = "male" | "female";
@@ -43,6 +45,20 @@ export interface EngineStatusView {
   biomarker_types: number;
   users_with_data: number;
   privacy?: { epsilon_used?: number; queries?: number };
+}
+
+/** One fired rule from rules/*.yaml, shaped for the suggestions panel. */
+export interface RecommendationView {
+  id: string;
+  message: string;
+  rationale: string;
+  priority: "high" | "medium" | "low";
+  triggeredBy: string[];
+}
+
+export interface RecommendationsView {
+  items: RecommendationView[];
+  disclaimer: string;
 }
 
 /** Free-form JSON returned by research/diagnostic endpoints (lag comparison, edge manifest). */

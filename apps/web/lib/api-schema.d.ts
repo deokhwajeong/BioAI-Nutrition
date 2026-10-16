@@ -454,7 +454,10 @@ export interface paths {
         put?: never;
         /**
          * Post Recommendations
-         * @description Rank rule-based nutrition recommendations for one day of features against user targets.
+         * @description Evaluate the YAML rules in rules/ against one day of features and the user's targets.
+         *
+         *     Every matching rule is returned, highest priority first. An empty list means no rule
+         *     fired. Suggestions are general wellness guidance, not medical advice.
          */
         post: operations["post_recommendations_recommendations_post"];
         delete?: never;
@@ -738,8 +741,18 @@ export interface components {
             /** User Id */
             user_id: string;
         };
-        /** DailyFeatures */
+        /**
+         * DailyFeatures
+         * @description One day of intake, activity, and sleep. Missing values never trigger a rule.
+         */
         DailyFeatures: {
+            /**
+             * Calories
+             * @description Energy intake (kcal)
+             */
+            calories?: number | null;
+            /** Carbs G */
+            carbs_g?: number | null;
             /**
              * Date
              * @description ISO date
@@ -747,22 +760,18 @@ export interface components {
             date?: string | null;
             /** Fiber G */
             fiber_g?: number | null;
-            /** Kcal Avg */
-            kcal_avg?: number | null;
-            /** Late Meal Freq */
-            late_meal_freq?: number | null;
-            /** Persona */
-            persona?: string | null;
+            /** Omega3 G */
+            omega3_g?: number | null;
             /** Protein G */
             protein_g?: number | null;
             /** Sleep Hours */
             sleep_hours?: number | null;
-            /** Sleep Regularity */
-            sleep_regularity?: number | null;
             /** Steps */
             steps?: number | null;
-            /** Ultra Processed Ratio */
-            ultra_processed_ratio?: number | null;
+            /** Sugar G */
+            sugar_g?: number | null;
+            /** Water Ml */
+            water_ml?: number | null;
         };
         /** DietEvent */
         DietEvent: {
@@ -1130,25 +1139,48 @@ export interface components {
         };
         /** Recommendation */
         Recommendation: {
-            /** Id */
+            /**
+             * Guardrails
+             * @description Always includes 'non-diagnostic'
+             */
+            guardrails: string[];
+            /**
+             * Id
+             * @description Rule id from rules/*.yaml
+             */
             id: string;
             /** Message */
             message: string;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "high" | "medium" | "low";
             /** Rationale */
             rationale: string;
             /**
-             * Tags
-             * @default []
+             * Triggered By
+             * @description The rule conditions that matched
              */
-            tags?: string[];
+            triggered_by: string[];
         };
         /** RecommendationRequest */
         RecommendationRequest: {
             daily_features: components["schemas"]["DailyFeatures"];
-            user_targets: components["schemas"]["UserTargets"];
+            /**
+             * Top N
+             * @description Return at most this many
+             */
+            top_n?: number | null;
+            user_targets?: components["schemas"]["UserTargets"];
         };
         /** RecommendationResponse */
         RecommendationResponse: {
+            /**
+             * Disclaimer
+             * @default General wellness suggestions from fixed rules. Not medical advice.
+             */
+            disclaimer?: string;
             /** Recommendations */
             recommendations: components["schemas"]["Recommendation"][];
         };
@@ -1253,23 +1285,36 @@ export interface components {
             /** Water Pct */
             water_pct: number;
         };
-        /** UserTargets */
+        /**
+         * UserTargets
+         * @description Daily targets. Anything left out falls back to the engine's defaults.
+         */
         UserTargets: {
+            /**
+             * Calories
+             * @description Daily calorie target (kcal)
+             */
+            calories?: number | null;
             /**
              * Fiber G
              * @description Daily fiber target (g)
              */
             fiber_g?: number | null;
             /**
-             * Kcal
-             * @description Daily calorie target
+             * Omega3 G
+             * @description Daily omega-3 target (g)
              */
-            kcal?: number | null;
+            omega3_g?: number | null;
             /**
              * Protein G
              * @description Daily protein target (g)
              */
             protein_g?: number | null;
+            /**
+             * Water Ml
+             * @description Daily water target (mL)
+             */
+            water_ml?: number | null;
         };
         /** ValidationError */
         ValidationError: {

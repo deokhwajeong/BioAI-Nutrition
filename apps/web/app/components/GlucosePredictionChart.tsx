@@ -159,7 +159,7 @@ export default function GlucosePredictionChart({
     [carbsG, currentGlucose, geneticModifiers, metabolicPhase, hour]
   );
 
-  const { curve, peakMinutes, peakGlucose, returnMinutes, geneticFactor, circadianFactor: phi, riskLevel } = prediction;
+  const { curve, peakMinutes, peakGlucose, geneticFactor, circadianFactor: phi, riskLevel } = prediction;
   const risk = RISK_STYLES[riskLevel];
 
   // SVG chart dimensions
@@ -197,7 +197,7 @@ export default function GlucosePredictionChart({
       {/* Formula annotation */}
       <div className="text-[10px] text-gray-500 font-mono bg-white/5 rounded-lg px-3 py-2 border border-white/10">
         t_sync = t_event + Δt_base(35min) × γ_genetic({geneticFactor}) × φ_circadian({phi.toFixed(2)})
-        = <span className="text-cyan-400 font-bold">{peakMinutes}min</span> to peak
+        = <span className="text-sky-400 font-bold">{peakMinutes}min</span> to peak
       </div>
 
       {/* SVG Chart */}
@@ -260,12 +260,12 @@ export default function GlucosePredictionChart({
       <div className="grid grid-cols-3 gap-2 text-center">
         <div className="bg-white/5 border border-white/10 rounded-lg p-2">
           <div className="text-[10px] text-gray-500 uppercase">γ genetic</div>
-          <div className="text-lg font-bold text-cyan-400">{geneticFactor}×</div>
+          <div className="text-lg font-bold text-sky-400">{geneticFactor}×</div>
           <div className="text-[9px] text-gray-500">SNP modifiers</div>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-lg p-2">
           <div className="text-[10px] text-gray-500 uppercase">φ circadian</div>
-          <div className="text-lg font-bold text-violet-400">{phi.toFixed(2)}×</div>
+          <div className="text-lg font-bold text-sky-400">{phi.toFixed(2)}×</div>
           <div className="text-[9px] text-gray-500">{hour}:00 sensitivity</div>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-lg p-2">

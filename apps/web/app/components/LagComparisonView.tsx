@@ -140,25 +140,24 @@ function ScatterPlot({
 export default function LagComparisonView({ data, loading }: Props) {
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center animate-pulse">
-        <span className="text-4xl">⏱️</span>
-        <p className="text-gray-400 mt-2">Computing lag comparison…</p>
+      <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center animate-pulse">
+        <p className="text-gray-400">Comparing raw and delay-corrected timelines…</p>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-white/10 p-8 text-center">
-        <span className="text-4xl">📊</span>
-        <p className="text-gray-400 mt-2">
-          Run the pipeline to see Before / After t_sync comparison
+      <div className="rounded-xl border-2 border-dashed border-white/10 p-8 text-center">
+        <p className="text-gray-400">
+          Run the pipeline to compare signals before and after delay correction
         </p>
       </div>
     );
   }
 
   const { comparison, lag_formula, lag_audit_samples, frames_analyzed } = data;
+  const tooFewWindows = Math.min(frames_analyzed.uncorrected, frames_analyzed.corrected) < 10;
   const improved = comparison.improvement > 0;
   const improvementPct = Math.abs(comparison.improvement * 100).toFixed(1);
 
@@ -166,40 +165,48 @@ export default function LagComparisonView({ data, loading }: Props) {
   const ptsAfter = generateScatterPoints(comparison.with_t_sync.correlation_r);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
       {/* Title bar */}
       <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>📊</span> Before / After t_sync Correction
+            Does correcting for sensor delay help?
           </h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            Patent-core demonstration: Physiological lag compensation improves signal correlation
+            How closely glucose and heart rate track each other, with readings matched by clock time versus shifted for each signal&apos;s typical delay
           </p>
         </div>
-        <div
+        {!tooFewWindows && <div
           className={`px-3 py-1.5 rounded-full text-xs font-bold ${
             improved
               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
               : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
           }`}
         >
-          {improved ? "↑" : "↓"} {improvementPct}% improvement
-        </div>
+          {improved ? "Correlation up" : "Correlation down"} {improvementPct} pts
+        </div>}
       </div>
+
+      {tooFewWindows && (
+        <p className="mx-6 mt-4 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200">
+          Only {Math.min(frames_analyzed.uncorrected, frames_analyzed.corrected)} aligned time windows in this run, too
+          few for a meaningful correlation, so both values read near zero. The comparison becomes informative over
+          longer windows; see output/lag_sync_report.txt for an offline run.
+        </p>
+      )}
 
       {/* Side-by-side scatter plots */}
       <div className="grid md:grid-cols-2 gap-4 p-6">
         <ScatterPlot
           points={ptsBefore}
-          label="❌ Without t_sync (raw alignment)"
+          label="Matched by clock time"
           correlation={comparison.without_t_sync.correlation_r}
           color="#f87171"
           bgColor="bg-red-500/5 border-red-500/20"
         />
         <ScatterPlot
           points={ptsAfter}
-          label="✅ With t_sync (lag-compensated)"
+          label="Shifted for sensor delay"
           correlation={comparison.with_t_sync.correlation_r}
           color="#34d399"
           bgColor="bg-emerald-500/5 border-emerald-500/20"
@@ -207,27 +214,27 @@ export default function LagComparisonView({ data, loading }: Props) {
       </div>
 
       {/* Formula */}
-      <div className="mx-6 mb-4 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-        <div className="text-[10px] text-indigo-300 uppercase tracking-wider font-semibold mb-1">
-          Correction Formula
+      <div className="mx-6 mb-4 px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+        <div className="text-[10px] text-sky-300 uppercase tracking-wider font-semibold mb-1">
+          Delay formula (base delay × genetic factor × time-of-day factor)
         </div>
-        <code className="text-sm text-indigo-200 font-mono">{lag_formula}</code>
+        <code className="text-sm text-sky-200 font-mono">{lag_formula}</code>
       </div>
 
       {/* Lag audit */}
       {lag_audit_samples.length > 0 && (
         <div className="mx-6 mb-4 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
           <div className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-2">
-            Lag Audit Samples
+            Example delays applied
           </div>
           <div className="space-y-2">
             {lag_audit_samples.map((s, i) => (
               <div key={i} className="flex items-center gap-3 text-xs">
-                <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 font-mono text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[10px]">
                   {s.biomarker}
                 </span>
                 <span className="text-gray-400">
-                  base={s.base_lag_s}s × γ={s.genetic_modifier} × φ={s.circadian_modifier}
+                  {s.base_lag_s}s × {s.genetic_modifier} genetic × {s.circadian_modifier} time of day
                 </span>
                 <span className="text-white font-semibold">→ {s.effective_lag_s}s</span>
                 <span className="text-gray-500 text-[10px]">@{s.hour}h</span>
@@ -238,9 +245,10 @@ export default function LagComparisonView({ data, loading }: Props) {
       )}
 
       {/* Frames count */}
-      <div className="px-6 pb-4 flex items-center gap-4 text-[10px] text-gray-500">
-        <span>Frames analyzed: {frames_analyzed.uncorrected} (raw) → {frames_analyzed.corrected} (corrected)</span>
+      <div className="px-6 pb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
+        <span>Time windows analyzed: {frames_analyzed.uncorrected} raw, {frames_analyzed.corrected} corrected</span>
         <span>Signal pair: {comparison.signal_pair}</span>
+        <span>Dots are illustrative, drawn to match each correlation (r); r itself comes from the API.</span>
       </div>
     </div>
   );

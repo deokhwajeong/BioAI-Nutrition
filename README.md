@@ -4,9 +4,7 @@
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
 
-**Personalized nutrition from wearable and lab signals that do not arrive at the same time.**
-
-A glucose spike shows up on a CGM 10 to 20 minutes after the meal that caused it; heart rate reacts in seconds; sleep is summarized once a day. Naively joining these streams by timestamp correlates the wrong events. Nutri-Node aligns them on a physiological clock first, then estimates metabolic state and a daily nutrient budget, with consent and differential privacy enforced inside the pipeline rather than bolted on.
+Nutri-Node is a research prototype that turns wearable and lab signals into a daily nutrient plan. The hard part is timing: a glucose monitor shows a meal 10 to 20 minutes after it happens, heart rate reacts in seconds, and sleep arrives once a day, so joining the streams by clock time pairs the wrong events. Nutri-Node shifts each signal by its expected delay first, then estimates the body's current state (fasting, after a meal, exercise recovery, sleep, and so on), sets daily nutrient targets in which medical limits always override genetic adjustments, and turns a logged day into plain suggestions using readable YAML rules. Consent checks and differential privacy run inside the pipeline. It is a FastAPI service plus a Next.js dashboard, runs on synthetic data only, and makes no clinical claims.
 
 ![Pipeline run](docs/screenshots/pipeline-run.png)
 
@@ -14,7 +12,7 @@ A glucose spike shows up on a CGM 10 to 20 minutes after the meal that caused it
 
 ## Live demo
 
-**[deokhwajeong.github.io/demos/nutri-node](https://deokhwajeong.github.io/demos/nutri-node/)** runs the real dashboard in the browser with no API server. Every response it shows was captured from this API running on the repository's synthetic data: the full pipeline run, all scored genotype combinations on the Genetic Profile tab, the meal analyzer's food table, the image analyzer's colour heuristics, and the five Synthea patients. Free-text meals and uploaded images are matched to the nearest precomputed result.
+**[deokhwajeong.github.io/demos/nutri-node](https://deokhwajeong.github.io/demos/nutri-node/)** runs the real dashboard in the browser with no API server. Every response it shows was captured from this API running on the repository's synthetic data: the full pipeline run, the rule-based suggestions, all scored genotype combinations on the Genetic Profile tab, the meal analyzer's food table, the image analyzer's colour heuristics, and the five Synthea patients. Free-text meals and uploaded images are matched to the nearest precomputed result.
 
 To rebuild it: `make demo` writes a static export to `apps/web/out/` (served under `/demos/nutri-node`). After engine changes, start the API from the repo root (`uv run --project apps/api uvicorn app.main:app --app-dir apps/api`) and run `make demo-fixtures` to recapture `apps/web/lib/demo-fixtures.json`.
 
@@ -24,7 +22,7 @@ To rebuild it: `make demo` writes a static export to `apps/web/out/` (served und
 docker compose up --build        # API on :8000, web on :3000
 ```
 
-Open http://localhost:3000 and press **Run Full Pipeline**. Interactive API docs are at http://localhost:8000/docs (send `X-API-Key: dev-api-key`).
+Open http://localhost:3000 and press **Run full pipeline**. Interactive API docs are at http://localhost:8000/docs (send `X-API-Key: dev-api-key`).
 
 Without Docker (needs [uv](https://docs.astral.sh/uv/) and pnpm):
 
@@ -52,7 +50,9 @@ flowchart LR
     I --> M[4. Metabolic state<br/>14-phase classifier]
     M --> B[5. Nutrient budget<br/>safety-first conflicts]
     B --> P[6. Differential<br/>privacy noise]
+    B --> R[7. Suggestions<br/>rules/*.yaml]
     P --> UI[Next.js dashboard]
+    R --> UI
 ```
 
 | Stage | What it does | Code |
@@ -64,6 +64,21 @@ flowchart LR
 | Metabolic state | Classifies 14 phases (fasting, post-prandial, exercise recovery, sleep, stress, ...) with intensities | `app/engine/metabolic_state.py` |
 | Nutrient budget | Daily targets adjusted by phase and genotype; medical limits always win over genetic optimization, with an audit record | `app/engine/nutrient_calculator.py` |
 | Privacy noise | Tiered ε budget per data sensitivity; only non-invertible embeddings leave the edge boundary | `app/privacy/` |
+| Suggestions | `POST /recommendations` evaluates the YAML rules in `rules/` against a logged day and the user's targets. Rules are validated at load (every condition must parse, every rule must carry the `non-diagnostic` guardrail) and conditions are parsed, never `eval`ed | `app/services/recommendations.py` |
+
+## What is real vs simulated
+
+| Real: computed by code in this repository | Simulated or synthetic |
+|---|---|
+| Consent gating, lag-compensated alignment, normalization, gap filling | Every sensor reading: 72 h of seeded synthetic data plus readings the dashboard generates |
+| Metabolic state estimation (rule-based over aligned signals) and the nutrient target calculator, including medical-limit overrides and their audit trail | Genotypes, and the delay and genetic factors themselves: literature-inspired defaults, not yet validated on real CGM data (see roadmap) |
+| Differential privacy mechanisms and per-sensitivity budgets | The "on-device" boundary: edge processing runs in the same server process to show what would stay local |
+| YAML rule engine behind `/recommendations` | Synthea patients are fictional records from the open-source Synthea simulator |
+| Meal text lookup against the built-in nutrition table | Food photos: colour-histogram heuristics (optional OCR), not a trained vision model |
+| OpenAPI contract between API and web client | Meal check glucose curve: a simple in-browser model for illustration; lag view scatter dots are drawn to match the API's correlation value |
+| | Static demo: responses captured from the real API, replayed in the browser |
+
+No result here has been clinically validated, and nothing in the app is medical advice.
 
 Deeper detail: [technical whitepaper](docs/whitepaper.md) · [user manual](docs/user-manual.md) · [provisional patent application](docs/patent/provisional-application.md).
 
@@ -74,10 +89,10 @@ apps/api/        FastAPI service (uv, ruff, pytest)
   app/engine/      pipeline stages
   app/privacy/     consent, differential privacy, edge processing
   app/routers/     HTTP endpoints
-  tests/           181 tests
+  tests/           217 tests
 apps/web/        Next.js 16 + React 19 dashboard
   lib/api.ts       typed client; lib/api-schema.d.ts is generated from the API's OpenAPI spec
-rules/           YAML recommendation rules (non-diagnostic guardrails)
+rules/           YAML suggestion rules served by POST /recommendations
 data/            synthetic Synthea FHIR fixtures
 docs/            whitepaper, user manual, screenshots
 ```
@@ -85,7 +100,7 @@ docs/            whitepaper, user manual, screenshots
 ## Engineering notes
 
 - **One contract, enforced.** The web client's types are generated from FastAPI's OpenAPI spec (`make gen-api`). CI regenerates them and fails if they drift, so the frontend cannot silently fall out of sync with the API.
-- **Checks on every push:** ruff lint and format, 181 API tests with coverage (77%), TypeScript strict typecheck, ESLint, production build, and both Docker images.
+- **Checks on every push:** ruff lint and format, 217 API tests with coverage (79%), TypeScript strict typecheck, ESLint, production build, and both Docker images.
 - **Security defaults:** every endpoint requires `X-API-Key`; strict Content-Security-Policy with same-origin API calls through Next.js rewrites; PII filter on all log records; pseudonymous user IDs hashed with a server-side pepper; CORS credentials only with explicit origins; dependency updates via Dependabot.
 - **Runs anywhere:** SQLite by default (`DATABASE_URL` for Postgres); Celery tasks run inline unless `CELERY_BROKER_URL` is set; OCR is an optional extra (`uv sync --extra ocr`).
 
@@ -101,7 +116,7 @@ Configuration lives in environment variables; see [`.env.example`](.env.example)
 
 ## Status and roadmap
 
-Working today: the full seven-stage pipeline end to end, consent management, medical-constraint overrides, meal text and image analysis, Synthea patient import, and the dashboard.
+Working today: the full pipeline end to end, consent management, medical-constraint overrides, rule-based suggestions from `rules/`, meal text and image analysis, Synthea patient import, and the dashboard.
 
 Next:
 - Persist pipeline state in the database instead of in-process adapters

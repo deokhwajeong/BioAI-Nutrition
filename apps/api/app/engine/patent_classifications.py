@@ -118,7 +118,7 @@ PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] 
         modules=[
             "engine.pipeline.NutritionPipeline",
             "engine.nutrient_calculator.NutrientDemandCalculator",
-            "services.recommender",
+            "services.recommendations",
         ],
         claim_keywords=[
             "personalized nutrition",

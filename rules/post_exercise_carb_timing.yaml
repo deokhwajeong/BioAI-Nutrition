@@ -3,7 +3,7 @@ when:
   cond_steps: "daily_features.steps > 8000"
   cond_carbs: "daily_features.carbs_g < 100"
 then:
-  message: "You've been active today but carbohydrate intake is low. Eating 30–60 g of carbs within 30 minutes post-exercise helps replenish muscle glycogen and supports recovery."
-  rationale: "Post-exercise glycogen resynthesis peaks in the 30-min window after activity. Insufficient carb intake at this window delays recovery and increases muscle protein breakdown."
+  message: "You have been active today but carbohydrate intake is low. A carbohydrate-containing snack after activity helps refuel."
+  rationale: "Carbohydrate eaten after exercise helps restore the glycogen used during activity."
   priority: medium
   guardrails: ["non-diagnostic"]

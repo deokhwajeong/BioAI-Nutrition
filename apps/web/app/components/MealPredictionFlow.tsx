@@ -210,14 +210,14 @@ export default function MealPredictionFlow({
         <div className="space-y-4 animate-fade-in">
           {/* Current status strip */}
           {(metabolicPhase || currentGlucose) && (
-            <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 rounded-xl text-xs">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-sky-500/10 border border-sky-500/20 rounded-xl text-xs">
               {metabolicPhase && (
-                <span className="text-indigo-300">
+                <span className="text-sky-300">
                   🔥 <span className="font-semibold capitalize">{metabolicPhase.replace(/_/g, " ")}</span>
                 </span>
               )}
               {currentGlucose && (
-                <span className="text-cyan-300">📊 Glucose: <span className="font-semibold">{currentGlucose} mg/dL</span></span>
+                <span className="text-sky-300">📊 Glucose: <span className="font-semibold">{currentGlucose} mg/dL</span></span>
               )}
               <span className="text-gray-500">|</span>
               <span className="text-gray-400">Recording a meal now will trigger prediction using your current metabolic context.</span>
@@ -230,7 +230,7 @@ export default function MealPredictionFlow({
               onClick={() => setInputMode("text")}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
                 inputMode === "text"
-                  ? "bg-gradient-to-r from-cyan-600/30 to-blue-600/30 border border-cyan-500/30 text-white"
+                  ? "bg-sky-600/30 border border-sky-500/30 text-white"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10"
               }`}
             >
@@ -240,7 +240,7 @@ export default function MealPredictionFlow({
               onClick={() => setInputMode("image")}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
                 inputMode === "image"
-                  ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 text-white"
+                  ? "bg-sky-600/30 border border-sky-500/30 text-white"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10"
               }`}
             >
@@ -254,7 +254,7 @@ export default function MealPredictionFlow({
               value={mealText}
               onChange={(e) => setMealText(e.target.value)}
               placeholder={"apple\nchicken breast 150g\nrice 1 bowl\nbroccoli"}
-              className="w-full h-36 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-cyan-500/50 transition resize-none text-sm"
+              className="w-full h-36 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-sky-500/50 transition resize-none text-sm"
             />
           )}
 
@@ -265,7 +265,7 @@ export default function MealPredictionFlow({
               <div className="flex gap-3">
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition shadow-lg text-sm"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-teal-700 hover:bg-teal-600 text-white font-semibold rounded-xl transition shadow-lg text-sm"
                 >
                   📁 Choose Image
                 </button>
@@ -276,14 +276,15 @@ export default function MealPredictionFlow({
                     input.onchange = (e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { setSelectedFile(f); const r = new FileReader(); r.onload = (ev) => setImagePreview(ev.target?.result as string); r.readAsDataURL(f); } };
                     input.click();
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl transition shadow-lg text-sm"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-teal-700 hover:bg-teal-600 text-white font-semibold rounded-xl transition shadow-lg text-sm"
                 >
                   📸 Camera
                 </button>
               </div>
               {imagePreview && (
                 <div className="max-w-xs mx-auto rounded-xl overflow-hidden border-2 border-white/10">
-                  <img src={imagePreview} alt="Food" className="w-full h-auto" />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview, nothing to optimize */}
+                  <img src={imagePreview} alt="Selected meal" className="w-full h-auto" />
                 </div>
               )}
             </div>
@@ -296,7 +297,7 @@ export default function MealPredictionFlow({
           <button
             onClick={handleAnalyze}
             disabled={loading || (inputMode === "text" ? !mealText.trim() : !selectedFile)}
-            className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-lg text-sm"
+            className="w-full py-3 bg-teal-700 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-lg text-sm"
           >
             {loading ? "⏳ Analyzing..." : "🔍 Analyze & Predict"}
           </button>
@@ -314,7 +315,7 @@ export default function MealPredictionFlow({
                 { label: "Calories", value: `${Math.round(mealTotal.calories)} kcal`, color: "text-amber-400" },
                 { label: "Protein", value: `${mealTotal.protein_g.toFixed(1)}g`, color: "text-red-400" },
                 { label: "Carbs", value: `${mealTotal.carbs_g.toFixed(1)}g`, color: "text-yellow-400" },
-                { label: "Fat", value: `${mealTotal.fat_g.toFixed(1)}g`, color: "text-purple-400" },
+                { label: "Fat", value: `${mealTotal.fat_g.toFixed(1)}g`, color: "text-sky-400" },
               ].map((n) => (
                 <div key={n.label} className="bg-white/5 rounded-lg p-2.5 text-center">
                   <div className="text-[10px] text-gray-500 uppercase">{n.label}</div>
@@ -372,7 +373,7 @@ export default function MealPredictionFlow({
                       <span className="w-16 text-gray-400">{label}</span>
                       <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${isOver ? "bg-amber-500" : "bg-cyan-500"}`}
+                          className={`h-full rounded-full transition-all ${isOver ? "bg-amber-500" : "bg-sky-500"}`}
                           style={{ width: `${Math.min(pctOfBudget, 100)}%` }}
                         />
                       </div>
@@ -392,7 +393,7 @@ export default function MealPredictionFlow({
             </button>
             <button
               onClick={() => setStep(hasSafetyIssues ? 3 : 4)}
-              className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-lg"
+              className="flex-1 py-2.5 bg-teal-700 hover:bg-teal-600 text-white font-bold rounded-xl text-sm transition shadow-lg"
             >
               {hasSafetyIssues ? "🛡️ Safety Check →" : "✅ Confirm →"}
             </button>
@@ -403,7 +404,7 @@ export default function MealPredictionFlow({
       {/* ── Step 3: Safety Check ── */}
       {step === 3 && (
         <div className="space-y-4 animate-fade-in">
-          <div className="px-4 py-3 bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl">
+          <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xl">🛡️</span>
               <h4 className="text-sm font-bold text-white">Safety Constraints Active</h4>
@@ -461,7 +462,7 @@ export default function MealPredictionFlow({
             </button>
             <button
               onClick={() => setStep(4)}
-              className="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl text-sm transition shadow-lg"
+              className="flex-1 py-2.5 bg-teal-700 hover:bg-teal-600 text-white font-bold rounded-xl text-sm transition shadow-lg"
             >
               ✅ Approve & Apply →
             </button>
@@ -497,7 +498,7 @@ export default function MealPredictionFlow({
                     <div className="text-gray-500">carbs</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-400">{mealTotal.fat_g.toFixed(0)}g</div>
+                    <div className="text-2xl font-bold text-sky-400">{mealTotal.fat_g.toFixed(0)}g</div>
                     <div className="text-gray-500">fat</div>
                   </div>
                 </div>
@@ -509,14 +510,14 @@ export default function MealPredictionFlow({
                 </button>
                 <button
                   onClick={handleApprove}
-                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold rounded-xl text-sm transition shadow-lg"
+                  className="flex-1 py-3 bg-teal-700 hover:bg-teal-600 text-white font-bold rounded-xl text-sm transition shadow-lg"
                 >
                   ✅ Confirm & Record
                 </button>
               </div>
             </>
           ) : (
-            <div className="text-center py-10 bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl animate-fade-in">
+            <div className="text-center py-10 bg-emerald-500/10 border border-emerald-500/20 rounded-xl animate-fade-in">
               <span className="text-5xl">✅</span>
               <h4 className="text-xl font-bold text-emerald-400 mt-3">Meal Recorded!</h4>
               <p className="text-sm text-gray-400 mt-2">
@@ -528,7 +529,7 @@ export default function MealPredictionFlow({
                   Record Another Meal
                 </button>
                 {modal && onClose && (
-                  <button onClick={onClose} className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-xl text-sm transition shadow-lg">
+                  <button onClick={onClose} className="px-6 py-2.5 bg-teal-700 hover:bg-teal-600 text-white font-semibold rounded-xl text-sm transition shadow-lg">
                     Close
                   </button>
                 )}

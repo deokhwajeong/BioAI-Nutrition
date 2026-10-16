@@ -51,17 +51,17 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
   if (!conflicts || conflicts.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+    <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-red-500/10 to-orange-500/10">
+      <div className="px-6 py-4 border-b border-white/10 bg-red-500/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center text-xl">
             🛡️
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Safety Override Active</h3>
+            <h3 className="text-lg font-semibold text-white">Medical limits applied</h3>
             <p className="text-xs text-gray-400">
-              Medical constraints override genetic recommendations - patient safety takes priority
+              Where a genetic adjustment conflicts with a medical limit, the medical limit wins
             </p>
           </div>
           <div className="ml-auto px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold">
@@ -105,7 +105,7 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
                   <span className="text-gray-400 w-24">Genetic rec.</span>
                   <div className="flex-1 h-3 rounded-full bg-white/5 overflow-hidden relative">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 opacity-40"
+                      className="h-full rounded-full bg-blue-500 opacity-40"
                       style={{ width: "100%" }}
                     />
                     <span className="absolute right-2 top-0 text-[9px] text-blue-300 leading-3">
@@ -117,7 +117,7 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
                   <span className="text-gray-400 w-24">Medical limit</span>
                   <div className="flex-1 h-3 rounded-full bg-white/5 overflow-hidden relative">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-500 to-orange-500"
+                      className="h-full rounded-full bg-red-500"
                       style={{
                         width: `${Math.min((c.medical_limit / c.genetic_recommended) * 100, 100)}%`,
                       }}
@@ -131,7 +131,7 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
                   <span className="text-gray-400 w-24">Resolved →</span>
                   <div className="flex-1 h-3 rounded-full bg-white/5 overflow-hidden relative">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-500"
+                      className="h-full rounded-full bg-emerald-500"
                       style={{
                         width: `${Math.min((c.resolved_value / c.genetic_recommended) * 100, 100)}%`,
                       }}
