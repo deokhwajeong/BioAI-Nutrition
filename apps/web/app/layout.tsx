@@ -1,6 +1,6 @@
 // apps/web/app/layout.tsx
 import type { ReactNode } from "react";
-import "../src/app/globals.css";
+import "./globals.css";
 
 export const metadata = {
   title: "BioAI Nutrition – Demo",

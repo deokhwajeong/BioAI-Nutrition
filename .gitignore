@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -208,3 +208,7 @@ __marimo__/
 data/synthea/synthea-with-dependencies.jar
 node_modules
 package-lock.json
+
+# Local databases and tool state
+*.db
+.ruff_cache/
