@@ -136,7 +136,7 @@ class SyntheaPatient:
     # Medications
     medications: list[dict[str, str]] = field(default_factory=list)
 
-    # Static measurements (height, BMI) — most recent values
+    # Static measurements (height, BMI) - most recent values
     height_cm: float | None = None
     bmi: float | None = None
 

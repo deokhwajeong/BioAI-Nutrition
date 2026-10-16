@@ -14,7 +14,7 @@ from typing import Any
 
 import yaml
 
-# Safe operator map — no eval() used anywhere in condition parsing
+# Safe operator map - no eval() used anywhere in condition parsing
 _OPS: dict[str, Any] = {
     "<": operator.lt,
     "<=": operator.le,

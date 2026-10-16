@@ -89,7 +89,7 @@ $$\Delta t_{bio}(b, g, c) = \Delta t_{base}(b) \times \gamma_{genetic}(g) \times
 
 The three multipliers each address an independent biological dimension:
 
-#### 3.1.1 $\Delta t_{base}(b)$ — Intrinsic Physiological Lag
+#### 3.1.1 $\Delta t_{base}(b)$ - Intrinsic Physiological Lag
 
 Each biomarker type has an inherent cause-effect delay:
 
@@ -101,7 +101,7 @@ Each biomarker type has an inherent cause-effect delay:
 | Sleep | 0 min | Daily summary, no lag |
 | Steps | 0 min | Real-time aggregation |
 
-#### 3.1.2 $\gamma_{genetic}(g)$ — Genetic Metabolic Rate Modifier
+#### 3.1.2 $\gamma_{genetic}(g)$ - Genetic Metabolic Rate Modifier
 
 A metabolic rate coefficient derived from the individual's SNP (Single Nucleotide Polymorphism) profile:
 
@@ -117,7 +117,7 @@ $$\gamma_{genetic} = \exp\left(\frac{1}{k}\sum_{i=1}^{k}\ln\left(\frac{1}{m_i}\r
 
 Where $m_i$ is the metabolic modifier coefficient for the $i$-th SNP, and $k$ is the number of relevant SNPs. Results are clamped to the $[0.5, 2.0]$ range.
 
-#### 3.1.3 $\varphi_{circadian}(c)$ — Circadian Rhythm Modifier
+#### 3.1.3 $\varphi_{circadian}(c)$ - Circadian Rhythm Modifier
 
 Metabolic efficiency varies by time of day. Insulin sensitivity is higher in the morning (faster glucose processing, shorter lag) and lower at night (longer lag):
 
@@ -164,7 +164,7 @@ Every lag computation is recorded in a `LagComputation` dataclass, ensuring **re
 
 ### 3.4 Adaptive Self-Calibration Feedback Loop
 
-**File:** `engine/self_calibration.py` (~500 lines) — **New Module**
+**File:** `engine/self_calibration.py` (~500 lines) - **New Module**
 
 **Core Idea:** A static formula risks prior art overlap. A "model that self-evolves through user data" is far easier to defend for originality. This module back-propagates the error (ε) between predicted peak timing and actually measured peak timing to fine-tune per-user lag coefficients via an adaptive learning algorithm.
 
@@ -195,10 +195,10 @@ $$\alpha(k) = \frac{\alpha_0}{1 + k / \tau}$$
 
 The `PeakDetector` class automatically detects actual biomarker response peaks from time-series data:
 
-1. **EMA Smoothing** (α=0.3) — removes sensor noise
-2. **Local Maxima Search** — identifies points greater than both neighbors
-3. **Prominence Filtering** — selects only peaks with prominence > 10% of signal amplitude
-4. **Confidence Scoring** — prominence-based 0–1 score
+1. **EMA Smoothing** (α=0.3) - removes sensor noise
+2. **Local Maxima Search** - identifies points greater than both neighbors
+3. **Prominence Filtering** - selects only peaks with prominence > 10% of signal amplitude
+4. **Confidence Scoring** - prominence-based 0–1 score
 
 #### 3.4.4 Error Back-Propagation Process
 
@@ -242,7 +242,7 @@ The `PeakDetector` class automatically detects actual biomarker response peaks f
 | Amazon | AWS HealthLake → FHIR-only data lake |
 | Epic / Cerner | US hospital EMRs → FHIR API mandated (21st Century Cures Act) |
 
-Adopting FHIR is not a choice — it is **the established industry answer**.
+Adopting FHIR is not a choice - it is **the established industry answer**.
 
 ### 4.2 FHIR Resource Mapping
 
@@ -258,7 +258,7 @@ BioAI's internal data model is aligned with FHIR resource types:
 | HbA1c | `Observation` | LOINC | `4548-4` (Hemoglobin A1c) |
 | Diagnoses/Conditions | `Condition` | SNOMED CT | ICD-10 mapping |
 | Medications/Supplements | `MedicationStatement` | RxNorm | NDC codes |
-| Patient Demographics | `Patient` | — | Demographics |
+| Patient Demographics | `Patient` | - | Demographics |
 
 ### 4.3 FHIR → BioAI Conversion Pipeline
 
@@ -318,7 +318,7 @@ LOINC_MAP = {
 │  │  Stage 6: Differential Privacy Noise Injection (ε-DP)       │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 │                    │                                               │
-│           [Edge Processing — privacy-safe output]                  │
+│           [Edge Processing - privacy-safe output]                  │
 │                    │                                               │
 │  ── ── ── ── ── ── ▼ ── ── ── ── ── privacy boundary ── ── ──   │
 │            [Only 64-dim embedding + DP stats transmitted]          │
@@ -326,7 +326,7 @@ LOINC_MAP = {
                      │
                      ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│  SERVER (Cloud) — FHIR R4-based                                   │
+│  SERVER (Cloud) - FHIR R4-based                                   │
 │  [Nutrient Recommendation API] → [Personalized Dietary Advice]    │
 │  (Raw health data never reaches the server)                       │
 └───────────────────────────────────────────────────────────────────┘
@@ -341,7 +341,7 @@ LOINC_MAP = {
 5. **Interpolate (Stage 3):** Data gaps filled using circadian rhythm models (not naive linear interpolation)
 6. **Estimate (Stage 4):** Compound metabolic state classification (e.g., "fasting + sleeping" ≠ "fasting + post-exercise recovery")
 7. **Calculate (Stage 5):** Real-time nutrient budget with time-bucketed distribution (14 targets: 6 macro + 8 micronutrients)
-8. **DP Noise (Stage 6):** Sensitivity-tiered dynamic ε allocation — genetic data (ε=0.1) vs activity data (ε=0.8)
+8. **DP Noise (Stage 6):** Sensitivity-tiered dynamic ε allocation - genetic data (ε=0.1) vs activity data (ε=0.8)
 
 ---
 
@@ -349,7 +349,7 @@ LOINC_MAP = {
 
 ### Stage 0: Dynamic Consent Filtering
 
-**File:** `engine/pipeline.py` (494 lines) — `_stage_consent_filter()`
+**File:** `engine/pipeline.py` (494 lines) - `_stage_consent_filter()`
 
 **Purpose:** Enforces fine-grained user consent **before** any data processing begins. This stage is the privacy gateway: data types for which the user has not granted consent are physically removed from the pipeline input.
 
@@ -367,7 +367,7 @@ LOINC_MAP = {
 - Consent revocation mid-session → filtered on the **same request cycle** (no eventual consistency)
 - Audit trail entry created: `consent_filtered: [list of removed types]`
 
-**Patent Relevance:** Demonstrates that biomarker-driven personalization is **consent-gated at the algorithm level**, not merely at the API layer — a requirement for GDPR Article 7 and HIPAA §164.508 compliance.
+**Patent Relevance:** Demonstrates that biomarker-driven personalization is **consent-gated at the algorithm level**, not merely at the API layer - a requirement for GDPR Article 7 and HIPAA §164.508 compliance.
 
 ---
 
@@ -398,7 +398,7 @@ For each time window $[t, t+\Delta]$:
 | MEDIUM | 1 hour | Hourly nutrient analysis |
 | COARSE | 24 hours | Daily summary, trend reports |
 
-**Output:** `SynchronizedFrame` — a single time snapshot with all signals aligned
+**Output:** `SynchronizedFrame` - a single time snapshot with all signals aligned
 
 ```python
 @dataclass
@@ -469,8 +469,8 @@ When a TCF7L2 T/T carrier (genetically elevated fasting glucose) records 108 mg/
 
 | Method | Calculation | Verdict |
 |---|---|---|
-| **Population Z-score** | $(108 - 100) / 15 = +0.53$ | "Slightly elevated" — false alarm |
-| **Genotype-adjusted Z-score** | $(108 - 106) / 12 = +0.17$ | "Normal for genotype" — correct |
+| **Population Z-score** | $(108 - 100) / 15 = +0.53$ | "Slightly elevated" - false alarm |
+| **Genotype-adjusted Z-score** | $(108 - 106) / 12 = +0.17$ | "Normal for genotype" - correct |
 
 $$\mu_{genetic}(b) = \mu_{population}(b) \times \prod_{i=1}^{n} modifier_i$$
 
@@ -555,10 +555,10 @@ Existing systems perform only **single-axis** classification like "fasting vs. f
 ```
 1. Set base daily targets (RDA-based: 6 macronutrients + 8 micronutrients = **14 targets**)
 2. Apply metabolic state modifiers (multiplicative per phase)
-3. Apply genetic modifiers (SNP-based nutrient efficiency coefficients — **17 modifier→target mappings**)
+3. Apply genetic modifiers (SNP-based nutrient efficiency coefficients - **17 modifier→target mappings**)
 4. Apply biomarker-reactive adjustments (real-time z-score based)
 5. Subtract already-consumed amounts
-6. ⚠️ Conflict Resolution Layer — medical safety thresholds take priority
+6. ⚠️ Conflict Resolution Layer - medical safety thresholds take priority
 7. Distribute remaining budget across time buckets
 8. Output NutrientBudget (with complete audit trail + conflict resolution records)
 ```
@@ -571,7 +571,7 @@ Existing systems perform only **single-axis** classification like "fasting vs. f
 | Glucose z < -1.0 | Increase carbohydrate target | +20% |
 | HRV z < -1.0 (stress) | Increase magnesium & vitamin B | +15% |
 | Heart rate z > 1.0 (possible dehydration) | Increase water target | +30% |
-| Insulin sensitivity < 0.5 | Recommend low-GI carbohydrates (qualitative) | — |
+| Insulin sensitivity < 0.5 | Recommend low-GI carbohydrates (qualitative) | - |
 
 **All 5 reactive adjustments have been verified through 7 dedicated unit tests** (`test_patent_gaps.py::TestReactiveBiomarkerAdjustments`), confirming proportional adjustment, 25% cap enforcement, genetic×reactive combination, and audit trail completeness.
 
@@ -585,8 +585,8 @@ Existing systems perform only **single-axis** classification like "fasting vs. f
 
 | Priority | Layer | Description | Overridable? |
 |---|---|---|---|
-| 5 (highest) | Medical Critical | Life-threatening — CKD, severe allergy | ❌ Never |
-| 4 | Medical Warning | Clinically significant — hypertension, diabetes | ❌ |
+| 5 (highest) | Medical Critical | Life-threatening - CKD, severe allergy | ❌ Never |
+| 4 | Medical Warning | Clinically significant - hypertension, diabetes | ❌ |
 | 3 | Genetic Optimization | SNP-based nutrient efficiency | ✅ By medical |
 | 2 | Biomarker Reactive | Real-time z-score driven | ✅ |
 | 1 | Metabolic State | Phase-driven modifiers | ✅ |
@@ -672,7 +672,7 @@ TimeBucket(
 
 ### Stage 6: Dynamic ε Differential Privacy Noise Injection
 
-**File:** `engine/pipeline.py` — `_stage_dp_noise()`, `privacy/differential_privacy.py` — `DynamicEpsilonAllocator`
+**File:** `engine/pipeline.py` - `_stage_dp_noise()`, `privacy/differential_privacy.py` - `DynamicEpsilonAllocator`
 
 **Purpose:** A dynamic noise control system that **differentially allocates** privacy budget (ε) based on biomarker data sensitivity and manages cumulative privacy exposure indices.
 
@@ -870,7 +870,7 @@ ConsentScope:
   HOUSEHOLD_SHARING, RESEARCH_SHARING, PROVIDER_SHARING
 ```
 
-**When consent is revoked — immediate propagation:**
+**When consent is revoked - immediate propagation:**
 1. Consent state updated immediately
 2. Related edges severed from the health graph
 3. Cached computation results invalidated
@@ -958,7 +958,7 @@ NutrientBudget (Personalized nutrient recommendations)
 
 ### 10.1 The Big Data Fallacy
 
-The assumption that "data must be massive to have value" is one of the most pervasive misconceptions in the healthcare and personalization domain. Shallow data from tens of thousands of users cannot reveal **a specific user's genotype, last night's sleep duration, or this morning's exercise routine** — making it inherently limited for personalized prediction, regardless of volume.
+The assumption that "data must be massive to have value" is one of the most pervasive misconceptions in the healthcare and personalization domain. Shallow data from tens of thousands of users cannot reveal **a specific user's genotype, last night's sleep duration, or this morning's exercise routine** - making it inherently limited for personalized prediction, regardless of volume.
 
 | Approach | Data Shape | Limitation |
 |---|---|---|
@@ -1050,7 +1050,7 @@ Comparison of correlation metrics before and after compensation on synthetic use
 | Peak timing error (MAE) | ~45 min | ~8 min | **-82%** |
 | Causal event detection rate | Not possible | 14/15 meal events matched | **93%** |
 
-This visualization demonstrates not a naive "shift the data and it fits," but that **dynamic lag compensation — varying by genotype and time of day — outperforms any static time shift.**
+This visualization demonstrates not a naive "shift the data and it fits," but that **dynamic lag compensation - varying by genotype and time of day - outperforms any static time shift.**
 
 ---
 
@@ -1063,8 +1063,8 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | Python | 3.12+ | Core engine |
 | FastAPI | 0.110+ | REST API |
 | Pydantic | v2 | Data validation |
-| Alembic | — | DB migrations |
-| PostgreSQL | — | Persistent storage |
+| Alembic | - | DB migrations |
+| PostgreSQL | - | Persistent storage |
 | Synthea | v3.x | Synthetic patient data generation |
 
 ### 11.2 Frontend
@@ -1074,7 +1074,7 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | Next.js | 16.0 | React framework |
 | TypeScript | 5.x | Type safety |
 | Tailwind CSS | v4 | UI styling |
-| Turbopack | — | Build tooling |
+| Turbopack | - | Build tooling |
 
 ### 11.3 Codebase Scale
 
@@ -1086,7 +1086,7 @@ This visualization demonstrates not a naive "shift the data and it fits," but th
 | `services/` | 2+ |700 | 136 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution, dynamic ε
 | `routers/` | 6 | ~900 | API endpoints (incl. medical constraints) |
 | `tests/` | 3 | ~2,400 | 121 passing tests (sync, engine, patent gaps, self-calibration, conflict resolution) |
-| **Total** | **27+** | **~10,400** | — |
+| **Total** | **27+** | **~10,400** | - |
 
 ---
 
@@ -1143,7 +1143,7 @@ This is not simple time-series resampling. **Mathematically modeling biological 
 - [x] ~~111 passing tests (including 12 self-calibration tests)~~ ✅
 - [x] ~~Dynamic ε privacy budget management (4-tier sensitivity classification, adaptive ε allocation, cumulative exposure index)~~ ✅
 - [x] ~~136 passing tests (including 15 dynamic ε tests)~~ ✅
-- [x] ~~Hierarchical conflict resolution layer (genetic optimization vs medical safety — medical always wins)~~ ✅
+- [x] ~~Hierarchical conflict resolution layer (genetic optimization vs medical safety - medical always wins)~~ ✅
 - [x] ~~121 passing tests (including 10 conflict resolution tests)~~ ✅
 
 ### Phase 2 (2026 Q3): Algorithm Enhancement

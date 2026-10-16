@@ -118,7 +118,7 @@ export default function HomePage() {
         setConsentLoaded(true);
       })
       .catch(() => {
-        // Backend not reachable yet — use sensible defaults
+        // Backend not reachable yet - use sensible defaults
         setGrantedScopes([
           "glucose_data", "activity_data", "heart_rate_data",
           "sleep_data", "genetic_data", "meal_data",
@@ -240,7 +240,7 @@ export default function HomePage() {
         const lagResult = await engineLagComparison<LagComparison>(USER_ID, 180);
         setLagComparisonData(lagResult);
       } catch {
-        // research_use consent may be off — silently skip
+        // research_use consent may be off - silently skip
         setLagComparisonData(null);
       } finally {
         setLagLoading(false);
@@ -569,7 +569,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-bold">Meal Prediction & Analysis</h2>
               <p className="text-gray-400 text-sm mt-1">
                 Analyze food, predict your personalized glucose response using genetic (γ) &amp; circadian (φ) modifiers,
-                verify medical safety constraints, and apply to your nutrient budget — all in one flow.
+                verify medical safety constraints, and apply to your nutrient budget - all in one flow.
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">

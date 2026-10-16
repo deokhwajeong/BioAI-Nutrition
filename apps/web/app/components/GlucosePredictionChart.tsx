@@ -41,7 +41,7 @@ interface PredictionResult {
   riskLevel: "low" | "moderate" | "high";
 }
 
-/** Circadian sensitivity factor φ(c) — insulin sensitivity varies by time of day */
+/** Circadian sensitivity factor φ(c) - insulin sensitivity varies by time of day */
 function circadianFactor(hour: number): number {
   // Insulin sensitivity peaks in the morning (~08:00), lowest at night (~02:00)
   // φ(c) = 1.0 + 0.15 × cos(2π(hour - 8) / 24)
@@ -56,11 +56,11 @@ function geneticGlucoseFactor(modifiers: Record<string, number> | null): number 
   const fto = modifiers["fto_modifier"] ?? modifiers["obesity_risk_modifier"] ?? 1.0;
   const tcf = modifiers["tcf7l2_modifier"] ?? modifiers["diabetes_risk_modifier"] ?? 1.0;
   const cyp = modifiers["cyp1a2_modifier"] ?? modifiers["caffeine_modifier"] ?? 1.0;
-  // Weighted combination — TCF7L2 has strongest glucose impact
+  // Weighted combination - TCF7L2 has strongest glucose impact
   return 0.3 * fto + 0.5 * tcf + 0.2 * cyp;
 }
 
-/** Metabolic phase multiplier — fasting raises spike, postprandial dampens it */
+/** Metabolic phase multiplier - fasting raises spike, postprandial dampens it */
 function phaseMultiplier(phase: string | null): number {
   const map: Record<string, number> = {
     fasting: 1.15,

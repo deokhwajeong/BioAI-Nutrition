@@ -162,7 +162,7 @@ class GeneticAdapter(BiomarkerSource):
     ) -> list[BiomarkerReading]:
         """Fetch genetic profile as a single 'reading'.
 
-        For static data, the time window is ignored — the current
+        For static data, the time window is ignored - the current
         genetic profile is always returned.
         """
         genotypes = self._genotype_store.get(user_id, {})

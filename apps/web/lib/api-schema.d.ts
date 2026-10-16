@@ -134,7 +134,7 @@ export interface paths {
         put?: never;
         /**
          * Simulate on-device edge processing
-         * @description Demonstrates the on-device privacy pipeline: raw biomarker data is processed locally — only non-invertible embeddings and differentially-private aggregations leave the device.
+         * @description Demonstrates the on-device privacy pipeline: raw biomarker data is processed locally - only non-invertible embeddings and differentially-private aggregations leave the device.
          */
         post: operations["edge_process_engine_edge_process_post"];
         delete?: never;

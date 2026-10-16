@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BioAI Nutrition — Full Demo Scenario Runner
+BioAI Nutrition - Full Demo Scenario Runner
 =============================================
 
 Exercises every API endpoint with realistic data and captures results
@@ -24,8 +24,8 @@ Usage:
     python scripts/run_demo.py [--base-url http://localhost:8000]
 
 Output:
-    output/demo_results.json   — Full API response log
-    output/demo_transcript.txt — Human-readable demo transcript
+    output/demo_results.json   - Full API response log
+    output/demo_transcript.txt - Human-readable demo transcript
 """
 
 import argparse
@@ -66,7 +66,7 @@ class DemoRunner:
 
     def _log_header(self):
         self._print("=" * 70)
-        self._print("  BioAI Nutrition — Full Demo Scenario")
+        self._print("  BioAI Nutrition - Full Demo Scenario")
         self._print(f"  Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self._print(f"  Backend: {self.base}")
         self._print(f"  User: {USER_ID}")
@@ -124,7 +124,7 @@ class DemoRunner:
                 "user_id": USER_ID,
                 "scope": scope,
                 "action": "grant",
-                "reason": "Demo scenario — full pipeline execution",
+                "reason": "Demo scenario - full pipeline execution",
             }
             self._call("POST", "/engine/consent", body)
 
@@ -154,14 +154,14 @@ class DemoRunner:
         }
 
         snp_descriptions = {
-            "rs1801133": "MTHFR   — Folate metabolism (CT: reduced enzyme activity)",
-            "rs9939609": "FTO     — Obesity risk (TA: moderate risk carrier)",
-            "rs429358":  "APOE    — Lipid metabolism (TT: wildtype / normal)",
-            "rs7903146": "TCF7L2  — Glucose response (CT: 12% slower clearance)",
-            "rs4988235": "LCT     — Lactase persistence (GA: heterozygous)",
-            "rs762551":  "CYP1A2  — Caffeine metabolism (AC: slow metabolizer)",
-            "rs1544410": "VDR     — Vitamin D receptor (AG: heterozygous)",
-            "rs4341":    "ACE     — Blood pressure (ID: intermediate activity)",
+            "rs1801133": "MTHFR   - Folate metabolism (CT: reduced enzyme activity)",
+            "rs9939609": "FTO     - Obesity risk (TA: moderate risk carrier)",
+            "rs429358":  "APOE    - Lipid metabolism (TT: wildtype / normal)",
+            "rs7903146": "TCF7L2  - Glucose response (CT: 12% slower clearance)",
+            "rs4988235": "LCT     - Lactase persistence (GA: heterozygous)",
+            "rs762551":  "CYP1A2  - Caffeine metabolism (AC: slow metabolizer)",
+            "rs1544410": "VDR     - Vitamin D receptor (AG: heterozygous)",
+            "rs4341":    "ACE     - Blood pressure (ID: intermediate activity)",
         }
 
         result = self._call("POST", "/engine/genetic-profile", {
@@ -178,7 +178,7 @@ class DemoRunner:
         self._print()
         self._print(f"  ✅ Computed {len(modifiers)} metabolic modifiers:")
         for name, val in sorted(modifiers.items()):
-            direction = "↑" if val > 1.0 else ("↓" if val < 1.0 else "—")
+            direction = "↑" if val > 1.0 else ("↓" if val < 1.0 else "-")
             self._print(f"     {name:<30} = {val:.3f}  {direction}")
 
         self.results["genetic"] = result
@@ -192,7 +192,7 @@ class DemoRunner:
         now = datetime.now()
         readings = []
 
-        # CGM Glucose — 30 readings (2.5 hours, every 5 min)
+        # CGM Glucose - 30 readings (2.5 hours, every 5 min)
         self._print("  Generating CGM glucose readings (30 × 5min intervals)...")
         for i in range(30):
             t = now - timedelta(minutes=i * 5)
@@ -215,7 +215,7 @@ class DemoRunner:
                 "metadata": {},
             })
 
-        # Heart Rate — 30 readings
+        # Heart Rate - 30 readings
         self._print("  Generating heart rate readings (30 × 5min intervals)...")
         for i in range(30):
             t = now - timedelta(minutes=i * 5)
@@ -234,7 +234,7 @@ class DemoRunner:
                 "metadata": {},
             })
 
-        # HRV — 10 readings (15min intervals)
+        # HRV - 10 readings (15min intervals)
         self._print("  Generating HRV readings (10 × 15min intervals)...")
         for i in range(10):
             t = now - timedelta(minutes=i * 15)
@@ -251,7 +251,7 @@ class DemoRunner:
                 "metadata": {},
             })
 
-        # Steps — 30 readings
+        # Steps - 30 readings
         self._print("  Generating step count readings (30 × 5min intervals)...")
         for i in range(30):
             t = now - timedelta(minutes=i * 5)
@@ -393,19 +393,19 @@ class DemoRunner:
         decision_log = result.get("decision_log", [])
 
         phase_descriptions = {
-            "fasting": "Extended fasting — gluconeogenesis active, fat oxidation primary",
-            "postprandial_early": "Early post-meal — glucose absorption phase (0-2h)",
-            "postprandial_late": "Late post-meal — insulin-driven glucose uptake (2-4h)",
-            "post_absorptive": "Post-absorptive — transitioning to fat oxidation (4-12h)",
-            "during_exercise": "During exercise — elevated HR, glucose/glycogen consumption",
-            "recovery_immediate": "Immediate recovery — EPOC, glycogen replenishment window (0-2h)",
-            "recovery_delayed": "Delayed recovery — muscle repair, supercompensation (2-48h)",
-            "pre_sleep": "Pre-sleep — melatonin onset, reduce carbs & caffeine",
-            "sleeping": "Sleep — parasympathetic dominance, growth hormone release",
-            "post_waking": "Post-waking — cortisol awakening response, rehydration needed",
-            "metabolic_stress": "Metabolic stress — HRV < 30ms, sympathetic dominance",
-            "recovery": "Recovery mode — HRV > 60ms, parasympathetic dominance",
-            "circadian_low": "Circadian low — minimum metabolic rate (2-5 AM)",
+            "fasting": "Extended fasting - gluconeogenesis active, fat oxidation primary",
+            "postprandial_early": "Early post-meal - glucose absorption phase (0-2h)",
+            "postprandial_late": "Late post-meal - insulin-driven glucose uptake (2-4h)",
+            "post_absorptive": "Post-absorptive - transitioning to fat oxidation (4-12h)",
+            "during_exercise": "During exercise - elevated HR, glucose/glycogen consumption",
+            "recovery_immediate": "Immediate recovery - EPOC, glycogen replenishment window (0-2h)",
+            "recovery_delayed": "Delayed recovery - muscle repair, supercompensation (2-48h)",
+            "pre_sleep": "Pre-sleep - melatonin onset, reduce carbs & caffeine",
+            "sleeping": "Sleep - parasympathetic dominance, growth hormone release",
+            "post_waking": "Post-waking - cortisol awakening response, rehydration needed",
+            "metabolic_stress": "Metabolic stress - HRV < 30ms, sympathetic dominance",
+            "recovery": "Recovery mode - HRV > 60ms, parasympathetic dominance",
+            "circadian_low": "Circadian low - minimum metabolic rate (2-5 AM)",
         }
 
         self._print(f"  ┌─ PRIMARY PHASE: {primary_phase.upper()}")
@@ -516,7 +516,7 @@ class DemoRunner:
                     "nutrient": "vitamin_d_iu",
                     "constraint_type": "max",
                     "value": 800.0,
-                    "reason": "CKD Stage 3 — risk of hypercalcemia with high vitamin D",
+                    "reason": "CKD Stage 3 - risk of hypercalcemia with high vitamin D",
                     "severity": "critical",
                     "source": "medical_record",
                 },
@@ -524,7 +524,7 @@ class DemoRunner:
                     "nutrient": "protein_g",
                     "constraint_type": "max",
                     "value": 60.0,
-                    "reason": "CKD Stage 3 — protein restriction to reduce kidney load",
+                    "reason": "CKD Stage 3 - protein restriction to reduce kidney load",
                     "severity": "critical",
                     "source": "medical_record",
                 },
@@ -532,7 +532,7 @@ class DemoRunner:
                     "nutrient": "sodium_mg",
                     "constraint_type": "max",
                     "value": 1500.0,
-                    "reason": "Hypertension Stage 2 — strict sodium restriction",
+                    "reason": "Hypertension Stage 2 - strict sodium restriction",
                     "severity": "warning",
                     "source": "medical_record",
                 },
@@ -540,7 +540,7 @@ class DemoRunner:
                     "nutrient": "caffeine_mg",
                     "constraint_type": "max",
                     "value": 200.0,
-                    "reason": "Cardiac arrhythmia history — caffeine limit",
+                    "reason": "Cardiac arrhythmia history - caffeine limit",
                     "severity": "critical",
                     "source": "medical_record",
                 },

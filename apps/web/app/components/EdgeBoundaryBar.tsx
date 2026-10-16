@@ -133,7 +133,7 @@ export default function EdgeBoundaryBar({ manifest, visible = true }: Props) {
         <div className="w-px h-4 bg-white/10" />
 
         <span className="text-[11px] text-gray-400">
-          Raw biomarker data stays on device — only non-invertible embeddings leave
+          Raw biomarker data stays on device - only non-invertible embeddings leave
         </span>
 
         <div className="w-px h-4 bg-white/10" />

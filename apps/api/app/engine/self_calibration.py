@@ -2,9 +2,9 @@
 Adaptive Self-Calibration Engine (Feedback Loop).
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06F 11/34 — Performance analysis; Monitoring
-               G06N 20/00 — Machine learning
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06F 11/34 - Performance analysis; Monitoring
+               G06N 20/00 - Machine learning
 
 Defensive Scope (G06F 11/34):
     This module continuously monitors prediction accuracy by comparing
@@ -14,7 +14,7 @@ Defensive Scope (G06F 11/34):
 
 Defensive Scope (G06N 20/00):
     The error back-propagation loop decomposes prediction error ε_k into
-    three channels — δ_base(b), δ_circ(h), κ_genetic — and updates each
+    three channels - δ_base(b), δ_circ(h), κ_genetic - and updates each
     via adaptive EMA with learning rate α(k) = α_0 / (1 + k/τ). This
     constitutes a novel online learning algorithm for physiological lag
     model refinement.
@@ -35,9 +35,9 @@ and computing a correction signal:
 
 This error is then decomposed and back-propagated to refine each axis:
 
-    1. Base lag personal offset:  δ_base(b)  — per-biomarker additive correction
-    2. Circadian phase shift:     δ_circ(h)  — per-hour additive correction
-    3. Genetic factor correction:  κ_genetic  — multiplicative genome factor
+    1. Base lag personal offset:  δ_base(b)  - per-biomarker additive correction
+    2. Circadian phase shift:     δ_circ(h)  - per-hour additive correction
+    3. Genetic factor correction:  κ_genetic  - multiplicative genome factor
 
 The updated model becomes:
 
@@ -47,7 +47,7 @@ The updated model becomes:
         × (φ_circadian(c) + δ_circ(h))
 
 This transforms the static formula into a **self-evolving, user-adaptive
-model** — a critical differentiator for patent claims.
+model** - a critical differentiator for patent claims.
 
 Learning algorithm:
     Exponential Moving Average (EMA) with adaptive learning rate:
@@ -61,7 +61,7 @@ Learning algorithm:
 
 Peak detection:
     Biomarker peaks are detected using a local maximum finder with
-    configurable prominence threshold — essential for identifying
+    configurable prominence threshold - essential for identifying
     actual glucose/HR response peaks in noisy physiological data.
 """
 
@@ -123,9 +123,9 @@ class PersonalCalibrationProfile:
 
     Attributes:
         user_id: User identifier.
-        base_lag_offsets: δ_base(b) — per-biomarker additive correction (seconds).
-        circadian_corrections: δ_circ(h) — per-hour additive correction.
-        genetic_correction_factor: κ_genetic — multiplicative correction on γ.
+        base_lag_offsets: δ_base(b) - per-biomarker additive correction (seconds).
+        circadian_corrections: δ_circ(h) - per-hour additive correction.
+        genetic_correction_factor: κ_genetic - multiplicative correction on γ.
         observation_count: Total calibration observations processed.
         per_biomarker_count: Observations per biomarker type.
         observation_history: Recent observations for convergence analysis.
@@ -273,7 +273,7 @@ class PeakDetector:
                 peaks.append((i, prominence))
 
         if not peaks:
-            # No local maxima — return global max with low confidence
+            # No local maxima - return global max with low confidence
             max_idx = max(range(len(smoothed)), key=lambda i: smoothed[i])
             return DetectedPeak(
                 timestamp=windowed[max_idx].timestamp,
@@ -289,7 +289,7 @@ class PeakDetector:
         significant_peaks = [(idx, prom) for idx, prom in peaks if prom >= min_prominence]
 
         if not significant_peaks:
-            # No significant peaks — return highest peak with low confidence
+            # No significant peaks - return highest peak with low confidence
             best_idx, best_prom = max(peaks, key=lambda x: x[1])
             return DetectedPeak(
                 timestamp=windowed[best_idx].timestamp,

@@ -2,8 +2,8 @@
 Circadian-Aware Interpolation.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06N 7/01 — Probabilistic graphical models
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06N 7/01 - Probabilistic graphical models
 
 Defensive Scope (G06N 7/01):
     Circadian rhythm probabilistic prediction for gap filling uses

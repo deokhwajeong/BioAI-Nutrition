@@ -2,14 +2,14 @@
 Differential Privacy Engine.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06F 21/62 — Protecting access to data via access control rules
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06F 21/62 - Protecting access to data via access control rules
 
 Defensive Scope (G06F 21/62):
     Implements ε-differential privacy with sensitivity-tiered allocation:
     CRITICAL (genetic) = ε 0.1, HIGH (glucose) = ε 0.3, MEDIUM (HR) = ε 0.5,
     LOW (activity) = ε 0.8. The tiered allocation based on biomarker
-    sensitivity is novel — existing DP implementations use uniform ε.
+    sensitivity is novel - existing DP implementations use uniform ε.
     Dynamic epsilon budget tracking with adaptive ε reduction at
     threshold levels (warning=75%, critical=50%) prevents budget exhaustion.
 

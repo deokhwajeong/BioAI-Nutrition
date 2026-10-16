@@ -1,5 +1,5 @@
 """
-OhioT1DM Dataset Loader — Lag Model Validation with Real CGM Data.
+OhioT1DM Dataset Loader - Lag Model Validation with Real CGM Data.
 
 The OhioT1DM dataset (Marling & Bunescu, 2020) contains precisely timestamped
 CGM glucose readings, meal events, insulin doses, exercise events, and sleep
