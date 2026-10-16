@@ -2,7 +2,21 @@ import type { NextConfig } from "next";
 
 const BACKEND = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8000";
 
-const nextConfig: NextConfig = {
+// Static demo for GitHub Pages (pnpm build:demo): no API server. lib/api.ts answers from
+// captured fixtures, so rewrites, headers, and the server-side route handler are left out.
+// Excluding the "ts" page extension drops app/api/**/route.ts; pages and layouts are .tsx.
+const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+const DEMO_BASE_PATH = process.env.DEMO_BASE_PATH ?? "/demos/nutri-node";
+
+const demoConfig: NextConfig = {
+  output: "export",
+  basePath: DEMO_BASE_PATH,
+  trailingSlash: true,
+  images: { unoptimized: true },
+  pageExtensions: ["tsx"],
+};
+
+const nextConfig: NextConfig = DEMO ? demoConfig : {
   output: "standalone",
   async rewrites() {
     return [

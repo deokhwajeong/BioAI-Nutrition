@@ -212,3 +212,6 @@ package-lock.json
 # Local databases and tool state
 *.db
 .ruff_cache/
+
+# Static demo export (pnpm build:demo)
+apps/web/out/

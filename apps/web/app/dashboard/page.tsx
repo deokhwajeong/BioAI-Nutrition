@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import NeuralNetworkGraph from '../components/NeuralNetworkGraph';
+import { getMetrics } from '../../lib/api';
 
 type MetricsResponse = {
   calories?: number;
@@ -18,24 +19,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const res = await fetch('/api/metrics', {
-          method: 'GET',
-          headers: {
-            ...(process.env.NEXT_PUBLIC_API_KEY
-              ? { 'X-API-Key': process.env.NEXT_PUBLIC_API_KEY }
-              : {}),
-          },
-          cache: 'no-store',
-        });
-
-        if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          throw new Error(
-            `Failed to fetch metrics: ${res.status} ${res.statusText} ${text}`.trim()
-          );
-        }
-
-        const data = (await res.json()) as MetricsResponse;
+        const data = await getMetrics<MetricsResponse>();
         setMetrics(data);
       } catch (e: unknown) {
         setError((e instanceof Error ? e.message : undefined) || 'Error loading metrics.');
