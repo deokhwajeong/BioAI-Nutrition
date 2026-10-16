@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 interface PipelineStage {
   id: string;
@@ -38,7 +38,7 @@ export default function PipelineVisualizer({ stages, onRunAll, running }: Props)
       {/* Pipeline header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <span className="inline-block w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-purple-600" />
             Adaptive Synchronization Pipeline
           </h3>

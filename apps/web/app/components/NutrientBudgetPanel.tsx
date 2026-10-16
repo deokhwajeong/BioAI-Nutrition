@@ -2,15 +2,6 @@
 
 import React from "react";
 
-interface NutrientTarget {
-  key: string;
-  label: string;
-  value: number;
-  unit: string;
-  color: string;
-  icon: string;
-}
-
 interface Props {
   targets: Record<string, number> | null;
   modifications?: string[];

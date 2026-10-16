@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import {
-  analyzeMeal,
-  analyzeFoodImage,
   engineConsent,
   getConsentStatus,
   engineGeneticProfile,
@@ -28,6 +26,9 @@ import LagComparisonView from "./components/LagComparisonView";
 import SafetyOverrideNotice from "./components/SafetyOverrideNotice";
 import type { ConflictResolution } from "./components/SafetyOverrideNotice";
 import EdgeBoundaryBar from "./components/EdgeBoundaryBar";
+import type { EdgeManifest } from "./components/EdgeBoundaryBar";
+import type { LagComparison } from "./components/LagComparisonView";
+import type { EngineStatusView } from "../lib/types";
 
 /* ── Types ──────────────────────────────────────────── */
 
@@ -87,10 +88,10 @@ export default function HomePage() {
   const [nutrientState, setNutrientState] = useState<string | undefined>();
 
   /* Patent-feature state */
-  const [lagComparisonData, setLagComparisonData] = useState<any>(null);
+  const [lagComparisonData, setLagComparisonData] = useState<LagComparison | null>(null);
   const [lagLoading, setLagLoading] = useState(false);
   const [conflictResolutions, setConflictResolutions] = useState<ConflictResolution[]>([]);
-  const [edgeManifest, setEdgeManifest] = useState<any>(null);
+  const [edgeManifest, setEdgeManifest] = useState<EdgeManifest | null>(null);
 
   /* Privacy budget (tracked locally) */
   const [privacyBudget, setPrivacyBudget] = useState<{
@@ -100,11 +101,11 @@ export default function HomePage() {
   }>({ epsilon_used: 0, epsilon_total: 10, queries_count: 0 });
 
   /* Engine status */
-  const [engineStatusData, setEngineStatusData] = useState<any>(null);
+  const [engineStatusData, setEngineStatusData] = useState<EngineStatusView | null>(null);
 
   /* ── Load edge manifest on mount ───────────────── */
   useEffect(() => {
-    engineEdgeManifest()
+    engineEdgeManifest<EdgeManifest>()
       .then(setEdgeManifest)
       .catch(() => {});
   }, []);
@@ -231,12 +232,12 @@ export default function HomePage() {
       const syncGlucoseMean = gluN > 0 ? Math.round(gluSum / gluN * 10) / 10 : undefined;
       const syncHRMean = hrN > 0 ? Math.round(hrSum / hrN * 10) / 10 : undefined;
       setStageStatus("sync", "done",
-        `${syncResult.frames_aligned} frames aligned · glucose μ=${syncGlucoseMean ?? "–"} · HR μ=${syncHRMean ?? "–"}`);
+        `${syncResult.total_frames} frames aligned · glucose μ=${syncGlucoseMean ?? "–"} · HR μ=${syncHRMean ?? "–"}`);
 
       /* 4b ── Lag Comparison (patent visualization) ── */
       setLagLoading(true);
       try {
-        const lagResult = await engineLagComparison(USER_ID, 180);
+        const lagResult = await engineLagComparison<LagComparison>(USER_ID, 180);
         setLagComparisonData(lagResult);
       } catch {
         // research_use consent may be off — silently skip
@@ -274,14 +275,14 @@ export default function HomePage() {
         epsilon_used: es.privacy?.epsilon_used ?? prev.epsilon_used,
         queries_count: es.privacy?.queries ?? prev.queries_count,
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStages((prev) =>
-        prev.map((s) => (s.status === "running" ? { ...s, status: "error", detail: err?.message ?? "Unknown error" } : s))
+        prev.map((s) => (s.status === "running" ? { ...s, status: "error", detail: (err instanceof Error ? err.message : undefined) ?? "Unknown error" } : s))
       );
     } finally {
       setPipelineRunning(false);
     }
-  }, []);
+  }, [grantedScopes]);
 
   /* ── Consent Toggle ──────────────────────────────── */
 

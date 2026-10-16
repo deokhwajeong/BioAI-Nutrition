@@ -37,8 +37,8 @@ export default function DashboardPage() {
 
         const data = (await res.json()) as MetricsResponse;
         setMetrics(data);
-      } catch (e: any) {
-        setError(e?.message || 'Error loading metrics.');
+      } catch (e: unknown) {
+        setError((e instanceof Error ? e.message : undefined) || 'Error loading metrics.');
       }
     }
 

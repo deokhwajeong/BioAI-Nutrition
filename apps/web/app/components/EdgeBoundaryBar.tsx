@@ -2,7 +2,7 @@
 
 import React from "react";
 
-interface EdgeManifest {
+export interface EdgeManifest {
   on_device_operations: string[];
   transmitted_fields: string[];
   retained_on_device: string[];

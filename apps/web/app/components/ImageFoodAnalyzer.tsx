@@ -38,8 +38,8 @@ export default function ImageFoodAnalyzer() {
     try {
       const result = await analyzeFoodImage(fileInputRef.current.files[0]);
       setResults(result.items);
-    } catch (err: any) {
-      setError(err?.message ?? "Analysis failed. Please try again.");
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : undefined) ?? "Analysis failed. Please try again.");
     } finally {
       setLoading(false);
     }

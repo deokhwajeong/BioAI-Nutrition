@@ -2,7 +2,7 @@
 
 import React from "react";
 
-interface LagComparison {
+export interface LagComparison {
   comparison: {
     signal_pair: string;
     without_t_sync: {
