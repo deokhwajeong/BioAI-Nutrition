@@ -28,6 +28,8 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 // Demo-only key. The API rejects requests without X-API-Key; production deployments should
 // route through a server-side proxy instead of exposing a key to the browser.
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "dev-api-key";
+// Static demo build (pnpm build:demo): answer from captured API responses, no server needed.
+export const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO === "1";
 
 export class ApiError extends Error {
   constructor(
@@ -45,7 +47,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (init.body && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
-  const res = await fetch(`${API_URL}${path}`, { ...init, headers });
+  const res = DEMO_MODE
+    ? await (await import("./demo")).demoFetch(path, { ...init, headers })
+    : await fetch(`${API_URL}${path}`, { ...init, headers });
   if (!res.ok) {
     let detail = res.statusText;
     try {
@@ -190,6 +194,8 @@ export async function engineStatus(): Promise<EngineStatusView> {
 }
 
 export const engineEdgeManifest = <T = JsonObject>() => request<T>("/engine/edge-manifest");
+
+export const getMetrics = <T = JsonObject>() => request<T>("/api/metrics");
 
 /* ── Synthea (synthetic FHIR patients) ─────────────────────────── */
 

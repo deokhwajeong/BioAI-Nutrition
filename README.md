@@ -12,6 +12,12 @@ A glucose spike shows up on a CGM 10 to 20 minutes after the meal that caused it
 
 > Educational and research prototype. Not a medical device and not medical advice. All data in this repository is synthetic.
 
+## Live demo
+
+**[deokhwajeong.github.io/demos/nutri-node](https://deokhwajeong.github.io/demos/nutri-node/)** runs the real dashboard in the browser with no API server. Every response it shows was captured from this API running on the repository's synthetic data: the full pipeline run, all scored genotype combinations on the Genetic Profile tab, the meal analyzer's food table, the image analyzer's colour heuristics, and the five Synthea patients. Free-text meals and uploaded images are matched to the nearest precomputed result.
+
+To rebuild it: `make demo` writes a static export to `apps/web/out/` (served under `/demos/nutri-node`). After engine changes, start the API from the repo root (`uv run --project apps/api uvicorn app.main:app --app-dir apps/api`) and run `make demo-fixtures` to recapture `apps/web/lib/demo-fixtures.json`.
+
 ## Quickstart
 
 ```bash

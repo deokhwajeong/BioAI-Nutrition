@@ -1,4 +1,4 @@
-.PHONY: setup dev api web test lint format gen-api check up down
+.PHONY: setup dev api web test lint format gen-api check demo demo-fixtures up down
 
 setup:            ## Install API (uv) and web (pnpm) dependencies
 	cd apps/api && uv sync
@@ -25,6 +25,12 @@ gen-api:          ## Regenerate the web client types from the API's OpenAPI spec
 
 check: lint test  ## Everything CI runs, locally
 	cd apps/web && pnpm build
+
+demo:             ## Static no-backend demo for GitHub Pages -> apps/web/out (basePath /demos/nutri-node)
+	cd apps/web && pnpm build:demo
+
+demo-fixtures:    ## Recapture demo responses from a live API started at the repo root (see the script docstring)
+	uv run --project apps/api python apps/api/scripts/capture_demo_fixtures.py $${API_URL:-http://localhost:8000}
 
 up:               ## Full stack in Docker: http://localhost:3000
 	docker compose up --build
