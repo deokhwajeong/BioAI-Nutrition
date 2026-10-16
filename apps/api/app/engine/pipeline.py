@@ -53,38 +53,33 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Set
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 from ..privacy.consent_manager import ConsentScope, DynamicConsentManager
 from ..privacy.differential_privacy import (
     DifferentialPrivacyEngine,
     DynamicEpsilonAllocator,
-    NUTRIENT_SENSITIVITY_TIERS,
 )
 from .interpolation import CircadianInterpolator
 from .metabolic_state import MetabolicState, MetabolicStateEstimator
 from .normalization import (
-    GeneticBaselineCalculator,
     NormalizedSignal,
     PhysiologicalNormalizer,
 )
 from .nutrient_calculator import (
-    ConflictResolution,
-    MedicalConstraint,
     NutrientBudget,
     NutrientDemandCalculator,
-    NutrientTarget,
     create_default_targets,
 )
-from .temporal_sync import Resolution, SynchronizedFrame, TemporalSynchronizer
 from .self_calibration import AdaptiveLagCalibrator, CalibrationResult
+from .temporal_sync import Resolution, SynchronizedFrame, TemporalSynchronizer
 
 logger = logging.getLogger(__name__)
 
 # ── Consent scope → BiomarkerType mapping ───────────────────────────
-BIOMARKER_CONSENT_MAP: Dict[BiomarkerType, ConsentScope] = {
+BIOMARKER_CONSENT_MAP: dict[BiomarkerType, ConsentScope] = {
     BiomarkerType.GLUCOSE: ConsentScope.GLUCOSE_DATA,
     BiomarkerType.HEART_RATE: ConsentScope.HEART_RATE_DATA,
     BiomarkerType.HRV: ConsentScope.HEART_RATE_DATA,
@@ -101,6 +96,7 @@ BIOMARKER_CONSENT_MAP: Dict[BiomarkerType, ConsentScope] = {
     BiomarkerType.LOCATION: ConsentScope.LOCATION_DATA,
 }
 
+
 @dataclass
 class PipelineResult:
     """Complete output of the 5-stage pipeline with audit trail.
@@ -110,17 +106,16 @@ class PipelineResult:
     """
 
     budget: NutrientBudget
-    frames: List[SynchronizedFrame] = field(default_factory=list)
-    normalized_signals: Dict[BiomarkerType, NormalizedSignal] = field(
-        default_factory=dict
-    )
-    metabolic_state: Optional[MetabolicState] = None
-    stages_executed: List[str] = field(default_factory=list)
-    consent_filtered: List[str] = field(default_factory=list)
+    frames: list[SynchronizedFrame] = field(default_factory=list)
+    normalized_signals: dict[BiomarkerType, NormalizedSignal] = field(default_factory=dict)
+    metabolic_state: MetabolicState | None = None
+    stages_executed: list[str] = field(default_factory=list)
+    consent_filtered: list[str] = field(default_factory=list)
     dp_applied: bool = False
     pipeline_confidence: float = 0.0
-    calibration_results: List[CalibrationResult] = field(default_factory=list)
+    calibration_results: list[CalibrationResult] = field(default_factory=list)
     calibration_applied: bool = False
+
 
 class NutritionPipeline:
     """5-Stage Patent-Core Pipeline Orchestrator.
@@ -152,13 +147,13 @@ class NutritionPipeline:
 
     # Class-level stage names for audit trail
     STAGE_NAMES = [
-        "consent_filter",       # Stage 0: Privacy gate
-        "temporal_sync",        # Stage 1: Align heterogeneous signals
-        "normalization",        # Stage 2: Z-score + circadian correction
-        "interpolation",        # Stage 3: Fill gaps with circadian model
-        "metabolic_state",      # Stage 4: Infer current metabolic context
-        "nutrient_calculation", # Stage 5: Compute personalized demands
-        "dp_noise",             # Stage 6: Differential privacy injection
+        "consent_filter",  # Stage 0: Privacy gate
+        "temporal_sync",  # Stage 1: Align heterogeneous signals
+        "normalization",  # Stage 2: Z-score + circadian correction
+        "interpolation",  # Stage 3: Fill gaps with circadian model
+        "metabolic_state",  # Stage 4: Infer current metabolic context
+        "nutrient_calculation",  # Stage 5: Compute personalized demands
+        "dp_noise",  # Stage 6: Differential privacy injection
     ]
 
     def __init__(
@@ -168,8 +163,8 @@ class NutritionPipeline:
         interpolator: CircadianInterpolator,
         state_estimator: MetabolicStateEstimator,
         nutrient_calculator: NutrientDemandCalculator,
-        consent_manager: Optional[DynamicConsentManager] = None,
-        privacy_engine: Optional[DifferentialPrivacyEngine] = None,
+        consent_manager: DynamicConsentManager | None = None,
+        privacy_engine: DifferentialPrivacyEngine | None = None,
     ):
         self._synchronizer = synchronizer
         self._normalizer = normalizer
@@ -179,7 +174,7 @@ class NutritionPipeline:
         self._consent_manager = consent_manager
         self._privacy_engine = privacy_engine
         self._epsilon_allocator = DynamicEpsilonAllocator()
-        self._calibrator: Optional[AdaptiveLagCalibrator] = None
+        self._calibrator: AdaptiveLagCalibrator | None = None
 
     def set_calibrator(self, calibrator: AdaptiveLagCalibrator) -> None:
         """Attach an adaptive lag calibrator for self-calibration.
@@ -197,13 +192,13 @@ class NutritionPipeline:
     def execute(
         self,
         user_id: str,
-        readings: Dict[BiomarkerType, List[BiomarkerReading]],
-        genetic_modifiers: Optional[Dict[str, float]] = None,
+        readings: dict[BiomarkerType, list[BiomarkerReading]],
+        genetic_modifiers: dict[str, float] | None = None,
         kcal_target: float = 2000,
         weight_kg: float = 70,
-        consumed_today: Optional[Dict[str, float]] = None,
-        window_start: Optional[datetime] = None,
-        window_end: Optional[datetime] = None,
+        consumed_today: dict[str, float] | None = None,
+        window_start: datetime | None = None,
+        window_end: datetime | None = None,
         resolution: Resolution = Resolution.MEDIUM,
     ) -> PipelineResult:
         """Execute the full 5-stage pipeline.
@@ -222,7 +217,7 @@ class NutritionPipeline:
         Returns:
             PipelineResult with budget and intermediate outputs.
         """
-        now = window_end or datetime.now(timezone.utc).replace(tzinfo=None)
+        now = window_end or datetime.now(UTC).replace(tzinfo=None)
         start = window_start or (now - timedelta(hours=2))
         genetic_modifiers = genetic_modifiers or {}
         consumed_today = consumed_today or {}
@@ -232,9 +227,7 @@ class NutritionPipeline:
         )
 
         # ── Stage 0: Consent Filtering ──────────────────────────────
-        filtered_readings = self._stage_consent_filter(
-            user_id, readings, genetic_modifiers, result
-        )
+        filtered_readings = self._stage_consent_filter(user_id, readings, genetic_modifiers, result)
 
         # ── Stage 1: Temporal Synchronization ───────────────────────
         frames = self._stage_temporal_sync(
@@ -249,20 +242,14 @@ class NutritionPipeline:
         if genetic_modifiers:
             self._normalizer.set_genetic_modifiers(user_id, genetic_modifiers)
 
-        normalized = self._stage_normalization(
-            user_id, current_frame, now, result
-        )
+        normalized = self._stage_normalization(user_id, current_frame, now, result)
         result.normalized_signals = normalized
 
         # ── Stage 3: Circadian Interpolation ────────────────────────
-        self._stage_interpolation(
-            user_id, current_frame, normalized, result
-        )
+        self._stage_interpolation(user_id, current_frame, normalized, result)
 
         # ── Stage 4: Metabolic State Estimation ─────────────────────
-        metabolic_state = self._stage_metabolic_state(
-            user_id, current_frame, now, result
-        )
+        metabolic_state = self._stage_metabolic_state(user_id, current_frame, now, result)
         result.metabolic_state = metabolic_state
 
         # ── Stage 4.5: Context-Aware Re-Normalization ───────────────
@@ -289,9 +276,7 @@ class NutritionPipeline:
             kcal_target=kcal_target,
             weight_kg=weight_kg,
             consumed_today=consumed_today,
-            frame_confidence=(
-                current_frame.frame_confidence if current_frame else 0.0
-            ),
+            frame_confidence=(current_frame.frame_confidence if current_frame else 0.0),
             result=result,
         )
 
@@ -308,10 +293,10 @@ class NutritionPipeline:
     def _stage_consent_filter(
         self,
         user_id: str,
-        readings: Dict[BiomarkerType, List[BiomarkerReading]],
-        genetic_modifiers: Dict[str, float],
+        readings: dict[BiomarkerType, list[BiomarkerReading]],
+        genetic_modifiers: dict[str, float],
         result: PipelineResult,
-    ) -> Dict[BiomarkerType, List[BiomarkerReading]]:
+    ) -> dict[BiomarkerType, list[BiomarkerReading]]:
         """Stage 0: Filter readings by consent status.
 
         Patent-relevant: "Data not covered by active consent SHALL NOT
@@ -322,7 +307,7 @@ class NutritionPipeline:
             result.stages_executed.append("consent_filter:skipped")
             return readings
 
-        filtered: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+        filtered: dict[BiomarkerType, list[BiomarkerReading]] = {}
         for bt, bt_readings in readings.items():
             required_scope = BIOMARKER_CONSENT_MAP.get(bt)
             if required_scope is None:
@@ -333,50 +318,49 @@ class NutritionPipeline:
             else:
                 result.consent_filtered.append(bt.value)
                 logger.info(
-                    "Consent filter: dropped %s for user %s "
-                    "(scope %s not granted)",
-                    bt.value, user_id, required_scope.value,
+                    "Consent filter: dropped %s for user %s (scope %s not granted)",
+                    bt.value,
+                    user_id,
+                    required_scope.value,
                 )
 
         # Filter genetic data if genetic consent not granted
-        if not self._consent_manager.check_consent(
-            user_id, ConsentScope.GENETIC_DATA
-        ):
+        if not self._consent_manager.check_consent(user_id, ConsentScope.GENETIC_DATA):
             genetic_modifiers.clear()
             result.consent_filtered.append("genetic_modifiers")
 
-        result.stages_executed.append(
-            f"consent_filter:filtered={result.consent_filtered}"
-        )
+        result.stages_executed.append(f"consent_filter:filtered={result.consent_filtered}")
         return filtered
 
     def _stage_temporal_sync(
         self,
         user_id: str,
-        readings: Dict[BiomarkerType, List[BiomarkerReading]],
+        readings: dict[BiomarkerType, list[BiomarkerReading]],
         start: datetime,
         end: datetime,
         resolution: Resolution,
         result: PipelineResult,
-    ) -> List[SynchronizedFrame]:
+    ) -> list[SynchronizedFrame]:
         """Stage 1: Synchronize heterogeneous biomarker streams."""
         frames = self._synchronizer.synchronize(
-            readings, start, end, resolution, user_id=user_id,
+            readings,
+            start,
+            end,
+            resolution,
+            user_id=user_id,
         )
-        result.stages_executed.append(
-            f"temporal_sync:frames={len(frames)}"
-        )
+        result.stages_executed.append(f"temporal_sync:frames={len(frames)}")
         return frames
 
     def _stage_normalization(
         self,
         user_id: str,
-        frame: Optional[SynchronizedFrame],
+        frame: SynchronizedFrame | None,
         timestamp: datetime,
         result: PipelineResult,
-    ) -> Dict[BiomarkerType, NormalizedSignal]:
+    ) -> dict[BiomarkerType, NormalizedSignal]:
         """Stage 2: Normalize signals to z-scores with circadian correction."""
-        normalized: Dict[BiomarkerType, NormalizedSignal] = {}
+        normalized: dict[BiomarkerType, NormalizedSignal] = {}
         if frame is None:
             result.stages_executed.append("normalization:no_frame")
             return normalized
@@ -384,21 +368,22 @@ class NutritionPipeline:
         for bt, sig in frame.signals.items():
             if sig.confidence > 0:
                 ns = self._normalizer.normalize(
-                    user_id, bt, sig.value, timestamp,
+                    user_id,
+                    bt,
+                    sig.value,
+                    timestamp,
                     metabolic_context="unknown",  # Context will be refined in Stage 4
                 )
                 normalized[bt] = ns
 
-        result.stages_executed.append(
-            f"normalization:signals={len(normalized)}"
-        )
+        result.stages_executed.append(f"normalization:signals={len(normalized)}")
         return normalized
 
     def _stage_interpolation(
         self,
         user_id: str,
-        frame: Optional[SynchronizedFrame],
-        normalized: Dict[BiomarkerType, NormalizedSignal],
+        frame: SynchronizedFrame | None,
+        normalized: dict[BiomarkerType, NormalizedSignal],
         result: PipelineResult,
     ) -> None:
         """Stage 3: Fill remaining gaps using circadian rhythm model.
@@ -416,15 +401,19 @@ class NutritionPipeline:
         for bt, sig in frame.signals.items():
             if sig.confidence > 0.5:
                 self._synchronizer.set_baseline_mean(
-                    user_id, bt, sig.value,
+                    user_id,
+                    bt,
+                    sig.value,
                 )
 
         # Feed historical readings to the interpolator for phase learning
-        if hasattr(self._interpolator, 'learn_personal_phase'):
+        if hasattr(self._interpolator, "learn_personal_phase"):
             for bt, ns in normalized.items():
                 try:
                     self._interpolator.learn_personal_phase(
-                        user_id, bt, [
+                        user_id,
+                        bt,
+                        [
                             BiomarkerReading(
                                 biomarker_type=bt,
                                 value=ns.raw_value,
@@ -443,32 +432,32 @@ class NutritionPipeline:
     def _stage_metabolic_state(
         self,
         user_id: str,
-        frame: Optional[SynchronizedFrame],
+        frame: SynchronizedFrame | None,
         timestamp: datetime,
         result: PipelineResult,
     ) -> MetabolicState:
         """Stage 4: Estimate current metabolic state."""
         if frame is not None:
             state = self._state_estimator.estimate(
-                user_id, frame, timestamp,
+                user_id,
+                frame,
+                timestamp,
             )
         else:
             state = MetabolicState(timestamp=timestamp)
 
-        result.stages_executed.append(
-            f"metabolic_state:phase={state.primary_phase.value}"
-        )
+        result.stages_executed.append(f"metabolic_state:phase={state.primary_phase.value}")
         return state
 
     def _stage_renormalization(
         self,
         user_id: str,
-        frame: Optional[SynchronizedFrame],
+        frame: SynchronizedFrame | None,
         timestamp: datetime,
         metabolic_state: MetabolicState,
-        prev_normalized: Dict[BiomarkerType, NormalizedSignal],
+        prev_normalized: dict[BiomarkerType, NormalizedSignal],
         result: PipelineResult,
-    ) -> Dict[BiomarkerType, NormalizedSignal]:
+    ) -> dict[BiomarkerType, NormalizedSignal]:
         """Stage 4.5: Re-normalize with actual metabolic context.
 
         Patent-relevant: "Context-aware re-normalization" ensures that
@@ -500,7 +489,7 @@ class NutritionPipeline:
             result.stages_executed.append("renormalization:context_unknown_skip")
             return prev_normalized
 
-        renormalized: Dict[BiomarkerType, NormalizedSignal] = {}
+        renormalized: dict[BiomarkerType, NormalizedSignal] = {}
         updated_count = 0
 
         for bt, prev_ns in prev_normalized.items():
@@ -513,7 +502,10 @@ class NutritionPipeline:
                 sig = frame.signals.get(bt)
                 if sig and sig.confidence > 0:
                     ns = self._normalizer.normalize(
-                        user_id, bt, sig.value, timestamp,
+                        user_id,
+                        bt,
+                        sig.value,
+                        timestamp,
                         metabolic_context=context_str,
                         update_baseline=False,  # Already updated in Stage 2
                     )
@@ -534,11 +526,11 @@ class NutritionPipeline:
         self,
         user_id: str,
         metabolic_state: MetabolicState,
-        normalized_signals: Dict[BiomarkerType, NormalizedSignal],
-        genetic_modifiers: Dict[str, float],
+        normalized_signals: dict[BiomarkerType, NormalizedSignal],
+        genetic_modifiers: dict[str, float],
         kcal_target: float,
         weight_kg: float,
-        consumed_today: Dict[str, float],
+        consumed_today: dict[str, float],
         frame_confidence: float,
         result: PipelineResult,
     ) -> NutrientBudget:
@@ -562,9 +554,7 @@ class NutritionPipeline:
             frame_confidence=frame_confidence,
         )
 
-        result.stages_executed.append(
-            f"nutrient_calculation:targets={len(budget.targets)}"
-        )
+        result.stages_executed.append(f"nutrient_calculation:targets={len(budget.targets)}")
         return budget
 
     def _stage_dp_noise(
@@ -615,7 +605,7 @@ class NutritionPipeline:
 
         # Get user's privacy budget for adaptive allocation
         user_budget = self._privacy_engine.get_or_create_budget(user_id)
-        tier_summary: Dict[str, int] = {}  # Tier → count for audit trail
+        tier_summary: dict[str, int] = {}  # Tier → count for audit trail
 
         for name, target in budget.targets.items():
             sensitivity = NUTRIENT_SENSITIVITIES.get(name, 50.0)
@@ -659,7 +649,7 @@ class NutritionPipeline:
         result.dp_applied = True
         result.stages_executed.append(f"dp_noise:dynamic_eps,tiers=[{tier_str}]")
 
-    def get_privacy_exposure_report(self, user_id: str) -> Optional[Any]:
+    def get_privacy_exposure_report(self, user_id: str) -> Any | None:
         """Get the cumulative privacy exposure report for a user.
 
         Returns a PrivacyExposureReport with per-tier breakdown,
@@ -677,9 +667,9 @@ class NutritionPipeline:
         user_id: str,
         biomarker_type: BiomarkerType,
         event_time: datetime,
-        post_event_readings: List[BiomarkerReading],
+        post_event_readings: list[BiomarkerReading],
         predicted_lag_seconds: float,
-    ) -> Optional[CalibrationResult]:
+    ) -> CalibrationResult | None:
         """Run the self-calibration feedback loop for one event.
 
         This method should be called AFTER a prediction has been made
@@ -738,8 +728,7 @@ class NutritionPipeline:
         )
 
         logger.info(
-            "Self-calibration: user=%s biomarker=%s error=%.1fs "
-            "convergence=%.3f obs=%d",
+            "Self-calibration: user=%s biomarker=%s error=%.1fs convergence=%.3f obs=%d",
             user_id,
             biomarker_type.value,
             result.observation.prediction_error_seconds,
@@ -748,4 +737,3 @@ class NutritionPipeline:
         )
 
         return result
-

@@ -13,7 +13,6 @@ The synchronization engine accounts for these multi-day lag effects.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 from .base import (
     BiomarkerReading,
@@ -45,6 +44,7 @@ SLEEP_METABOLIC_IMPACT = {
     },
 }
 
+
 class SleepAdapter(BiomarkerSource):
     """Adapter for sleep tracking data.
 
@@ -56,14 +56,14 @@ class SleepAdapter(BiomarkerSource):
 
     def __init__(self, device_model: str = "generic"):
         self._device_model = device_model
-        self._readings_store: Dict[str, List[BiomarkerReading]] = {}
+        self._readings_store: dict[str, list[BiomarkerReading]] = {}
 
     @property
     def source_id(self) -> str:
         return f"sleep_{self._device_model}"
 
     @property
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         return [BiomarkerType.SLEEP]
 
     def get_sampling_characteristics(
@@ -89,7 +89,7 @@ class SleepAdapter(BiomarkerSource):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         key = f"{user_id}:{biomarker_type.value}"
         readings = self._readings_store.get(key, [])
         return sorted(
@@ -127,9 +127,7 @@ class SleepAdapter(BiomarkerSource):
         self._readings_store[key].append(enriched)
         return True
 
-    def _assess_metabolic_impact(
-        self, reading: BiomarkerReading
-    ) -> Dict[str, float]:
+    def _assess_metabolic_impact(self, reading: BiomarkerReading) -> dict[str, float]:
         """Assess how sleep quality affects next-day metabolism.
 
         Patent-relevant: This metabolic impact assessment feeds into the
@@ -162,11 +160,7 @@ class SleepAdapter(BiomarkerSource):
         # Fetch recent history for cumulative debt
         key = f"{reading.user_id}:{reading.biomarker_type.value}"
         recent = self._readings_store.get(key, [])
-        recent_week = [
-            r
-            for r in recent
-            if r.timestamp > reading.timestamp - timedelta(days=7)
-        ]
+        recent_week = [r for r in recent if r.timestamp > reading.timestamp - timedelta(days=7)]
 
         cumulative_debt = deficit
         for r in recent_week:
@@ -213,5 +207,3 @@ class SleepAdapter(BiomarkerSource):
             - wake_penalty
         )
         return max(0, min(100, round(score, 1)))
-
-

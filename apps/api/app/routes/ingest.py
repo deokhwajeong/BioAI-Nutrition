@@ -13,9 +13,11 @@ from pydantic import BaseModel, HttpUrl
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 
+
 class FetchRequest(BaseModel):
     url: HttpUrl
     signed_ttl_seconds: int | None = 300
+
 
 class FetchResponse(BaseModel):
     source: HttpUrl
@@ -23,11 +25,13 @@ class FetchResponse(BaseModel):
     signed_url: str | None = None
     data: list[dict[str, Any]] | None = None
 
+
 async def _sign_url(url: str, ttl_seconds: int | None) -> str:
     secret = os.environ.get("DATA_PROXY_SECRET", "dev-secret")
     expiry = int(time.time()) + (ttl_seconds or 300)
     signature = hmac.new(secret.encode(), f"{url}:{expiry}".encode(), hashlib.sha256).hexdigest()
     return f"{url}?expires={expiry}&sig={signature}"
+
 
 def _parse_csv(text: str) -> list[dict[str, Any]]:
     buffer = StringIO(text)
@@ -41,6 +45,7 @@ def _parse_csv(text: str) -> list[dict[str, Any]]:
         if any(row.values())
     ]
 
+
 @router.post("/fetch", response_model=FetchResponse)
 async def fetch_remote(payload: FetchRequest) -> FetchResponse:
     """Fetch remote files server-side to avoid CORS/credential leakage."""
@@ -49,7 +54,9 @@ async def fetch_remote(payload: FetchRequest) -> FetchResponse:
             response = await client.get(str(payload.url))
             response.raise_for_status()
         except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Failed to fetch remote asset: {exc}") from exc
+            raise HTTPException(
+                status_code=502, detail=f"Failed to fetch remote asset: {exc}"
+            ) from exc
 
     content_type = response.headers.get("content-type", "application/octet-stream").lower()
     data: list[dict[str, Any]] | None = None
@@ -80,4 +87,3 @@ async def fetch_remote(payload: FetchRequest) -> FetchResponse:
         signed_url=signed_url,
         data=data,
     )
-

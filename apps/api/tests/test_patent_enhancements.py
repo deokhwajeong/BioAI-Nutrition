@@ -11,9 +11,6 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
-from typing import Dict, List
-
-import pytest
 
 from app.biomarkers.base import (
     BiomarkerReading,
@@ -22,34 +19,33 @@ from app.biomarkers.base import (
     TemporalBehavior,
 )
 from app.engine.interpolation import CircadianInterpolator
-from app.engine.metabolic_state import MetabolicState, MetabolicPhase, MetabolicStateEstimator
-from app.engine.normalization import PhysiologicalNormalizer, NormalizedSignal
-from app.engine.nutrient_calculator import NutrientDemandCalculator, create_default_targets
-from app.engine.pipeline import NutritionPipeline, PipelineResult
+from app.engine.metabolic_state import MetabolicStateEstimator
+from app.engine.normalization import PhysiologicalNormalizer
+from app.engine.nutrient_calculator import NutrientDemandCalculator
+from app.engine.pipeline import NutritionPipeline
 from app.engine.temporal_sync import (
+    AlignedSignal,
     Resolution,
     SynchronizedFrame,
-    AlignedSignal,
     TemporalSynchronizer,
 )
 from app.privacy.consent_manager import ConsentScope, DynamicConsentManager
 from app.privacy.differential_privacy import DifferentialPrivacyEngine
 from app.services.ohio_t1dm_loader import (
-    OhioT1DMLoader,
-    OhioPatient,
+    LagModelValidator,
     OhioGlucoseReading,
     OhioMealEvent,
-    OhioExerciseEvent,
-    OhioSleepEvent,
-    LagModelValidator,
-    LagValidationResult,
+    OhioPatient,
     _pearson_r,
 )
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)
 
+
 def _make_reading(
-    bt: BiomarkerType, value: float, ts: datetime,
+    bt: BiomarkerType,
+    value: float,
+    ts: datetime,
 ) -> BiomarkerReading:
     return BiomarkerReading(
         biomarker_type=bt,
@@ -60,8 +56,9 @@ def _make_reading(
         user_id="test-user",
     )
 
+
 def _make_frame(
-    signals: Dict[BiomarkerType, tuple],
+    signals: dict[BiomarkerType, tuple],
     window_start: datetime = NOW - timedelta(minutes=5),
     window_end: datetime = NOW,
 ) -> SynchronizedFrame:
@@ -85,6 +82,7 @@ def _make_frame(
         signals=frame_signals,
         frame_confidence=min(c for _, c in signals.values()) if signals else 0.0,
     )
+
 
 def _make_pipeline() -> NutritionPipeline:
     """Create a fully wired pipeline for testing."""
@@ -121,9 +119,11 @@ def _make_pipeline() -> NutritionPipeline:
         privacy_engine=DifferentialPrivacyEngine(),
     )
 
+
 def _make_glucose_readings(
-    n: int, start: datetime = NOW - timedelta(hours=1),
-) -> List[BiomarkerReading]:
+    n: int,
+    start: datetime = NOW - timedelta(hours=1),
+) -> list[BiomarkerReading]:
     return [
         _make_reading(
             BiomarkerType.GLUCOSE,
@@ -133,9 +133,11 @@ def _make_glucose_readings(
         for i in range(n)
     ]
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G-1: HRV-Based Sleep Quality Estimation
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestSleepQualityEstimation:
     """Verify that HRV-based sleep quality is estimated and affects
@@ -144,10 +146,12 @@ class TestSleepQualityEstimation:
     def test_high_hrv_gives_good_sleep_quality(self):
         """High HRV (>70ms) → sleep quality > 0.7."""
         estimator = MetabolicStateEstimator()
-        frame = _make_frame({
-            BiomarkerType.HRV: (85.0, 0.9),
-            BiomarkerType.STEPS: (0.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (85.0, 0.9),
+                BiomarkerType.STEPS: (0.0, 0.5),
+            }
+        )
         state = estimator.estimate("u1", frame, NOW)
         assert state.sleep_quality_estimate > 0.7, (
             f"High HRV should produce good sleep quality, got {state.sleep_quality_estimate}"
@@ -156,10 +160,12 @@ class TestSleepQualityEstimation:
     def test_low_hrv_gives_poor_sleep_quality(self):
         """Low HRV (<30ms) → sleep quality < 0.4."""
         estimator = MetabolicStateEstimator()
-        frame = _make_frame({
-            BiomarkerType.HRV: (20.0, 0.9),
-            BiomarkerType.STEPS: (0.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (20.0, 0.9),
+                BiomarkerType.STEPS: (0.0, 0.5),
+            }
+        )
         state = estimator.estimate("u2", frame, NOW)
         assert state.sleep_quality_estimate < 0.4, (
             f"Low HRV should produce poor sleep quality, got {state.sleep_quality_estimate}"
@@ -173,10 +179,12 @@ class TestSleepQualityEstimation:
         sleep_end = NOW - timedelta(hours=2)
         estimator.record_sleep_event("u3", sleep_start, sleep_end, quality=0.4)
 
-        frame = _make_frame({
-            BiomarkerType.HRV: (50.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (50.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state = estimator.estimate("u3", frame, NOW)
 
         # With both moderate HRV and short sleep, quality should be moderate
@@ -193,10 +201,12 @@ class TestSleepQualityEstimation:
         sleep_end = NOW - timedelta(hours=2)
         estimator.record_sleep_event("u4", sleep_start, sleep_end, quality=0.9)
 
-        frame = _make_frame({
-            BiomarkerType.HRV: (60.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (60.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state = estimator.estimate("u4", frame, NOW)
 
         assert state.sleep_quality_estimate > 0.6, (
@@ -213,17 +223,21 @@ class TestSleepQualityEstimation:
         estimator = MetabolicStateEstimator()
 
         # Good sleep scenario
-        frame_good = _make_frame({
-            BiomarkerType.HRV: (90.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame_good = _make_frame(
+            {
+                BiomarkerType.HRV: (90.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state_good = estimator.estimate("u5-good", frame_good, NOW)
 
         # Poor sleep scenario
-        frame_poor = _make_frame({
-            BiomarkerType.HRV: (15.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame_poor = _make_frame(
+            {
+                BiomarkerType.HRV: (15.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state_poor = estimator.estimate("u5-poor", frame_poor, NOW)
 
         assert state_poor.insulin_sensitivity_estimate < state_good.insulin_sensitivity_estimate, (
@@ -235,23 +249,25 @@ class TestSleepQualityEstimation:
     def test_sleep_quality_in_decision_log(self):
         """Sleep quality estimation should be logged in decision_log."""
         estimator = MetabolicStateEstimator()
-        frame = _make_frame({
-            BiomarkerType.HRV: (45.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (45.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state = estimator.estimate("u6", frame, NOW)
 
         log_text = " ".join(state.decision_log)
-        assert "SleepQuality" in log_text, (
-            "Sleep quality estimation should appear in decision_log"
-        )
+        assert "SleepQuality" in log_text, "Sleep quality estimation should appear in decision_log"
 
     def test_no_hrv_no_sleep_uses_default(self):
         """Without HRV or sleep data, default quality = 0.7."""
         estimator = MetabolicStateEstimator()
-        frame = _make_frame({
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state = estimator.estimate("u7", frame, NOW)
         assert abs(state.sleep_quality_estimate - 0.7) < 0.01, (
             f"Default sleep quality should be 0.7, got {state.sleep_quality_estimate}"
@@ -261,10 +277,12 @@ class TestSleepQualityEstimation:
         """The sleep-debt insulin sensitivity penalty should be bounded."""
         estimator = MetabolicStateEstimator()
         # Very poor sleep
-        frame = _make_frame({
-            BiomarkerType.HRV: (5.0, 0.9),
-            BiomarkerType.STEPS: (100.0, 0.5),
-        })
+        frame = _make_frame(
+            {
+                BiomarkerType.HRV: (5.0, 0.9),
+                BiomarkerType.STEPS: (100.0, 0.5),
+            }
+        )
         state = estimator.estimate("u8", frame, NOW)
 
         # Sensitivity should still be > 0.2 (the global floor from code)
@@ -272,9 +290,11 @@ class TestSleepQualityEstimation:
             f"Insulin sensitivity should be >= 0.2, got {state.insulin_sensitivity_estimate}"
         )
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G-2: Context-Aware Re-Normalization (Stage 4.5)
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestContextAwareRenormalization:
     """Verify that the pipeline re-normalizes signals after Stage 4
@@ -297,9 +317,7 @@ class TestContextAwareRenormalization:
         )
         renorm_idx = stage_names.index("renormalization")
         meta_idx = stage_names.index("metabolic_state")
-        assert renorm_idx > meta_idx, (
-            "renormalization must come after metabolic_state"
-        )
+        assert renorm_idx > meta_idx, "renormalization must come after metabolic_state"
 
     def test_renormalization_updates_with_context(self):
         """When metabolic context changes from 'unknown', signals should be updated."""
@@ -307,9 +325,7 @@ class TestContextAwareRenormalization:
         pipeline._consent_manager.grant_consent("rn2", ConsentScope.GLUCOSE_DATA)
 
         # Record a meal so the state estimator will detect POSTPRANDIAL
-        pipeline._state_estimator.record_meal_event(
-            "rn2", NOW - timedelta(minutes=30)
-        )
+        pipeline._state_estimator.record_meal_event("rn2", NOW - timedelta(minutes=30))
 
         result = pipeline.execute(
             user_id="rn2",
@@ -317,9 +333,7 @@ class TestContextAwareRenormalization:
         )
 
         # Check that renormalization recorded a context
-        renorm_stages = [
-            s for s in result.stages_executed if s.startswith("renormalization:")
-        ]
+        renorm_stages = [s for s in result.stages_executed if s.startswith("renormalization:")]
         assert len(renorm_stages) > 0, "renormalization stage should be present"
         # Should show context and some updated signals
         renorm_info = renorm_stages[0]
@@ -335,9 +349,7 @@ class TestContextAwareRenormalization:
         # (which IS a known context, not unknown)
         result = pipeline.execute(user_id="rn3", readings={})
 
-        renorm_stages = [
-            s for s in result.stages_executed if s.startswith("renormalization:")
-        ]
+        renorm_stages = [s for s in result.stages_executed if s.startswith("renormalization:")]
         # With no frame data, it should skip or show no_data
         assert len(renorm_stages) > 0
 
@@ -366,11 +378,17 @@ class TestContextAwareRenormalization:
         glucose_value = 140.0  # mg/dL
 
         ns_unknown = normalizer.normalize(
-            "ctx-test", BiomarkerType.GLUCOSE, glucose_value, NOW,
+            "ctx-test",
+            BiomarkerType.GLUCOSE,
+            glucose_value,
+            NOW,
             metabolic_context="unknown",
         )
         ns_postprandial = normalizer.normalize(
-            "ctx-test", BiomarkerType.GLUCOSE, glucose_value, NOW,
+            "ctx-test",
+            BiomarkerType.GLUCOSE,
+            glucose_value,
+            NOW,
             metabolic_context="postprandial",
             update_baseline=False,
         )
@@ -409,9 +427,11 @@ class TestContextAwareRenormalization:
                 f"Full order: {stage_names}"
             )
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  OhioT1DM Lag Model Validation
 # ═══════════════════════════════════════════════════════════════════
+
 
 def _make_synthetic_ohio_patient() -> OhioPatient:
     """Create a synthetic OhioT1DM-like patient for testing.
@@ -434,8 +454,8 @@ def _make_synthetic_ohio_patient() -> OhioPatient:
 
     # Define meals: (hours_offset, carbs_g, peak_amplitude)
     meals = [
-        (1.5, 60.0, 45.0),   # 7:30 AM breakfast
-        (6.0, 50.0, 35.0),   # 12:00 PM lunch
+        (1.5, 60.0, 45.0),  # 7:30 AM breakfast
+        (6.0, 50.0, 35.0),  # 12:00 PM lunch
         (11.0, 70.0, 55.0),  # 5:00 PM dinner
         (25.5, 55.0, 40.0),  # 7:30 AM next day
         (30.0, 45.0, 30.0),  # 12:00 PM next day
@@ -465,20 +485,25 @@ def _make_synthetic_ohio_patient() -> OhioPatient:
         noise = 3 * math.sin(i * 7.3)
         glucose += noise
 
-        patient.glucose_readings.append(OhioGlucoseReading(
-            timestamp=base_time + timedelta(minutes=5 * i),
-            value=max(40, glucose),  # Floor at 40 mg/dL
-        ))
+        patient.glucose_readings.append(
+            OhioGlucoseReading(
+                timestamp=base_time + timedelta(minutes=5 * i),
+                value=max(40, glucose),  # Floor at 40 mg/dL
+            )
+        )
 
     # Add meal events
     for meal_offset, carbs, _ in meals:
-        patient.meal_events.append(OhioMealEvent(
-            timestamp=base_time + timedelta(hours=meal_offset),
-            carbs_g=carbs,
-            meal_type="mixed",
-        ))
+        patient.meal_events.append(
+            OhioMealEvent(
+                timestamp=base_time + timedelta(hours=meal_offset),
+                carbs_g=carbs,
+                meal_type="mixed",
+            )
+        )
 
     return patient
+
 
 class TestOhioT1DMLoader:
     """Test the OhioT1DM loader and lag model validation infrastructure."""
@@ -592,8 +617,7 @@ class TestOhioT1DMLoader:
 
         # Evening should have longer lag (circadian modifier > 1.0)
         assert evening_lag > morning_lag, (
-            f"Evening lag={evening_lag:.1f}min should exceed "
-            f"morning lag={morning_lag:.1f}min"
+            f"Evening lag={evening_lag:.1f}min should exceed morning lag={morning_lag:.1f}min"
         )
 
     def test_empty_patient_handles_gracefully(self):
@@ -614,7 +638,9 @@ class TestOhioT1DMLoader:
             OhioMealEvent(timestamp=datetime(2025, 3, 10, 12, 0), carbs_g=2.0),
         ]
         patient.glucose_readings = [
-            OhioGlucoseReading(timestamp=datetime(2025, 3, 10, 8, 0) + timedelta(minutes=i*5), value=100 + i)
+            OhioGlucoseReading(
+                timestamp=datetime(2025, 3, 10, 8, 0) + timedelta(minutes=i * 5), value=100 + i
+            )
             for i in range(24)
         ]
 

@@ -10,6 +10,7 @@ Temporal Synchronization" invention, enabling uniform handling of data
 sources with fundamentally different sampling characteristics.
 """
 
+from .activity_adapter import ActivityAdapter
 from .base import (
     BiomarkerReading,
     BiomarkerSource,
@@ -17,10 +18,9 @@ from .base import (
     SamplingCharacteristics,
 )
 from .cgm_adapter import CGMAdapter
-from .activity_adapter import ActivityAdapter
-from .sleep_adapter import SleepAdapter
 from .genetic_adapter import GeneticAdapter
 from .location_adapter import LocationAdapter
+from .sleep_adapter import SleepAdapter
 
 __all__ = [
     "BiomarkerReading",
@@ -33,4 +33,3 @@ __all__ = [
     "GeneticAdapter",
     "LocationAdapter",
 ]
-

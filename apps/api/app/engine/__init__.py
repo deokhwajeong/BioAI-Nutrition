@@ -27,33 +27,33 @@ This package implements the key inventive steps:
 7. Nutrient Demand Calculation: Real-time nutrient budget computation
 """
 
-from .temporal_sync import (
-    TemporalSynchronizer,
-    SynchronizedFrame,
-    PhysiologicalLagModel,
-    LagComputation,
-)
-from .normalization import (
-    PhysiologicalNormalizer,
-    NormalizedSignal,
-    GeneticBaselineProfile,
-)
 from .interpolation import CircadianInterpolator
-from .metabolic_state import MetabolicStateEstimator, MetabolicState
-from .nutrient_calculator import NutrientDemandCalculator, NutrientBudget, ConflictResolution
+from .metabolic_state import MetabolicState, MetabolicStateEstimator
+from .normalization import (
+    GeneticBaselineProfile,
+    NormalizedSignal,
+    PhysiologicalNormalizer,
+)
+from .nutrient_calculator import ConflictResolution, NutrientBudget, NutrientDemandCalculator
+from .patent_classifications import (
+    PATENT_CLASSIFICATION_REGISTRY,
+    PatentClassification,
+    get_all_claim_keywords,
+    get_classifications_for_module,
+    get_tc_strategy_summary,
+)
 from .pipeline import NutritionPipeline, PipelineResult
 from .self_calibration import (
     AdaptiveLagCalibrator,
-    PersonalCalibrationProfile,
-    PeakDetector,
     CalibrationResult,
+    PeakDetector,
+    PersonalCalibrationProfile,
 )
-from .patent_classifications import (
-    PatentClassification,
-    PATENT_CLASSIFICATION_REGISTRY,
-    get_classifications_for_module,
-    get_all_claim_keywords,
-    get_tc_strategy_summary,
+from .temporal_sync import (
+    LagComputation,
+    PhysiologicalLagModel,
+    SynchronizedFrame,
+    TemporalSynchronizer,
 )
 
 __all__ = [

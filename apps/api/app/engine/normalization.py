@@ -42,8 +42,8 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any
 
 from ..biomarkers.base import BiomarkerType
 
@@ -52,28 +52,82 @@ from ..biomarkers.base import BiomarkerType
 # Based on published chronobiology data
 CIRCADIAN_PROFILES = {
     BiomarkerType.GLUCOSE: {
-        0: -0.05,  1: -0.06,  2: -0.07,  3: -0.08,
-        4: -0.04,  5: 0.02,   6: 0.05,   7: 0.08,
-        8: 0.06,   9: 0.03,  10: 0.01,  11: -0.01,
-        12: 0.02, 13: 0.04,  14: 0.02,  15: 0.00,
-        16: -0.01, 17: 0.01, 18: 0.03,  19: 0.04,
-        20: 0.02, 21: 0.00,  22: -0.02, 23: -0.04,
+        0: -0.05,
+        1: -0.06,
+        2: -0.07,
+        3: -0.08,
+        4: -0.04,
+        5: 0.02,
+        6: 0.05,
+        7: 0.08,
+        8: 0.06,
+        9: 0.03,
+        10: 0.01,
+        11: -0.01,
+        12: 0.02,
+        13: 0.04,
+        14: 0.02,
+        15: 0.00,
+        16: -0.01,
+        17: 0.01,
+        18: 0.03,
+        19: 0.04,
+        20: 0.02,
+        21: 0.00,
+        22: -0.02,
+        23: -0.04,
     },
     BiomarkerType.HEART_RATE: {
-        0: -0.15,  1: -0.18,  2: -0.20,  3: -0.18,
-        4: -0.15,  5: -0.08,  6: -0.02,  7: 0.05,
-        8: 0.08,   9: 0.10,  10: 0.12,  11: 0.10,
-        12: 0.08, 13: 0.06,  14: 0.05,  15: 0.08,
-        16: 0.10, 17: 0.12,  18: 0.10,  19: 0.08,
-        20: 0.05, 21: 0.00,  22: -0.05, 23: -0.10,
+        0: -0.15,
+        1: -0.18,
+        2: -0.20,
+        3: -0.18,
+        4: -0.15,
+        5: -0.08,
+        6: -0.02,
+        7: 0.05,
+        8: 0.08,
+        9: 0.10,
+        10: 0.12,
+        11: 0.10,
+        12: 0.08,
+        13: 0.06,
+        14: 0.05,
+        15: 0.08,
+        16: 0.10,
+        17: 0.12,
+        18: 0.10,
+        19: 0.08,
+        20: 0.05,
+        21: 0.00,
+        22: -0.05,
+        23: -0.10,
     },
     BiomarkerType.HRV: {
-        0: 0.15,   1: 0.18,   2: 0.20,   3: 0.18,
-        4: 0.12,   5: 0.05,   6: -0.02,  7: -0.08,
-        8: -0.12,  9: -0.10, 10: -0.08, 11: -0.06,
-        12: -0.04, 13: -0.02, 14: -0.05, 15: -0.08,
-        16: -0.10, 17: -0.08, 18: -0.05, 19: -0.02,
-        20: 0.02,  21: 0.05,  22: 0.08,  23: 0.12,
+        0: 0.15,
+        1: 0.18,
+        2: 0.20,
+        3: 0.18,
+        4: 0.12,
+        5: 0.05,
+        6: -0.02,
+        7: -0.08,
+        8: -0.12,
+        9: -0.10,
+        10: -0.08,
+        11: -0.06,
+        12: -0.04,
+        13: -0.02,
+        14: -0.05,
+        15: -0.08,
+        16: -0.10,
+        17: -0.08,
+        18: -0.05,
+        19: -0.02,
+        20: 0.02,
+        21: 0.05,
+        22: 0.08,
+        23: 0.12,
     },
 }
 
@@ -104,7 +158,7 @@ POPULATION_RANGES = {
 # ═══════════════════════════════════════════════════════════════════════
 
 # Maps genetic modifier keys → which biomarker's baseline they shift
-GENETIC_BASELINE_EFFECTS: Dict[str, Dict[BiomarkerType, Tuple[str, float]]] = {
+GENETIC_BASELINE_EFFECTS: dict[str, dict[BiomarkerType, tuple[str, float]]] = {
     # SNP effect name → { biomarker: (direction, magnitude_pct) }
     "carb_sensitivity_modifier": {
         BiomarkerType.GLUCOSE: ("mean_shift_pct", 5.0),
@@ -124,6 +178,7 @@ GENETIC_BASELINE_EFFECTS: Dict[str, Dict[BiomarkerType, Tuple[str, float]]] = {
     },
 }
 
+
 @dataclass
 class GeneticBaselineAdjustment:
     """Record of how a single genetic modifier shifted a biomarker's baseline.
@@ -141,6 +196,7 @@ class GeneticBaselineAdjustment:
     biomarker_type: str
     mean_shift: float
     direction: str
+
 
 @dataclass
 class GeneticBaselineProfile:
@@ -164,14 +220,12 @@ class GeneticBaselineProfile:
     """
 
     user_id: str
-    adjusted_ranges: Dict[BiomarkerType, Tuple[float, float]] = field(
-        default_factory=dict
-    )
+    adjusted_ranges: dict[BiomarkerType, tuple[float, float]] = field(default_factory=dict)
     variant_count: int = 0
-    adjustments: List[GeneticBaselineAdjustment] = field(default_factory=list)
+    adjustments: list[GeneticBaselineAdjustment] = field(default_factory=list)
     confidence: float = 0.0
 
-    def get_range(self, biomarker_type: BiomarkerType) -> Tuple[float, float]:
+    def get_range(self, biomarker_type: BiomarkerType) -> tuple[float, float]:
         """Get the adjusted (mean, std) for a biomarker type.
 
         Falls back to population range if no genetic adjustment exists.
@@ -181,7 +235,7 @@ class GeneticBaselineProfile:
         pop = POPULATION_RANGES.get(biomarker_type, {"mean": 0, "std": 1})
         return (pop["mean"], pop["std"])
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for API response."""
         return {
             "user_id": self.user_id,
@@ -191,12 +245,8 @@ class GeneticBaselineProfile:
                 bt.value: {
                     "mean": round(mean, 2),
                     "std": round(std, 2),
-                    "population_mean": POPULATION_RANGES.get(
-                        bt, {"mean": 0}
-                    )["mean"],
-                    "population_std": POPULATION_RANGES.get(
-                        bt, {"std": 1}
-                    )["std"],
+                    "population_mean": POPULATION_RANGES.get(bt, {"mean": 0})["mean"],
+                    "population_std": POPULATION_RANGES.get(bt, {"std": 1})["std"],
                     "shift_pct": round(
                         (mean - POPULATION_RANGES.get(bt, {"mean": mean})["mean"])
                         / max(1, POPULATION_RANGES.get(bt, {"mean": 1})["mean"])
@@ -217,6 +267,7 @@ class GeneticBaselineProfile:
                 for a in self.adjustments
             ],
         }
+
 
 class GeneticBaselineCalculator:
     """Computes genotype-adjusted reference ranges for biomarkers.
@@ -242,7 +293,7 @@ class GeneticBaselineCalculator:
     @staticmethod
     def compute(
         user_id: str,
-        genetic_modifiers: Dict[str, float],
+        genetic_modifiers: dict[str, float],
     ) -> GeneticBaselineProfile:
         """Compute genetic baseline profile from SNP modifiers.
 
@@ -262,8 +313,8 @@ class GeneticBaselineCalculator:
             return profile
 
         # Track adjustments per biomarker
-        biomarker_shifts: Dict[BiomarkerType, List[float]] = {}
-        adjustments: List[GeneticBaselineAdjustment] = []
+        biomarker_shifts: dict[BiomarkerType, list[float]] = {}
+        adjustments: list[GeneticBaselineAdjustment] = []
 
         for modifier_name, modifier_value in genetic_modifiers.items():
             effects = GENETIC_BASELINE_EFFECTS.get(modifier_name, {})
@@ -327,11 +378,10 @@ class GeneticBaselineCalculator:
         profile.variant_count = n_variants
         profile.adjustments = adjustments
         # Confidence: sigmoid of variant count, peaks near 8 variants
-        profile.confidence = round(
-            1.0 / (1.0 + math.exp(-0.5 * (n_variants - 4))), 3
-        )
+        profile.confidence = round(1.0 / (1.0 + math.exp(-0.5 * (n_variants - 4))), 3)
 
         return profile
+
 
 @dataclass
 class PersonalBaseline:
@@ -347,15 +397,15 @@ class PersonalBaseline:
     """
 
     biomarker_type: BiomarkerType
-    short_term_mean: float = 0.0   # EWMA with α=0.1 (fast adaptation)
-    long_term_mean: float = 0.0    # EWMA with α=0.01 (slow, stable)
-    variance: float = 0.0          # Running variance estimate
+    short_term_mean: float = 0.0  # EWMA with α=0.1 (fast adaptation)
+    long_term_mean: float = 0.0  # EWMA with α=0.01 (slow, stable)
+    variance: float = 0.0  # Running variance estimate
     sample_count: int = 0
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
     # Hours of day → mean value (learned circadian pattern)
-    hourly_means: Dict[int, float] = field(default_factory=dict)
-    hourly_counts: Dict[int, int] = field(default_factory=dict)
+    hourly_means: dict[int, float] = field(default_factory=dict)
+    hourly_counts: dict[int, int] = field(default_factory=dict)
 
     def update(self, value: float, timestamp: datetime) -> None:
         """Update baseline with a new observation.
@@ -373,21 +423,15 @@ class PersonalBaseline:
         else:
             # Short-term EWMA
             alpha_short = 0.1
-            self.short_term_mean = (
-                alpha_short * value + (1 - alpha_short) * self.short_term_mean
-            )
+            self.short_term_mean = alpha_short * value + (1 - alpha_short) * self.short_term_mean
 
             # Long-term EWMA
             alpha_long = 0.01
-            self.long_term_mean = (
-                alpha_long * value + (1 - alpha_long) * self.long_term_mean
-            )
+            self.long_term_mean = alpha_long * value + (1 - alpha_long) * self.long_term_mean
 
             # Running variance (Welford's method adapted for EWMA)
             delta = value - self.long_term_mean
-            self.variance = (
-                (1 - alpha_long) * (self.variance + alpha_long * delta ** 2)
-            )
+            self.variance = (1 - alpha_long) * (self.variance + alpha_long * delta**2)
 
         # Update hourly profile
         hour = timestamp.hour
@@ -396,9 +440,7 @@ class PersonalBaseline:
             self.hourly_counts[hour] = 1
         else:
             n = self.hourly_counts[hour]
-            self.hourly_means[hour] = (
-                self.hourly_means[hour] * n + value
-            ) / (n + 1)
+            self.hourly_means[hour] = (self.hourly_means[hour] * n + value) / (n + 1)
             self.hourly_counts[hour] = n + 1
 
         self.last_updated = timestamp
@@ -412,6 +454,7 @@ class PersonalBaseline:
     def is_mature(self) -> bool:
         """Whether enough data has been collected for reliable baseline."""
         return self.sample_count >= 50
+
 
 @dataclass
 class NormalizedSignal:
@@ -436,6 +479,7 @@ class NormalizedSignal:
     genetic_modified: float
     context: str
     anomaly_score: float
+
 
 class PhysiologicalNormalizer:
     """Normalizes biomarker values with biological context awareness.
@@ -470,13 +514,11 @@ class PhysiologicalNormalizer:
     """
 
     def __init__(self):
-        self._baselines: Dict[str, Dict[BiomarkerType, PersonalBaseline]] = {}
-        self._genetic_modifiers: Dict[str, Dict[str, float]] = {}
-        self._genetic_baselines: Dict[str, GeneticBaselineProfile] = {}
+        self._baselines: dict[str, dict[BiomarkerType, PersonalBaseline]] = {}
+        self._genetic_modifiers: dict[str, dict[str, float]] = {}
+        self._genetic_baselines: dict[str, GeneticBaselineProfile] = {}
 
-    def set_genetic_modifiers(
-        self, user_id: str, modifiers: Dict[str, float]
-    ) -> None:
+    def set_genetic_modifiers(self, user_id: str, modifiers: dict[str, float]) -> None:
         """Set genetic modifier coefficients for a user.
 
         Also recomputes the genetic baseline profile for this user,
@@ -484,17 +526,13 @@ class PhysiologicalNormalizer:
         """
         self._genetic_modifiers[user_id] = modifiers
         # Recompute genetic baseline whenever modifiers change
-        self._genetic_baselines[user_id] = (
-            GeneticBaselineCalculator.compute(user_id, modifiers)
-        )
+        self._genetic_baselines[user_id] = GeneticBaselineCalculator.compute(user_id, modifiers)
 
     def get_genetic_baseline(self, user_id: str) -> GeneticBaselineProfile:
         """Get the user's genetic baseline profile (or compute default)."""
         if user_id not in self._genetic_baselines:
             modifiers = self._genetic_modifiers.get(user_id, {})
-            self._genetic_baselines[user_id] = (
-                GeneticBaselineCalculator.compute(user_id, modifiers)
-            )
+            self._genetic_baselines[user_id] = GeneticBaselineCalculator.compute(user_id, modifiers)
         return self._genetic_baselines[user_id]
 
     def get_or_create_baseline(
@@ -544,9 +582,7 @@ class PhysiologicalNormalizer:
         baseline = self.get_or_create_baseline(user_id, biomarker_type)
 
         # Step 1: Circadian correction
-        circadian_adjusted = self._circadian_correct(
-            raw_value, biomarker_type, timestamp, baseline
-        )
+        circadian_adjusted = self._circadian_correct(raw_value, biomarker_type, timestamp, baseline)
 
         # Step 2: Personal Z-score — use GENETIC baseline when available
         genetic_baseline = self.get_genetic_baseline(user_id)
@@ -563,18 +599,14 @@ class PhysiologicalNormalizer:
             ref_std = genetic_std
         else:
             # Fall back to population range (no genetics, no history)
-            pop = POPULATION_RANGES.get(
-                biomarker_type, {"mean": raw_value, "std": 1.0}
-            )
+            pop = POPULATION_RANGES.get(biomarker_type, {"mean": raw_value, "std": 1.0})
             ref_mean = pop["mean"]
             ref_std = pop["std"]
 
         z_score = (circadian_adjusted - ref_mean) / max(0.001, ref_std)
 
         # Step 3: Context-dependent scaling
-        context_factor = self._get_context_factor(
-            biomarker_type, metabolic_context
-        )
+        context_factor = self._get_context_factor(biomarker_type, metabolic_context)
         context_z = z_score * context_factor
 
         # Step 4: Genetic modifier
@@ -582,7 +614,7 @@ class PhysiologicalNormalizer:
         genetic_z = context_z * genetic_factor
 
         # Step 5: Anomaly score
-        anomaly_score = 1.0 - math.exp(-0.5 * genetic_z ** 2)
+        anomaly_score = 1.0 - math.exp(-0.5 * genetic_z**2)
 
         # Update baseline with raw (unmodified) value
         if update_baseline:
@@ -602,16 +634,14 @@ class PhysiologicalNormalizer:
     def normalize_frame_signals(
         self,
         user_id: str,
-        signals: Dict[BiomarkerType, float],
+        signals: dict[BiomarkerType, float],
         timestamp: datetime,
         metabolic_context: str = "unknown",
-    ) -> Dict[BiomarkerType, NormalizedSignal]:
+    ) -> dict[BiomarkerType, NormalizedSignal]:
         """Normalize all signals in a synchronized frame at once."""
-        results: Dict[BiomarkerType, NormalizedSignal] = {}
+        results: dict[BiomarkerType, NormalizedSignal] = {}
         for bt, value in signals.items():
-            results[bt] = self.normalize(
-                user_id, bt, value, timestamp, metabolic_context
-            )
+            results[bt] = self.normalize(user_id, bt, value, timestamp, metabolic_context)
         return results
 
     def _circadian_correct(
@@ -640,9 +670,7 @@ class PhysiologicalNormalizer:
             ref_mean = (
                 baseline.long_term_mean
                 if baseline.is_mature
-                else POPULATION_RANGES.get(
-                    biomarker_type, {"mean": value}
-                )["mean"]
+                else POPULATION_RANGES.get(biomarker_type, {"mean": value})["mean"]
             )
             circadian_offset = ref_mean * pct_offset
 
@@ -662,23 +690,23 @@ class PhysiologicalNormalizer:
         context_factors = {
             BiomarkerType.GLUCOSE: {
                 "fasting": 1.0,
-                "postprandial": 0.7,    # Expected elevation
-                "exercising": 0.8,       # Exercise mobilizes glucose
-                "sleeping": 1.2,         # Unexpected if elevated
+                "postprandial": 0.7,  # Expected elevation
+                "exercising": 0.8,  # Exercise mobilizes glucose
+                "sleeping": 1.2,  # Unexpected if elevated
                 "unknown": 0.9,
             },
             BiomarkerType.HEART_RATE: {
                 "resting": 1.0,
-                "exercising": 0.4,       # Very expected to be high
+                "exercising": 0.4,  # Very expected to be high
                 "postprandial": 0.8,
-                "sleeping": 1.3,         # Concerning if elevated
+                "sleeping": 1.3,  # Concerning if elevated
                 "stressed": 0.6,
                 "unknown": 0.8,
             },
             BiomarkerType.HRV: {
                 "resting": 1.0,
-                "exercising": 0.5,       # Expected to drop
-                "sleeping": 1.2,         # Important recovery metric
+                "exercising": 0.5,  # Expected to drop
+                "sleeping": 1.2,  # Important recovery metric
                 "stressed": 0.7,
                 "unknown": 0.8,
             },
@@ -726,5 +754,3 @@ class PhysiologicalNormalizer:
             return 1.0
 
         return sum(applicable) / len(applicable)
-
-

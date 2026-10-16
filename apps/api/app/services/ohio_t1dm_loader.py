@@ -58,7 +58,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
@@ -66,54 +66,66 @@ logger = logging.getLogger(__name__)
 
 # ── Data structures ─────────────────────────────────────────────────
 
+
 @dataclass
 class OhioMealEvent:
     """A meal event from the OhioT1DM dataset."""
+
     timestamp: datetime
     carbs_g: float
     meal_type: str = ""  # breakfast, lunch, dinner, snack
 
+
 @dataclass
 class OhioGlucoseReading:
     """A CGM glucose reading from the OhioT1DM dataset."""
+
     timestamp: datetime
     value: float  # mg/dL
+
 
 @dataclass
 class OhioExerciseEvent:
     """An exercise event from the OhioT1DM dataset."""
+
     timestamp: datetime
     duration_minutes: float
     intensity: str = "moderate"  # light, moderate, heavy
 
+
 @dataclass
 class OhioSleepEvent:
     """A sleep event from the OhioT1DM dataset."""
+
     start: datetime
     end: datetime
     quality: float = 0.7  # Estimated 0-1
 
+
 @dataclass
 class OhioBolusEvent:
     """An insulin bolus event with carb input."""
+
     timestamp: datetime
     carb_input_g: float = 0.0
     dose_units: float = 0.0
 
+
 @dataclass
 class OhioPatient:
     """A parsed OhioT1DM patient with all event streams."""
+
     patient_id: str
-    weight_kg: Optional[float] = None
+    weight_kg: float | None = None
     insulin_type: str = ""
 
-    glucose_readings: List[OhioGlucoseReading] = field(default_factory=list)
-    meal_events: List[OhioMealEvent] = field(default_factory=list)
-    bolus_events: List[OhioBolusEvent] = field(default_factory=list)
-    exercise_events: List[OhioExerciseEvent] = field(default_factory=list)
-    sleep_events: List[OhioSleepEvent] = field(default_factory=list)
+    glucose_readings: list[OhioGlucoseReading] = field(default_factory=list)
+    meal_events: list[OhioMealEvent] = field(default_factory=list)
+    bolus_events: list[OhioBolusEvent] = field(default_factory=list)
+    exercise_events: list[OhioExerciseEvent] = field(default_factory=list)
+    sleep_events: list[OhioSleepEvent] = field(default_factory=list)
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         """Return a compact summary for logging."""
         return {
             "patient_id": self.patient_id,
@@ -126,53 +138,61 @@ class OhioPatient:
             "date_range": self._date_range(),
         }
 
-    def _date_range(self) -> Optional[str]:
+    def _date_range(self) -> str | None:
         if not self.glucose_readings:
             return None
         start = min(r.timestamp for r in self.glucose_readings)
         end = max(r.timestamp for r in self.glucose_readings)
         return f"{start.date()} to {end.date()}"
 
-    def to_biomarker_readings(self, source_id: str = "ohio-t1dm") -> List[BiomarkerReading]:
+    def to_biomarker_readings(self, source_id: str = "ohio-t1dm") -> list[BiomarkerReading]:
         """Convert all readings to BioAI BiomarkerReading format."""
-        readings: List[BiomarkerReading] = []
+        readings: list[BiomarkerReading] = []
 
         for g in self.glucose_readings:
-            readings.append(BiomarkerReading(
-                biomarker_type=BiomarkerType.GLUCOSE,
-                value=g.value,
-                unit="mg/dL",
-                timestamp=g.timestamp,
-                source_id=source_id,
-                user_id=f"ohio-{self.patient_id}",
-            ))
+            readings.append(
+                BiomarkerReading(
+                    biomarker_type=BiomarkerType.GLUCOSE,
+                    value=g.value,
+                    unit="mg/dL",
+                    timestamp=g.timestamp,
+                    source_id=source_id,
+                    user_id=f"ohio-{self.patient_id}",
+                )
+            )
 
         for m in self.meal_events:
-            readings.append(BiomarkerReading(
-                biomarker_type=BiomarkerType.MEAL,
-                value=m.carbs_g,
-                unit="carbs_g",
-                timestamp=m.timestamp,
-                source_id=source_id,
-                user_id=f"ohio-{self.patient_id}",
-                metadata={"meal_type": m.meal_type},
-            ))
+            readings.append(
+                BiomarkerReading(
+                    biomarker_type=BiomarkerType.MEAL,
+                    value=m.carbs_g,
+                    unit="carbs_g",
+                    timestamp=m.timestamp,
+                    source_id=source_id,
+                    user_id=f"ohio-{self.patient_id}",
+                    metadata={"meal_type": m.meal_type},
+                )
+            )
 
         for e in self.exercise_events:
-            readings.append(BiomarkerReading(
-                biomarker_type=BiomarkerType.EXERCISE,
-                value=e.duration_minutes,
-                unit="minutes",
-                timestamp=e.timestamp,
-                source_id=source_id,
-                user_id=f"ohio-{self.patient_id}",
-                metadata={"intensity": e.intensity},
-            ))
+            readings.append(
+                BiomarkerReading(
+                    biomarker_type=BiomarkerType.EXERCISE,
+                    value=e.duration_minutes,
+                    unit="minutes",
+                    timestamp=e.timestamp,
+                    source_id=source_id,
+                    user_id=f"ohio-{self.patient_id}",
+                    metadata={"intensity": e.intensity},
+                )
+            )
 
         readings.sort(key=lambda r: r.timestamp)
         return readings
 
+
 # ── Loader ──────────────────────────────────────────────────────────
+
 
 class OhioT1DMLoader:
     """Load OhioT1DM XML files and convert to BioAI format.
@@ -223,9 +243,7 @@ class OhioT1DMLoader:
                 ts = self._parse_ts(event.get("ts", ""))
                 val = _safe_float(event.get("value"))
                 if ts and val is not None:
-                    patient.glucose_readings.append(
-                        OhioGlucoseReading(timestamp=ts, value=val)
-                    )
+                    patient.glucose_readings.append(OhioGlucoseReading(timestamp=ts, value=val))
 
         # Parse meal events
         meal_el = root.find("meal")
@@ -299,15 +317,16 @@ class OhioT1DMLoader:
 
         logger.info(
             "Loaded OhioT1DM patient %s: %s",
-            patient.patient_id, patient.summary(),
+            patient.patient_id,
+            patient.summary(),
         )
         return patient
 
     def load_directory(
         self,
         directory: str | Path,
-        max_patients: Optional[int] = None,
-    ) -> List[OhioPatient]:
+        max_patients: int | None = None,
+    ) -> list[OhioPatient]:
         """Load all OhioT1DM XML files in a directory."""
         directory = Path(directory)
         files = sorted(directory.glob("*.xml"))
@@ -324,7 +343,7 @@ class OhioT1DMLoader:
 
         return patients
 
-    def _parse_ts(self, ts_str: str) -> Optional[datetime]:
+    def _parse_ts(self, ts_str: str) -> datetime | None:
         """Parse OhioT1DM timestamp format."""
         if not ts_str:
             return None
@@ -340,33 +359,38 @@ class OhioT1DMLoader:
             logger.warning("Unparseable OhioT1DM timestamp: %s", ts_str)
             return None
 
+
 # ── Lag Model Validation ────────────────────────────────────────────
+
 
 @dataclass
 class MealGlucoseCorrelation:
     """Result of correlating a meal event with subsequent glucose response."""
+
     meal_time: datetime
     carbs_g: float
     peak_glucose: float
     peak_time: datetime
-    raw_lag_minutes: float         # Observed meal→peak delay
-    predicted_lag_minutes: float   # Model's predicted lag
+    raw_lag_minutes: float  # Observed meal→peak delay
+    predicted_lag_minutes: float  # Model's predicted lag
     prediction_error_minutes: float  # |observed - predicted|
+
 
 @dataclass
 class LagValidationResult:
     """Aggregate result of lag model validation on OhioT1DM data."""
+
     patient_id: str
     total_meals: int
     matched_meals: int
-    raw_pearson_r: float           # Meal carbs vs glucose WITHOUT lag compensation
-    compensated_pearson_r: float   # Meal carbs vs glucose WITH lag compensation
-    raw_peak_mae_minutes: float    # Mean absolute error before calibration
+    raw_pearson_r: float  # Meal carbs vs glucose WITHOUT lag compensation
+    compensated_pearson_r: float  # Meal carbs vs glucose WITH lag compensation
+    raw_peak_mae_minutes: float  # Mean absolute error before calibration
     compensated_peak_mae_minutes: float  # Mean absolute error after calibration
-    correlations: List[MealGlucoseCorrelation] = field(default_factory=list)
-    improvement_pct: float = 0.0   # % improvement in Pearson r
+    correlations: list[MealGlucoseCorrelation] = field(default_factory=list)
+    improvement_pct: float = 0.0  # % improvement in Pearson r
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         return {
             "patient_id": self.patient_id,
             "total_meals": self.total_meals,
@@ -377,6 +401,7 @@ class LagValidationResult:
             "raw_peak_mae_min": round(self.raw_peak_mae_minutes, 1),
             "compensated_peak_mae_min": round(self.compensated_peak_mae_minutes, 1),
         }
+
 
 class LagModelValidator:
     """Validates the Dynamic Physiological Lag Model against OhioT1DM data.
@@ -398,15 +423,35 @@ class LagModelValidator:
     def __init__(
         self,
         base_lag_minutes: float = 60.0,
-        circadian_modifiers: Optional[Dict[int, float]] = None,
+        circadian_modifiers: dict[int, float] | None = None,
     ):
         self.base_lag_minutes = base_lag_minutes
         # Default circadian lag modifiers (from temporal_sync.py)
         self.circadian_modifiers = circadian_modifiers or {
-            0: 1.15, 1: 1.18, 2: 1.20, 3: 1.22, 4: 1.18, 5: 1.10,
-            6: 1.05, 7: 1.0,  8: 0.98, 9: 0.95, 10: 0.93, 11: 0.95,
-            12: 1.0, 13: 1.02, 14: 1.05, 15: 1.03, 16: 1.0, 17: 0.98,
-            18: 1.02, 19: 1.05, 20: 1.08, 21: 1.10, 22: 1.12, 23: 1.14,
+            0: 1.15,
+            1: 1.18,
+            2: 1.20,
+            3: 1.22,
+            4: 1.18,
+            5: 1.10,
+            6: 1.05,
+            7: 1.0,
+            8: 0.98,
+            9: 0.95,
+            10: 0.93,
+            11: 0.95,
+            12: 1.0,
+            13: 1.02,
+            14: 1.05,
+            15: 1.03,
+            16: 1.0,
+            17: 0.98,
+            18: 1.02,
+            19: 1.05,
+            20: 1.08,
+            21: 1.10,
+            22: 1.12,
+            23: 1.14,
         }
 
     def validate(
@@ -425,7 +470,7 @@ class LagModelValidator:
         Returns:
             LagValidationResult with correlation analysis.
         """
-        correlations: List[MealGlucoseCorrelation] = []
+        correlations: list[MealGlucoseCorrelation] = []
 
         for meal in patient.meal_events:
             if meal.carbs_g < 5:
@@ -449,15 +494,17 @@ class LagModelValidator:
             # Compute predicted lag from model
             predicted_lag_min = self._predict_lag(meal.timestamp)
 
-            correlations.append(MealGlucoseCorrelation(
-                meal_time=meal.timestamp,
-                carbs_g=meal.carbs_g,
-                peak_glucose=peak.value,
-                peak_time=peak.timestamp,
-                raw_lag_minutes=raw_lag_min,
-                predicted_lag_minutes=predicted_lag_min,
-                prediction_error_minutes=abs(raw_lag_min - predicted_lag_min),
-            ))
+            correlations.append(
+                MealGlucoseCorrelation(
+                    meal_time=meal.timestamp,
+                    carbs_g=meal.carbs_g,
+                    peak_glucose=peak.value,
+                    peak_time=peak.timestamp,
+                    raw_lag_minutes=raw_lag_min,
+                    predicted_lag_minutes=predicted_lag_min,
+                    prediction_error_minutes=abs(raw_lag_min - predicted_lag_min),
+                )
+            )
 
         if len(correlations) < 3:
             return LagValidationResult(
@@ -483,10 +530,7 @@ class LagModelValidator:
         raw_mae = sum(c.raw_lag_minutes for c in correlations) / len(correlations)
         comp_mae = sum(errors) / len(errors)
 
-        improvement = (
-            ((comp_r - raw_r) / max(abs(raw_r), 0.01)) * 100
-            if raw_r != 0 else 0.0
-        )
+        improvement = ((comp_r - raw_r) / max(abs(raw_r), 0.01)) * 100 if raw_r != 0 else 0.0
 
         return LagValidationResult(
             patient_id=patient.patient_id,
@@ -508,19 +552,16 @@ class LagModelValidator:
 
     def _find_glucose_peak(
         self,
-        readings: List[OhioGlucoseReading],
+        readings: list[OhioGlucoseReading],
         meal_time: datetime,
         window_min: float,
         window_max: float,
-    ) -> Optional[OhioGlucoseReading]:
+    ) -> OhioGlucoseReading | None:
         """Find the glucose peak in the post-meal search window."""
         start = meal_time + timedelta(minutes=window_min)
         end = meal_time + timedelta(minutes=window_max)
 
-        candidates = [
-            r for r in readings
-            if start <= r.timestamp <= end
-        ]
+        candidates = [r for r in readings if start <= r.timestamp <= end]
 
         if not candidates:
             return None
@@ -529,14 +570,15 @@ class LagModelValidator:
 
     def _get_glucose_at_time(
         self,
-        readings: List[OhioGlucoseReading],
+        readings: list[OhioGlucoseReading],
         target_time: datetime,
         tolerance_minutes: float = 10.0,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Get glucose value closest to target_time within tolerance."""
         tolerance = timedelta(minutes=tolerance_minutes)
         candidates = [
-            r for r in readings
+            r
+            for r in readings
             if abs((r.timestamp - target_time).total_seconds()) <= tolerance.total_seconds()
         ]
         if not candidates:
@@ -547,7 +589,7 @@ class LagModelValidator:
     def _compute_raw_pearson(
         self,
         patient: OhioPatient,
-        correlations: List[MealGlucoseCorrelation],
+        correlations: list[MealGlucoseCorrelation],
     ) -> float:
         """Pearson r between carbs and glucose at meal time (no lag)."""
         carbs = []
@@ -568,7 +610,7 @@ class LagModelValidator:
     def _compute_compensated_pearson(
         self,
         patient: OhioPatient,
-        correlations: List[MealGlucoseCorrelation],
+        correlations: list[MealGlucoseCorrelation],
     ) -> float:
         """Pearson r between carbs and glucose at meal_time + predicted_lag."""
         carbs = []
@@ -587,9 +629,11 @@ class LagModelValidator:
             return 0.0
         return _pearson_r(carbs, glucose)
 
+
 # ── Utility functions ───────────────────────────────────────────────
 
-def _safe_float(val: Optional[str]) -> Optional[float]:
+
+def _safe_float(val: str | None) -> float | None:
     """Safely parse a float from string."""
     if val is None:
         return None
@@ -598,7 +642,8 @@ def _safe_float(val: Optional[str]) -> Optional[float]:
     except (ValueError, TypeError):
         return None
 
-def _pearson_r(x: List[float], y: List[float]) -> float:
+
+def _pearson_r(x: list[float], y: list[float]) -> float:
     """Compute Pearson correlation coefficient.
 
     Returns 0.0 if insufficient data or zero variance.
@@ -619,4 +664,3 @@ def _pearson_r(x: List[float], y: List[float]) -> float:
         return 0.0
 
     return cov_xy / denom
-

@@ -6,8 +6,9 @@ activity, and sleep patterns. Includes both rule-based heuristics and
 machine learning model integration for more sophisticated predictions.
 """
 
-from typing import List, Dict, Any
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
+
 
 class NutritionRecommender:
     """
@@ -18,7 +19,7 @@ class NutritionRecommender:
         """Initialize the recommender with rule-based system."""
         self.rules = self._load_rules()
 
-    def _load_rules(self) -> List[Dict[str, Any]]:
+    def _load_rules(self) -> list[dict[str, Any]]:
         """Load recommendation rules from configuration."""
         return [
             {
@@ -28,7 +29,7 @@ class NutritionRecommender:
                 "message": "Try increasing fiber intake by 6–8g/day: add an apple and a handful of almonds.",
                 "rationale": "Your 7-day average fiber intake is below target.",
                 "tags": ["nutrition", "digestive-health"],
-                "priority": "high"
+                "priority": "high",
             },
             {
                 "id": "water_intake_reminder",
@@ -37,7 +38,7 @@ class NutritionRecommender:
                 "message": "Drink more water! Aim for at least 8-10 glasses per day.",
                 "rationale": "Proper hydration supports energy and metabolism.",
                 "tags": ["hydration", "wellness"],
-                "priority": "medium"
+                "priority": "medium",
             },
             {
                 "id": "protein_target",
@@ -46,7 +47,7 @@ class NutritionRecommender:
                 "message": "Increase protein intake to support muscle health and satiety.",
                 "rationale": "Adequate protein is essential for body composition.",
                 "tags": ["nutrition", "protein"],
-                "priority": "medium"
+                "priority": "medium",
             },
             {
                 "id": "sleep_quality",
@@ -55,7 +56,7 @@ class NutritionRecommender:
                 "message": "Aim for 7-9 hours of quality sleep each night.",
                 "rationale": "Better sleep improves metabolism and recovery.",
                 "tags": ["sleep", "wellness"],
-                "priority": "high"
+                "priority": "high",
             },
             {
                 "id": "activity_reminder",
@@ -64,7 +65,7 @@ class NutritionRecommender:
                 "message": "Try to reach 10,000 steps today with regular movement.",
                 "rationale": "Daily activity strengthens cardiovascular health.",
                 "tags": ["activity", "fitness"],
-                "priority": "medium"
+                "priority": "medium",
             },
             {
                 "id": "balanced_macros",
@@ -73,12 +74,12 @@ class NutritionRecommender:
                 "message": "Aim for balanced macronutrients: 40% carbs, 30% protein, 30% fat.",
                 "rationale": "Balanced macros support sustained energy and health.",
                 "tags": ["nutrition", "macros"],
-                "priority": "low"
-            }
+                "priority": "low",
+            },
         ]
 
     @staticmethod
-    def _check_macro_balance(features: Dict[str, Any]) -> bool:
+    def _check_macro_balance(features: dict[str, Any]) -> bool:
         """Check if macronutrient ratios are balanced."""
         total_calories = features.get("total_calories", 0)
         if total_calories < 100:  # Not enough data
@@ -97,16 +98,11 @@ class NutritionRecommender:
         fat_pct = (fat_cals / total_calories) * 100
 
         # Check if within reasonable ranges
-        return (25 <= protein_pct <= 40 and
-                40 <= carbs_pct <= 55 and
-                25 <= fat_pct <= 35)
+        return 25 <= protein_pct <= 40 and 40 <= carbs_pct <= 55 and 25 <= fat_pct <= 35
 
     def generate_recommendations(
-        self,
-        daily_features: Dict[str, Any],
-        user_targets: Dict[str, Any],
-        top_n: int = 5
-    ) -> List[Dict[str, Any]]:
+        self, daily_features: dict[str, Any], user_targets: dict[str, Any], top_n: int = 5
+    ) -> list[dict[str, Any]]:
         """
         Generate personalized recommendations based on user data.
 
@@ -126,26 +122,26 @@ class NutritionRecommender:
         for rule in self.rules:
             try:
                 if rule["condition"](features):
-                    triggered_rules.append({
-                        "id": rule["id"],
-                        "message": rule["message"],
-                        "rationale": rule["rationale"],
-                        "tags": rule["tags"],
-                        "priority": rule["priority"]
-                    })
+                    triggered_rules.append(
+                        {
+                            "id": rule["id"],
+                            "message": rule["message"],
+                            "rationale": rule["rationale"],
+                            "tags": rule["tags"],
+                            "priority": rule["priority"],
+                        }
+                    )
             except Exception:
                 # Skip rules that fail due to missing data
                 pass
 
         # Sort by priority and return top N
         priority_order = {"high": 0, "medium": 1, "low": 2}
-        triggered_rules.sort(
-            key=lambda x: (priority_order.get(x["priority"], 3), x["id"])
-        )
+        triggered_rules.sort(key=lambda x: (priority_order.get(x["priority"], 3), x["id"]))
 
         return triggered_rules[:top_n]
 
-    def generate_insights(self, daily_features: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_insights(self, daily_features: dict[str, Any]) -> dict[str, Any]:
         """
         Generate detailed insights about user health patterns.
 
@@ -156,15 +152,15 @@ class NutritionRecommender:
             Dictionary with insights
         """
         insights = {
-            "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+            "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
             "summary": self._generate_summary(daily_features),
             "alerts": self._generate_alerts(daily_features),
-            "trends": self._estimate_trends(daily_features)
+            "trends": self._estimate_trends(daily_features),
         }
         return insights
 
     @staticmethod
-    def _generate_summary(features: Dict[str, Any]) -> str:
+    def _generate_summary(features: dict[str, Any]) -> str:
         """Generate a text summary of the day."""
         fiber = features.get("fiber_g", 0)
         calories = features.get("calories", 0)
@@ -180,7 +176,7 @@ class NutritionRecommender:
             return "Steady day. Keep up the good habits!"
 
     @staticmethod
-    def _generate_alerts(features: Dict[str, Any]) -> List[str]:
+    def _generate_alerts(features: dict[str, Any]) -> list[str]:
         """Generate any urgent alerts."""
         alerts = []
         if features.get("calories", 0) > 3500:
@@ -190,18 +186,20 @@ class NutritionRecommender:
         return alerts
 
     @staticmethod
-    def _estimate_trends(features: Dict[str, Any]) -> Dict[str, str]:
+    def _estimate_trends(features: dict[str, Any]) -> dict[str, str]:
         """Estimate trends based on available data."""
         return {
             "fiber_trend": "increasing" if features.get("fiber_g", 0) > 15 else "needs-improvement",
             "activity_trend": "good" if features.get("steps", 0) > 8000 else "needs-improvement",
-            "sleep_trend": "good" if features.get("sleep_hours", 0) >= 7 else "needs-improvement"
+            "sleep_trend": "good" if features.get("sleep_hours", 0) >= 7 else "needs-improvement",
         }
+
 
 # Instantiate global recommender
 recommender = NutritionRecommender()
 
-def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
+
+def generate_recommendations(payload: dict[str, Any]) -> dict[str, Any]:
     """
     Generate recommendations from a user request payload.
 
@@ -225,9 +223,7 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     # Generate recommendations
     recs = recommender.generate_recommendations(
-        daily_features=daily_features,
-        user_targets=user_targets,
-        top_n=5
+        daily_features=daily_features, user_targets=user_targets, top_n=5
     )
 
     # Generate insights
@@ -235,9 +231,8 @@ def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "status": "ok",
-        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
         "recommendations": recs,
         "insights": insights,
-        "input": payload
+        "input": payload,
     }
-

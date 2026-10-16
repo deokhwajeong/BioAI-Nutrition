@@ -36,9 +36,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
 
-from ..biomarkers.base import BiomarkerReading, BiomarkerType, TemporalBehavior
+from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
 # Ultradian and circadian rhythm parameters
 # These model multi-scale biological oscillations
@@ -63,6 +62,7 @@ RHYTHM_MODELS = {
     },
 }
 
+
 @dataclass
 class InterpolationResult:
     """Result of circadian-aware interpolation.
@@ -84,6 +84,7 @@ class InterpolationResult:
     circadian_component: float
     neighbor_component: float
     blend_ratio: float
+
 
 class CircadianInterpolator:
     """Fills biomarker data gaps using circadian rhythm models.
@@ -113,13 +114,13 @@ class CircadianInterpolator:
 
     def __init__(self):
         # Personal circadian phase offsets (learned from data)
-        self._phase_offsets: Dict[str, Dict[BiomarkerType, float]] = {}
+        self._phase_offsets: dict[str, dict[BiomarkerType, float]] = {}
 
     def learn_phase_offset(
         self,
         user_id: str,
         biomarker_type: BiomarkerType,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
     ) -> float:
         """Learn personal circadian phase from historical readings.
 
@@ -133,15 +134,11 @@ class CircadianInterpolator:
             return 0.0
 
         # Bin readings by hour and compute mean
-        hourly: Dict[int, List[float]] = {h: [] for h in range(24)}
+        hourly: dict[int, list[float]] = {h: [] for h in range(24)}
         for r in readings:
             hourly[r.timestamp.hour].append(r.value)
 
-        hourly_means = {
-            h: sum(vals) / len(vals)
-            for h, vals in hourly.items()
-            if vals
-        }
+        hourly_means = {h: sum(vals) / len(vals) for h, vals in hourly.items() if vals}
 
         if not hourly_means:
             return 0.0
@@ -166,8 +163,8 @@ class CircadianInterpolator:
         user_id: str,
         biomarker_type: BiomarkerType,
         target_time: datetime,
-        readings_before: Optional[BiomarkerReading],
-        readings_after: Optional[BiomarkerReading],
+        readings_before: BiomarkerReading | None,
+        readings_after: BiomarkerReading | None,
         personal_baseline_mean: float,
         max_gap: timedelta = timedelta(hours=6),
     ) -> InterpolationResult:
@@ -197,9 +194,7 @@ class CircadianInterpolator:
 
         # Step 3: Compute gap duration and blend ratio
         gap = self._compute_gap(target_time, readings_before, readings_after)
-        blend_ratio = self._compute_blend_ratio(
-            gap, biomarker_type, max_gap
-        )
+        blend_ratio = self._compute_blend_ratio(gap, biomarker_type, max_gap)
 
         # Step 4: Blend
         if neighbor_pred is not None:
@@ -229,12 +224,12 @@ class CircadianInterpolator:
         self,
         user_id: str,
         biomarker_type: BiomarkerType,
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         start: datetime,
         end: datetime,
         interval: timedelta,
         personal_baseline_mean: float,
-    ) -> List[InterpolationResult]:
+    ) -> list[InterpolationResult]:
         """Interpolate a complete time series, filling all gaps.
 
         Produces evenly-spaced values from start to end.
@@ -242,7 +237,7 @@ class CircadianInterpolator:
         Where gaps exist, applies circadian-aware interpolation.
         """
         sorted_readings = sorted(readings, key=lambda r: r.timestamp)
-        results: List[InterpolationResult] = []
+        results: list[InterpolationResult] = []
 
         current = start
         while current < end:
@@ -302,11 +297,7 @@ class CircadianInterpolator:
         hour_fractional = timestamp.hour + timestamp.minute / 60.0
 
         # Personal phase offset
-        personal_offset = (
-            self._phase_offsets
-            .get(user_id, {})
-            .get(biomarker_type, 0.0)
-        )
+        personal_offset = self._phase_offsets.get(user_id, {}).get(biomarker_type, 0.0)
 
         # Circadian component (24h cycle)
         circadian_amp = model["circadian_amplitude"]
@@ -318,18 +309,16 @@ class CircadianInterpolator:
         # Ultradian component (90-min cycle)
         ultra_amp = model.get("ultradian_amplitude", 0.0)
         ultra_period = model.get("ultradian_period_hours", 1.5)
-        ultradian = ultra_amp * math.cos(
-            2 * math.pi * hour_fractional / ultra_period
-        )
+        ultradian = ultra_amp * math.cos(2 * math.pi * hour_fractional / ultra_period)
 
         return baseline_mean * (1 + circadian + ultradian)
 
     def _neighbor_predict(
         self,
         target: datetime,
-        before: Optional[BiomarkerReading],
-        after: Optional[BiomarkerReading],
-    ) -> Tuple[Optional[float], float]:
+        before: BiomarkerReading | None,
+        after: BiomarkerReading | None,
+    ) -> tuple[float | None, float]:
         """Predict from nearest actual readings.
 
         If both before and after exist, uses inverse-distance weighting.
@@ -360,8 +349,8 @@ class CircadianInterpolator:
     def _compute_gap(
         self,
         target: datetime,
-        before: Optional[BiomarkerReading],
-        after: Optional[BiomarkerReading],
+        before: BiomarkerReading | None,
+        after: BiomarkerReading | None,
     ) -> timedelta:
         """Compute the effective gap duration around the target time."""
         gaps = []
@@ -390,7 +379,6 @@ class CircadianInterpolator:
         the interpolation domain-aware. It knows when to trust recent
         real data vs. the biological rhythm model.
         """
-        model = RHYTHM_MODELS.get(biomarker_type, {})
         # Transition point = 2 hours by default
         transition_hours = 2.0
 
@@ -404,10 +392,10 @@ class CircadianInterpolator:
 
     @staticmethod
     def _find_closest(
-        readings: List[BiomarkerReading],
+        readings: list[BiomarkerReading],
         target: datetime,
         max_distance: timedelta,
-    ) -> Optional[BiomarkerReading]:
+    ) -> BiomarkerReading | None:
         """Find reading closest to target within max_distance."""
         best = None
         best_dist = max_distance.total_seconds()
@@ -421,18 +409,13 @@ class CircadianInterpolator:
         return best
 
     @staticmethod
-    def _find_before(
-        readings: List[BiomarkerReading], target: datetime
-    ) -> Optional[BiomarkerReading]:
+    def _find_before(readings: list[BiomarkerReading], target: datetime) -> BiomarkerReading | None:
         """Find most recent reading before target."""
         candidates = [r for r in readings if r.timestamp < target]
         return max(candidates, key=lambda r: r.timestamp) if candidates else None
 
     @staticmethod
-    def _find_after(
-        readings: List[BiomarkerReading], target: datetime
-    ) -> Optional[BiomarkerReading]:
+    def _find_after(readings: list[BiomarkerReading], target: datetime) -> BiomarkerReading | None:
         """Find earliest reading after target."""
         candidates = [r for r in readings if r.timestamp > target]
         return min(candidates, key=lambda r: r.timestamp) if candidates else None
-

@@ -13,7 +13,6 @@ algorithm.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 from .base import (
     BiomarkerReading,
@@ -38,13 +37,32 @@ GLUCOSE_RANGES = {
 # Values represent typical % deviation from personal 24h mean
 CIRCADIAN_GLUCOSE_OFFSET = {
     # hour: offset_pct
-    0: -0.05,  1: -0.06,  2: -0.07,  3: -0.08,   # Dawn phenomenon starts
-    4: -0.04,  5: 0.02,   6: 0.05,   7: 0.08,     # Morning rise
-    8: 0.06,   9: 0.03,  10: 0.01,  11: -0.01,
-    12: 0.02, 13: 0.04,  14: 0.02,  15: 0.00,
-    16: -0.01, 17: 0.01, 18: 0.03,  19: 0.04,
-    20: 0.02, 21: 0.00,  22: -0.02, 23: -0.04,
+    0: -0.05,
+    1: -0.06,
+    2: -0.07,
+    3: -0.08,  # Dawn phenomenon starts
+    4: -0.04,
+    5: 0.02,
+    6: 0.05,
+    7: 0.08,  # Morning rise
+    8: 0.06,
+    9: 0.03,
+    10: 0.01,
+    11: -0.01,
+    12: 0.02,
+    13: 0.04,
+    14: 0.02,
+    15: 0.00,
+    16: -0.01,
+    17: 0.01,
+    18: 0.03,
+    19: 0.04,
+    20: 0.02,
+    21: 0.00,
+    22: -0.02,
+    23: -0.04,
 }
+
 
 class CGMAdapter(BiomarkerSource):
     """Adapter for Continuous Glucose Monitor data.
@@ -63,14 +81,14 @@ class CGMAdapter(BiomarkerSource):
     ):
         self._device_model = device_model
         self._calibration_offset = calibration_offset
-        self._readings_store: Dict[str, List[BiomarkerReading]] = {}
+        self._readings_store: dict[str, list[BiomarkerReading]] = {}
 
     @property
     def source_id(self) -> str:
         return f"cgm_{self._device_model}"
 
     @property
-    def supported_biomarkers(self) -> List[BiomarkerType]:
+    def supported_biomarkers(self) -> list[BiomarkerType]:
         return [BiomarkerType.GLUCOSE]
 
     def get_sampling_characteristics(
@@ -96,7 +114,7 @@ class CGMAdapter(BiomarkerSource):
         biomarker_type: BiomarkerType,
         start: datetime,
         end: datetime,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         """Fetch CGM readings for a user within a time window."""
         key = f"{user_id}:{biomarker_type.value}"
         readings = self._readings_store.get(key, [])
@@ -125,9 +143,7 @@ class CGMAdapter(BiomarkerSource):
                 **reading.metadata,
                 "calibration_offset": self._calibration_offset,
                 "device_model": self._device_model,
-                "circadian_offset": CIRCADIAN_GLUCOSE_OFFSET.get(
-                    reading.timestamp.hour, 0.0
-                ),
+                "circadian_offset": CIRCADIAN_GLUCOSE_OFFSET.get(reading.timestamp.hour, 0.0),
             },
         )
 
@@ -146,9 +162,7 @@ class CGMAdapter(BiomarkerSource):
             return False
         return True
 
-    def _compute_confidence(
-        self, value: float, reading: BiomarkerReading
-    ) -> float:
+    def _compute_confidence(self, value: float, reading: BiomarkerReading) -> float:
         """Compute confidence score based on reading quality indicators."""
         confidence = reading.confidence
 
@@ -176,8 +190,8 @@ class CGMAdapter(BiomarkerSource):
 
     @staticmethod
     def compute_glucose_variability(
-        readings: List[BiomarkerReading],
-    ) -> Dict[str, float]:
+        readings: list[BiomarkerReading],
+    ) -> dict[str, float]:
         """Compute glucose variability metrics from a set of readings.
 
         Returns metrics important for nutritional adjustment:
@@ -194,7 +208,7 @@ class CGMAdapter(BiomarkerSource):
         n = len(values)
         mean = sum(values) / n
         variance = sum((v - mean) ** 2 for v in values) / n
-        std = variance ** 0.5
+        std = variance**0.5
         cv = (std / mean * 100) if mean > 0 else 0
         in_range = sum(1 for v in values if 70 <= v <= 180) / n * 100
         # GMI formula: 3.31 + 0.02392 × mean glucose (mg/dL)
@@ -208,4 +222,3 @@ class CGMAdapter(BiomarkerSource):
             "gmi": round(gmi, 2),
             "count": n,
         }
-

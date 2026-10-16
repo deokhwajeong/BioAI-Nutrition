@@ -44,14 +44,13 @@ Usage:
 
 from __future__ import annotations
 
-import glob
 import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 
@@ -59,53 +58,52 @@ logger = logging.getLogger(__name__)
 
 # ── LOINC → BioAI mapping ──────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class LoincMapping:
     """Maps a FHIR LOINC code to a BioAI BiomarkerType."""
 
     biomarker_type: BiomarkerType
-    unit_override: Optional[str] = None      # Force unit if FHIR unit is ugly
-    label: str = ""                          # Human-readable label for metadata
-    is_component: bool = False               # True for panel sub-components (BP)
+    unit_override: str | None = None  # Force unit if FHIR unit is ugly
+    label: str = ""  # Human-readable label for metadata
+    is_component: bool = False  # True for panel sub-components (BP)
+
 
 # Primary mappings: LOINC code → BioAI type
-LOINC_MAP: Dict[str, LoincMapping] = {
+LOINC_MAP: dict[str, LoincMapping] = {
     # ── Continuous / high-frequency ─────────────────────────────────
-    "2339-0":  LoincMapping(BiomarkerType.GLUCOSE,     "mg/dL",    "Blood Glucose"),
-    "4548-4":  LoincMapping(BiomarkerType.GLUCOSE,     "%",        "HbA1c"),
-    "8867-4":  LoincMapping(BiomarkerType.HEART_RATE,  "bpm",      "Heart Rate"),
-
+    "2339-0": LoincMapping(BiomarkerType.GLUCOSE, "mg/dL", "Blood Glucose"),
+    "4548-4": LoincMapping(BiomarkerType.GLUCOSE, "%", "HbA1c"),
+    "8867-4": LoincMapping(BiomarkerType.HEART_RATE, "bpm", "Heart Rate"),
     # ── Body composition ───────────────────────────────────────────
-    "29463-7": LoincMapping(BiomarkerType.WEIGHT,      "kg",       "Body Weight"),
-
+    "29463-7": LoincMapping(BiomarkerType.WEIGHT, "kg", "Body Weight"),
     # ── Blood tests (lipid panel, CBC, metabolic panel) ────────────
-    "2093-3":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "Total Cholesterol"),
-    "2571-8":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "Triglycerides"),
-    "18262-6": LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "LDL Cholesterol"),
-    "2085-9":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "HDL Cholesterol"),
-    "718-7":   LoincMapping(BiomarkerType.BLOOD_TEST,  "g/dL",     "Hemoglobin"),
-    "6690-2":  LoincMapping(BiomarkerType.BLOOD_TEST,  "10*3/uL",  "WBC"),
-    "789-8":   LoincMapping(BiomarkerType.BLOOD_TEST,  "10*6/uL",  "RBC"),
-    "777-3":   LoincMapping(BiomarkerType.BLOOD_TEST,  "10*3/uL",  "Platelets"),
-    "4544-3":  LoincMapping(BiomarkerType.BLOOD_TEST,  "%",        "Hematocrit"),
-    "38483-4": LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "Creatinine"),
-    "6299-2":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "BUN"),
-    "49765-1": LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "Calcium"),
-    "2947-0":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mmol/L",   "Sodium"),
-    "6298-4":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mmol/L",   "Potassium"),
-    "2069-3":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mmol/L",   "Chloride"),
-    "20565-8": LoincMapping(BiomarkerType.BLOOD_TEST,  "mmol/L",   "CO2"),
-    "1742-6":  LoincMapping(BiomarkerType.BLOOD_TEST,  "U/L",      "ALT"),
-    "1920-8":  LoincMapping(BiomarkerType.BLOOD_TEST,  "U/L",      "AST"),
-    "1975-2":  LoincMapping(BiomarkerType.BLOOD_TEST,  "mg/dL",    "Bilirubin"),
-    "6768-6":  LoincMapping(BiomarkerType.BLOOD_TEST,  "U/L",      "ALP"),
-    "1751-7":  LoincMapping(BiomarkerType.BLOOD_TEST,  "g/dL",     "Albumin"),
-    "2885-2":  LoincMapping(BiomarkerType.BLOOD_TEST,  "g/dL",     "Total Protein"),
-    "33914-3": LoincMapping(BiomarkerType.BLOOD_TEST,  "mL/min",   "eGFR"),
-
+    "2093-3": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "Total Cholesterol"),
+    "2571-8": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "Triglycerides"),
+    "18262-6": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "LDL Cholesterol"),
+    "2085-9": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "HDL Cholesterol"),
+    "718-7": LoincMapping(BiomarkerType.BLOOD_TEST, "g/dL", "Hemoglobin"),
+    "6690-2": LoincMapping(BiomarkerType.BLOOD_TEST, "10*3/uL", "WBC"),
+    "789-8": LoincMapping(BiomarkerType.BLOOD_TEST, "10*6/uL", "RBC"),
+    "777-3": LoincMapping(BiomarkerType.BLOOD_TEST, "10*3/uL", "Platelets"),
+    "4544-3": LoincMapping(BiomarkerType.BLOOD_TEST, "%", "Hematocrit"),
+    "38483-4": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "Creatinine"),
+    "6299-2": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "BUN"),
+    "49765-1": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "Calcium"),
+    "2947-0": LoincMapping(BiomarkerType.BLOOD_TEST, "mmol/L", "Sodium"),
+    "6298-4": LoincMapping(BiomarkerType.BLOOD_TEST, "mmol/L", "Potassium"),
+    "2069-3": LoincMapping(BiomarkerType.BLOOD_TEST, "mmol/L", "Chloride"),
+    "20565-8": LoincMapping(BiomarkerType.BLOOD_TEST, "mmol/L", "CO2"),
+    "1742-6": LoincMapping(BiomarkerType.BLOOD_TEST, "U/L", "ALT"),
+    "1920-8": LoincMapping(BiomarkerType.BLOOD_TEST, "U/L", "AST"),
+    "1975-2": LoincMapping(BiomarkerType.BLOOD_TEST, "mg/dL", "Bilirubin"),
+    "6768-6": LoincMapping(BiomarkerType.BLOOD_TEST, "U/L", "ALP"),
+    "1751-7": LoincMapping(BiomarkerType.BLOOD_TEST, "g/dL", "Albumin"),
+    "2885-2": LoincMapping(BiomarkerType.BLOOD_TEST, "g/dL", "Total Protein"),
+    "33914-3": LoincMapping(BiomarkerType.BLOOD_TEST, "mL/min", "eGFR"),
     # ── Blood pressure (component-based) ──────────────────────────
-    "8480-6":  LoincMapping(BiomarkerType.BLOOD_PRESSURE, "mmHg",  "Systolic BP",  is_component=True),
-    "8462-4":  LoincMapping(BiomarkerType.BLOOD_PRESSURE, "mmHg",  "Diastolic BP", is_component=True),
+    "8480-6": LoincMapping(BiomarkerType.BLOOD_PRESSURE, "mmHg", "Systolic BP", is_component=True),
+    "8462-4": LoincMapping(BiomarkerType.BLOOD_PRESSURE, "mmHg", "Diastolic BP", is_component=True),
 }
 
 # Blood pressure panel LOINC (has sub-components, not a direct value)
@@ -114,6 +112,7 @@ BP_PANEL_LOINC = "85354-9"
 METADATA_ONLY_LOINCS = {"8302-2", "39156-5"}
 
 # ── Patient container ──────────────────────────────────────────────
+
 
 @dataclass
 class SyntheaPatient:
@@ -129,21 +128,22 @@ class SyntheaPatient:
     state: str = ""
 
     # All converted biomarker readings
-    readings: List[BiomarkerReading] = field(default_factory=list)
+    readings: list[BiomarkerReading] = field(default_factory=list)
 
     # Conditions (ICD-10 / SNOMED codes)
-    conditions: List[Dict[str, str]] = field(default_factory=list)
+    conditions: list[dict[str, str]] = field(default_factory=list)
 
     # Medications
-    medications: List[Dict[str, str]] = field(default_factory=list)
+    medications: list[dict[str, str]] = field(default_factory=list)
 
     # Static measurements (height, BMI) — most recent values
-    height_cm: Optional[float] = None
-    bmi: Optional[float] = None
+    height_cm: float | None = None
+    bmi: float | None = None
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         """Return compact summary of this patient for logging / API."""
         from collections import Counter
+
         type_counts = Counter(r.biomarker_type.value for r in self.readings)
         return {
             "patient_id": self.patient_id,
@@ -158,7 +158,9 @@ class SyntheaPatient:
             "medications": len(self.medications),
         }
 
+
 # ── Loader ──────────────────────────────────────────────────────────
+
 
 class SyntheaLoader:
     """Load Synthea FHIR R4 Bundles and convert to BioAI format.
@@ -179,8 +181,8 @@ class SyntheaLoader:
     def load_directory(
         self,
         directory: str | Path,
-        max_patients: Optional[int] = None,
-    ) -> List[SyntheaPatient]:
+        max_patients: int | None = None,
+    ) -> list[SyntheaPatient]:
         """Load all FHIR Bundle JSON files in *directory*.
 
         Args:
@@ -195,7 +197,7 @@ class SyntheaLoader:
         if max_patients:
             files = files[:max_patients]
 
-        patients: List[SyntheaPatient] = []
+        patients: list[SyntheaPatient] = []
         for fp in files:
             try:
                 patient = self.load_bundle(fp)
@@ -263,7 +265,7 @@ class SyntheaLoader:
 
     # ── Private helpers ─────────────────────────────────────────────
 
-    def _extract_patient(self, entries: List[Dict]) -> SyntheaPatient:
+    def _extract_patient(self, entries: list[dict]) -> SyntheaPatient:
         """Find the Patient resource and extract demographics."""
         for entry in entries:
             res = entry.get("resource", {})
@@ -306,8 +308,7 @@ class SyntheaLoader:
                 dt = datetime.strptime(dt_str, fmt)
                 # Convert timezone-aware to naive UTC
                 if dt.tzinfo is not None:
-                    from datetime import timezone
-                    dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+                    dt = dt.astimezone(UTC).replace(tzinfo=None)
                 return dt
             except ValueError:
                 continue
@@ -315,15 +316,15 @@ class SyntheaLoader:
 
     def _observation_to_readings(
         self,
-        obs: Dict[str, Any],
+        obs: dict[str, Any],
         patient_id: str,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         """Convert a single FHIR Observation to BiomarkerReading(s).
 
         A panel observation (e.g., blood pressure) may produce multiple
         readings from its components.
         """
-        readings: List[BiomarkerReading] = []
+        readings: list[BiomarkerReading] = []
 
         # Get timestamp
         dt_str = obs.get("effectiveDateTime") or obs.get("issued", "")
@@ -336,7 +337,9 @@ class SyntheaLoader:
 
         # Get LOINC codes
         codings = obs.get("code", {}).get("coding", [])
-        loinc_codes = [c.get("code", "") for c in codings if c.get("system", "").endswith("loinc.org")]
+        loinc_codes = [
+            c.get("code", "") for c in codings if c.get("system", "").endswith("loinc.org")
+        ]
         if not loinc_codes:
             return readings
         primary_loinc = loinc_codes[0]
@@ -363,21 +366,23 @@ class SyntheaLoader:
                     diastolic = float(value)
 
             if systolic is not None and diastolic is not None:
-                readings.append(BiomarkerReading(
-                    source_id=self.source_id,
-                    user_id=patient_id,
-                    biomarker_type=BiomarkerType.BLOOD_PRESSURE,
-                    timestamp=timestamp,
-                    value=systolic,  # Primary value = systolic
-                    unit="mmHg",
-                    confidence=0.95,
-                    metadata={
-                        "systolic": systolic,
-                        "diastolic": diastolic,
-                        "fhir_loinc": primary_loinc,
-                        "source": "synthea",
-                    },
-                ))
+                readings.append(
+                    BiomarkerReading(
+                        source_id=self.source_id,
+                        user_id=patient_id,
+                        biomarker_type=BiomarkerType.BLOOD_PRESSURE,
+                        timestamp=timestamp,
+                        value=systolic,  # Primary value = systolic
+                        unit="mmHg",
+                        confidence=0.95,
+                        metadata={
+                            "systolic": systolic,
+                            "diastolic": diastolic,
+                            "fhir_loinc": primary_loinc,
+                            "source": "synthea",
+                        },
+                    )
+                )
             return readings
 
         # ── Standard single-value observations ─────────────────────
@@ -392,25 +397,27 @@ class SyntheaLoader:
 
         unit = mapping.unit_override or vq.get("unit", "")
 
-        readings.append(BiomarkerReading(
-            source_id=self.source_id,
-            user_id=patient_id,
-            biomarker_type=mapping.biomarker_type,
-            timestamp=timestamp,
-            value=round(float(value), 4),
-            unit=unit,
-            confidence=0.95,
-            metadata={
-                "fhir_loinc": primary_loinc,
-                "fhir_display": mapping.label,
-                "fhir_unit": vq.get("unit", ""),
-                "source": "synthea",
-            },
-        ))
+        readings.append(
+            BiomarkerReading(
+                source_id=self.source_id,
+                user_id=patient_id,
+                biomarker_type=mapping.biomarker_type,
+                timestamp=timestamp,
+                value=round(float(value), 4),
+                unit=unit,
+                confidence=0.95,
+                metadata={
+                    "fhir_loinc": primary_loinc,
+                    "fhir_display": mapping.label,
+                    "fhir_unit": vq.get("unit", ""),
+                    "source": "synthea",
+                },
+            )
+        )
 
         return readings
 
-    def _extract_condition(self, res: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    def _extract_condition(self, res: dict[str, Any]) -> dict[str, str] | None:
         """Extract condition code and display text."""
         code_obj = res.get("code", {})
         codings = code_obj.get("coding", [])
@@ -430,7 +437,7 @@ class SyntheaLoader:
             ),
         }
 
-    def _extract_medication(self, res: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    def _extract_medication(self, res: dict[str, Any]) -> dict[str, str] | None:
         """Extract medication request info."""
         med_ref = res.get("medicationCodeableConcept", {})
         codings = med_ref.get("coding", [])
@@ -445,20 +452,23 @@ class SyntheaLoader:
             "authored_on": res.get("authoredOn", "")[:10],
         }
 
+
 # ── Convenience functions ──────────────────────────────────────────
+
 
 def load_synthea_patients(
     directory: str | Path = "data/synthea/output/fhir",
-    max_patients: Optional[int] = None,
-) -> List[SyntheaPatient]:
+    max_patients: int | None = None,
+) -> list[SyntheaPatient]:
     """Quick helper to load Synthea data from the default location."""
     loader = SyntheaLoader()
     return loader.load_directory(directory, max_patients)
 
+
 def synthea_patient_to_seed_readings(
     patient: SyntheaPatient,
-    override_user_id: Optional[str] = None,
-) -> List[BiomarkerReading]:
+    override_user_id: str | None = None,
+) -> list[BiomarkerReading]:
     """Get all readings for a patient, optionally re-mapping user_id.
 
     Useful for seeding the engine with a specific demo user ID.
@@ -479,4 +489,3 @@ def synthea_patient_to_seed_readings(
         )
         for r in patient.readings
     ]
-

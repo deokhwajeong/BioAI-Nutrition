@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
-from typing import Dict, List
 
 import pytest
 
@@ -24,31 +23,33 @@ from app.biomarkers.base import (
     SamplingCharacteristics,
     TemporalBehavior,
 )
-from app.engine.interpolation import CircadianInterpolator, RHYTHM_MODELS
-from app.engine.metabolic_state import MetabolicState, MetabolicPhase
+from app.engine.interpolation import CircadianInterpolator
+from app.engine.metabolic_state import MetabolicState
 from app.engine.normalization import NormalizedSignal, PhysiologicalNormalizer
 from app.engine.nutrient_calculator import (
     MedicalConstraint,
     NutrientDemandCalculator,
-    NutrientTarget,
     create_default_targets,
 )
 from app.engine.pipeline import NutritionPipeline, PipelineResult
-from app.engine.temporal_sync import Resolution, TemporalSynchronizer
+from app.engine.temporal_sync import TemporalSynchronizer
 from app.privacy.consent_manager import ConsentScope, DynamicConsentManager
-from app.privacy.differential_privacy import DifferentialPrivacyEngine
 from app.privacy.differential_privacy import (
+    NUTRIENT_SENSITIVITY_TIERS,
+    TIER_EPSILON_MAP,
+    DifferentialPrivacyEngine,
     DynamicEpsilonAllocator,
     PrivacyBudget,
     SensitivityTier,
-    TIER_EPSILON_MAP,
-    NUTRIENT_SENSITIVITY_TIERS,
 )
 
 NOW = datetime(2025, 1, 15, 12, 0, 0)
 
+
 def _make_reading(
-    bt: BiomarkerType, value: float, ts: datetime,
+    bt: BiomarkerType,
+    value: float,
+    ts: datetime,
 ) -> BiomarkerReading:
     return BiomarkerReading(
         biomarker_type=bt,
@@ -59,9 +60,11 @@ def _make_reading(
         user_id="test-user",
     )
 
+
 def _make_glucose_readings(
-    n: int, start: datetime = NOW - timedelta(hours=1),
-) -> List[BiomarkerReading]:
+    n: int,
+    start: datetime = NOW - timedelta(hours=1),
+) -> list[BiomarkerReading]:
     return [
         _make_reading(
             BiomarkerType.GLUCOSE,
@@ -70,6 +73,7 @@ def _make_glucose_readings(
         )
         for i in range(n)
     ]
+
 
 def _make_pipeline() -> NutritionPipeline:
     """Create a fully wired pipeline for testing."""
@@ -108,9 +112,11 @@ def _make_pipeline() -> NutritionPipeline:
         privacy_engine=DifferentialPrivacyEngine(),
     )
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G2+G5: NutritionPipeline — 5-stage orchestrator
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestNutritionPipeline:
     """Verify the pipeline executes all 5 stages in correct order."""
@@ -180,15 +186,14 @@ class TestNutritionPipeline:
         )
 
         # Genetic step should appear in modifications
-        genetic_mods = [
-            m for m in result.budget.modifications
-            if m.get("step") == "genetic"
-        ]
+        genetic_mods = [m for m in result.budget.modifications if m.get("step") == "genetic"]
         assert len(genetic_mods) >= 2
+
 
 # ═══════════════════════════════════════════════════════════════════
 #  G1+G6+G7: Genetic modifier completeness
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestGeneticModifierCompleteness:
     """All 22 genetic modifiers from NUTRIGENOMIC_VARIANTS should be
@@ -196,8 +201,16 @@ class TestGeneticModifierCompleteness:
 
     def test_default_targets_include_micronutrients(self):
         targets = create_default_targets()
-        micro = ["folate_mcg", "b12_mcg", "vitamin_d_iu", "magnesium_mg",
-                 "calcium_mg", "sodium_mg", "caffeine_mg", "vitamin_b6_mg"]
+        micro = [
+            "folate_mcg",
+            "b12_mcg",
+            "vitamin_d_iu",
+            "magnesium_mg",
+            "calcium_mg",
+            "sodium_mg",
+            "caffeine_mg",
+            "vitamin_b6_mg",
+        ]
         for m in micro:
             assert m in targets, f"Missing micronutrient target: {m}"
 
@@ -272,14 +285,22 @@ class TestGeneticModifierCompleteness:
     def test_all_22_modifiers_have_targets(self):
         """Every genetic modifier key should map to an existing target."""
         ALL_MODIFIER_KEYS = [
-            "folate_requirement_modifier", "b12_requirement_modifier",
-            "calorie_sensitivity_modifier", "satiety_response_modifier",
-            "fat_metabolism_modifier", "saturated_fat_sensitivity",
-            "cholesterol_response_modifier", "omega3_benefit_modifier",
-            "carb_sensitivity_modifier", "glycemic_load_threshold_modifier",
-            "lactose_tolerance", "calcium_alt_source_need",
-            "caffeine_metabolism_rate", "caffeine_max_daily_mg",
-            "vitamin_d_requirement_modifier", "calcium_absorption_modifier",
+            "folate_requirement_modifier",
+            "b12_requirement_modifier",
+            "calorie_sensitivity_modifier",
+            "satiety_response_modifier",
+            "fat_metabolism_modifier",
+            "saturated_fat_sensitivity",
+            "cholesterol_response_modifier",
+            "omega3_benefit_modifier",
+            "carb_sensitivity_modifier",
+            "glycemic_load_threshold_modifier",
+            "lactose_tolerance",
+            "calcium_alt_source_need",
+            "caffeine_metabolism_rate",
+            "caffeine_max_daily_mg",
+            "vitamin_d_requirement_modifier",
+            "calcium_absorption_modifier",
             "protein_utilization_modifier",
         ]
 
@@ -297,16 +318,17 @@ class TestGeneticModifierCompleteness:
             )
             # At least one modification should have been applied
             genetic_mods = [
-                m for m in budget.modifications
+                m
+                for m in budget.modifications
                 if m.get("step") == "genetic" and m.get("genetic_factor") == key
             ]
-            assert len(genetic_mods) >= 1, (
-                f"Genetic modifier '{key}' has no effect — dead code!"
-            )
+            assert len(genetic_mods) >= 1, f"Genetic modifier '{key}' has no effect — dead code!"
+
 
 # ═══════════════════════════════════════════════════════════════════
 #  G3+G8: Consent filtering + DP noise
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestConsentAndPrivacy:
     """Consent filtering blocks revoked data; DP adds noise."""
@@ -389,9 +411,11 @@ class TestConsentAndPrivacy:
         )
         assert "glucose" in r2.consent_filtered
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G4: Medical constraint API
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestMedicalConstraints:
     """Medical constraints are hard boundaries on nutrient targets."""
@@ -399,16 +423,19 @@ class TestMedicalConstraints:
     def test_ckd_protein_max(self):
         """CKD patient: protein max = 56g (0.8g/kg × 70kg)."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("ckd-user", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD stage 3 — protein restriction",
-                severity="critical",
-                source="medical_record",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "ckd-user",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD stage 3 — protein restriction",
+                    severity="critical",
+                    source="medical_record",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=2000, weight_kg=70)
         state = MetabolicState(timestamp=NOW)
@@ -427,15 +454,18 @@ class TestMedicalConstraints:
     def test_hypertension_sodium_max(self):
         """Hypertension: sodium max = 1500mg."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("ht-user", [
-            MedicalConstraint(
-                nutrient="sodium_mg",
-                constraint_type="max",
-                value=1500,
-                reason="Hypertension — sodium restriction",
-                severity="warning",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "ht-user",
+            [
+                MedicalConstraint(
+                    nutrient="sodium_mg",
+                    constraint_type="max",
+                    value=1500,
+                    reason="Hypertension — sodium restriction",
+                    severity="warning",
+                ),
+            ],
+        )
 
         targets = create_default_targets()
         state = MetabolicState(timestamp=NOW)
@@ -453,15 +483,18 @@ class TestMedicalConstraints:
     def test_min_constraint(self):
         """Minimum constraint raises target if too low."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("min-user", [
-            MedicalConstraint(
-                nutrient="kcal",
-                constraint_type="min",
-                value=1800,
-                reason="Underweight — minimum calorie floor",
-                severity="critical",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "min-user",
+            [
+                MedicalConstraint(
+                    nutrient="kcal",
+                    constraint_type="min",
+                    value=1800,
+                    reason="Underweight — minimum calorie floor",
+                    severity="critical",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=1500)  # below min
         state = MetabolicState(timestamp=NOW)
@@ -479,15 +512,18 @@ class TestMedicalConstraints:
     def test_constraint_in_pipeline(self):
         """Constraints work through the full pipeline."""
         pipeline = _make_pipeline()
-        pipeline._nutrient_calculator.set_medical_constraints("pipe-ckd", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD",
-                severity="critical",
-            ),
-        ])
+        pipeline._nutrient_calculator.set_medical_constraints(
+            "pipe-ckd",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD",
+                    severity="critical",
+                ),
+            ],
+        )
 
         result = pipeline.execute(
             user_id="pipe-ckd",
@@ -496,9 +532,11 @@ class TestMedicalConstraints:
 
         assert result.budget.targets["protein_g"].daily_target <= 56
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G9: Circadian prediction accuracy
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestCircadianPredictionAccuracy:
     """Verify the circadian model predicts physiologically correct
@@ -530,8 +568,7 @@ class TestCircadianPredictionAccuracy:
         )
 
         assert pred_7am > pred_19, (
-            f"7AM prediction ({pred_7am:.2f}) should exceed "
-            f"19:00 prediction ({pred_19:.2f})"
+            f"7AM prediction ({pred_7am:.2f}) should exceed 19:00 prediction ({pred_19:.2f})"
         )
 
     def test_heart_rate_afternoon_higher_than_night(self):
@@ -540,12 +577,16 @@ class TestCircadianPredictionAccuracy:
         baseline = 72.0
 
         pred_3pm = interp._circadian_predict(
-            "test", BiomarkerType.HEART_RATE,
-            datetime(2025, 1, 15, 15, 0, 0), baseline,
+            "test",
+            BiomarkerType.HEART_RATE,
+            datetime(2025, 1, 15, 15, 0, 0),
+            baseline,
         )
         pred_3am = interp._circadian_predict(
-            "test", BiomarkerType.HEART_RATE,
-            datetime(2025, 1, 15, 3, 0, 0), baseline,
+            "test",
+            BiomarkerType.HEART_RATE,
+            datetime(2025, 1, 15, 3, 0, 0),
+            baseline,
         )
 
         assert pred_3pm > pred_3am
@@ -556,12 +597,16 @@ class TestCircadianPredictionAccuracy:
         baseline = 45.0
 
         pred_3am = interp._circadian_predict(
-            "test", BiomarkerType.HRV,
-            datetime(2025, 1, 15, 3, 0, 0), baseline,
+            "test",
+            BiomarkerType.HRV,
+            datetime(2025, 1, 15, 3, 0, 0),
+            baseline,
         )
         pred_2pm = interp._circadian_predict(
-            "test", BiomarkerType.HRV,
-            datetime(2025, 1, 15, 14, 0, 0), baseline,
+            "test",
+            BiomarkerType.HRV,
+            datetime(2025, 1, 15, 14, 0, 0),
+            baseline,
         )
 
         assert pred_3am > pred_2pm
@@ -573,12 +618,12 @@ class TestCircadianPredictionAccuracy:
 
         for hour in range(24):
             pred = interp._circadian_predict(
-                "test", BiomarkerType.GLUCOSE,
-                datetime(2025, 1, 15, hour, 0, 0), baseline,
+                "test",
+                BiomarkerType.GLUCOSE,
+                datetime(2025, 1, 15, hour, 0, 0),
+                baseline,
             )
-            assert 70 <= pred <= 130, (
-                f"Hour {hour}: prediction {pred:.1f} out of range"
-            )
+            assert 70 <= pred <= 130, f"Hour {hour}: prediction {pred:.1f} out of range"
 
     def test_ultradian_oscillation_exists(self):
         """90-minute glucose cycles should be visible in predictions."""
@@ -590,17 +635,21 @@ class TestCircadianPredictionAccuracy:
         predictions = []
         for i in range(12):
             pred = interp._circadian_predict(
-                "test", BiomarkerType.GLUCOSE,
-                t0 + timedelta(minutes=15 * i), baseline,
+                "test",
+                BiomarkerType.GLUCOSE,
+                t0 + timedelta(minutes=15 * i),
+                baseline,
             )
             predictions.append(pred)
 
         # There should be variation (not flat line)
         assert max(predictions) > min(predictions), "No ultradian variation detected"
 
+
 # ═══════════════════════════════════════════════════════════════════
 #  G10: Reactive biomarker adjustment tests
 # ═══════════════════════════════════════════════════════════════════
+
 
 class TestReactiveBiomarkerAdjustments:
     """Verify reactive nutrient adjustments based on real-time
@@ -641,12 +690,8 @@ class TestReactiveBiomarkerAdjustments:
         # Carbs should be reduced
         assert budget.targets["carbs_g"].daily_target < original_carbs
         # Reduction should be significant (at least 5%)
-        reduction_pct = 1 - (
-            budget.targets["carbs_g"].daily_target / original_carbs
-        )
-        assert reduction_pct >= 0.05, (
-            f"Reduction only {reduction_pct*100:.1f}% — too small"
-        )
+        reduction_pct = 1 - (budget.targets["carbs_g"].daily_target / original_carbs)
+        assert reduction_pct >= 0.05, f"Reduction only {reduction_pct * 100:.1f}% — too small"
 
     def test_low_glucose_increases_carbs(self):
         """glucose z < -1.0 → carb_target increased."""
@@ -759,12 +804,8 @@ class TestReactiveBiomarkerAdjustments:
             genetic_modifiers={},
         )
 
-        reduction_pct = 1 - (
-            budget.targets["carbs_g"].daily_target / original_carbs
-        )
-        assert reduction_pct <= 0.26, (
-            f"Reduction {reduction_pct*100:.1f}% exceeds 25% cap"
-        )
+        reduction_pct = 1 - (budget.targets["carbs_g"].daily_target / original_carbs)
+        assert reduction_pct <= 0.26, f"Reduction {reduction_pct * 100:.1f}% exceeds 25% cap"
 
     def test_combined_biomarker_reactive_and_genetic(self):
         """Both genetic modifiers AND reactive adjustments should apply."""
@@ -829,9 +870,11 @@ class TestReactiveBiomarkerAdjustments:
             assert "nutrient" in mod
             assert "reason" in mod
 
+
 # ═══════════════════════════════════════════════════════════════════════
 # G11: Self-Calibration Feedback Loop Tests
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class TestSelfCalibrationFeedbackLoop:
     """Tests for the adaptive self-calibration engine.
@@ -850,11 +893,13 @@ class TestSelfCalibrationFeedbackLoop:
     @staticmethod
     def _make_calibrator():
         from app.engine.self_calibration import AdaptiveLagCalibrator
+
         return AdaptiveLagCalibrator()
 
     @staticmethod
     def _make_peak_detector():
         from app.engine.self_calibration import PeakDetector
+
         return PeakDetector()
 
     @staticmethod
@@ -862,7 +907,7 @@ class TestSelfCalibrationFeedbackLoop:
         event_time: datetime,
         actual_peak_offset_min: float = 50.0,
         n_points: int = 24,
-    ) -> List[BiomarkerReading]:
+    ) -> list[BiomarkerReading]:
         """Create glucose readings with a clear peak at the specified offset."""
         readings = []
         peak_time_min = actual_peak_offset_min
@@ -870,12 +915,8 @@ class TestSelfCalibrationFeedbackLoop:
             t = event_time + timedelta(minutes=i * 5)
             elapsed = i * 5
             # Gaussian-like peak at peak_time_min
-            value = 100 + 40 * math.exp(
-                -0.5 * ((elapsed - peak_time_min) / 15) ** 2
-            )
-            readings.append(
-                _make_reading(BiomarkerType.GLUCOSE, value, t)
-            )
+            value = 100 + 40 * math.exp(-0.5 * ((elapsed - peak_time_min) / 15) ** 2)
+            readings.append(_make_reading(BiomarkerType.GLUCOSE, value, t))
         return readings
 
     # ── Peak Detection Tests ────────────────────────────────────────
@@ -903,7 +944,8 @@ class TestSelfCalibrationFeedbackLoop:
         detector = self._make_peak_detector()
         readings = [
             _make_reading(
-                BiomarkerType.GLUCOSE, 100.0,
+                BiomarkerType.GLUCOSE,
+                100.0,
                 NOW + timedelta(minutes=i * 5),
             )
             for i in range(20)
@@ -1040,11 +1082,12 @@ class TestSelfCalibrationFeedbackLoop:
 
         # Manually set a profile with known corrections
         from app.engine.self_calibration import PersonalCalibrationProfile
+
         profile = PersonalCalibrationProfile(
             user_id="user-1",
             base_lag_offsets={"glucose": 300.0},  # +5 min
-            circadian_corrections={12: 0.05},     # +5% at noon
-            genetic_correction_factor=1.1,        # +10% genome
+            circadian_corrections={12: 0.05},  # +5% at noon
+            genetic_correction_factor=1.1,  # +10% genome
             observation_count=15,
         )
         cal.set_profile("user-1", profile)
@@ -1052,9 +1095,9 @@ class TestSelfCalibrationFeedbackLoop:
         calibrated, audit = cal.get_calibrated_lag(
             user_id="user-1",
             biomarker_type=BiomarkerType.GLUCOSE,
-            base_lag_seconds=3600,      # 60 min base
+            base_lag_seconds=3600,  # 60 min base
             genetic_modifier=1.0,
-            circadian_modifier=0.9,    # morning
+            circadian_modifier=0.9,  # morning
             event_time=datetime(2025, 1, 15, 12, 0),
         )
 
@@ -1073,9 +1116,7 @@ class TestSelfCalibrationFeedbackLoop:
         pipeline.set_calibrator(cal)
 
         event = NOW - timedelta(hours=1)
-        readings = self._make_glucose_peak_readings(
-            event, actual_peak_offset_min=50
-        )
+        readings = self._make_glucose_peak_readings(event, actual_peak_offset_min=50)
 
         result = pipeline.calibrate(
             user_id="test-user",
@@ -1135,7 +1176,10 @@ class TestSelfCalibrationFeedbackLoop:
         )
 
         lag = model.compute_lag(
-            BiomarkerType.GLUCOSE, chars, NOW, user_id="user-1",
+            BiomarkerType.GLUCOSE,
+            chars,
+            NOW,
+            user_id="user-1",
         )
 
         # Should have calibration applied
@@ -1153,7 +1197,8 @@ class TestSelfCalibrationFeedbackLoop:
         for i in range(5):
             event = NOW + timedelta(hours=i)
             readings = self._make_glucose_peak_readings(
-                event, actual_peak_offset_min=50 + i * 2,
+                event,
+                actual_peak_offset_min=50 + i * 2,
             )
             predicted_lag = 3600  # 60 min
             pairs.append((event, readings, predicted_lag))
@@ -1168,9 +1213,11 @@ class TestSelfCalibrationFeedbackLoop:
         profile = cal.get_profile("user-1")
         assert profile.observation_count == len(results)
 
+
 # ═══════════════════════════════════════════════════════════════════════
 # G12: Conflict Resolution Layer — Medical Safety vs Genetic Optimization
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class TestConflictResolutionLayer:
     """Tests for the hierarchical conflict resolution between genetic
@@ -1184,16 +1231,19 @@ class TestConflictResolutionLayer:
     def test_genetic_vs_medical_critical_conflict(self):
         """CKD critical constraint overrides genetic protein boost."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("conflict-user", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD stage 3 — protein restriction",
-                severity="critical",
-                source="medical_record",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "conflict-user",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD stage 3 — protein restriction",
+                    severity="critical",
+                    source="medical_record",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=2000, weight_kg=70)
         state = MetabolicState(timestamp=NOW)
@@ -1222,16 +1272,19 @@ class TestConflictResolutionLayer:
     def test_genetic_vs_medical_warning_conflict(self):
         """Hypertension warning constraint overrides metabolic adjustment."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("ht-conflict", [
-            MedicalConstraint(
-                nutrient="sodium_mg",
-                constraint_type="max",
-                value=1500,
-                reason="Hypertension — sodium restriction",
-                severity="warning",
-                source="medical_record",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "ht-conflict",
+            [
+                MedicalConstraint(
+                    nutrient="sodium_mg",
+                    constraint_type="max",
+                    value=1500,
+                    reason="Hypertension — sodium restriction",
+                    severity="warning",
+                    source="medical_record",
+                ),
+            ],
+        )
 
         targets = create_default_targets()
         state = MetabolicState(timestamp=NOW)
@@ -1250,15 +1303,18 @@ class TestConflictResolutionLayer:
     def test_conflict_resolution_audit_trail(self):
         """Conflict resolution produces complete audit trail."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("audit-user", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD stage 3",
-                severity="critical",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "audit-user",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD stage 3",
+                    severity="critical",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=2000, weight_kg=70)
         state = MetabolicState(timestamp=NOW)
@@ -1288,22 +1344,25 @@ class TestConflictResolutionLayer:
     def test_critical_constraint_beats_warning(self):
         """Critical constraints are processed before warnings (sorted by priority)."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("multi-constraint", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=60,
-                reason="Mild concern",
-                severity="warning",
-            ),
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD — strict limit",
-                severity="critical",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "multi-constraint",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=60,
+                    reason="Mild concern",
+                    severity="warning",
+                ),
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD — strict limit",
+                    severity="critical",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=2000, weight_kg=70)
         state = MetabolicState(timestamp=NOW)
@@ -1322,15 +1381,18 @@ class TestConflictResolutionLayer:
     def test_no_conflict_when_within_bounds(self):
         """No conflict resolution emitted when genetic value is within bounds."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("safe-user", [
-            MedicalConstraint(
-                nutrient="caffeine_mg",
-                constraint_type="max",
-                value=400,
-                reason="Standard caffeine limit",
-                severity="warning",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "safe-user",
+            [
+                MedicalConstraint(
+                    nutrient="caffeine_mg",
+                    constraint_type="max",
+                    value=400,
+                    reason="Standard caffeine limit",
+                    severity="warning",
+                ),
+            ],
+        )
 
         targets = create_default_targets()
         state = MetabolicState(timestamp=NOW)
@@ -1348,23 +1410,25 @@ class TestConflictResolutionLayer:
 
         # No conflict since 200 < 400
         caffeine_conflicts = [
-            cr for cr in budget.conflict_resolutions
-            if cr.nutrient == "caffeine_mg"
+            cr for cr in budget.conflict_resolutions if cr.nutrient == "caffeine_mg"
         ]
         assert len(caffeine_conflicts) == 0
 
     def test_min_constraint_conflict_resolution(self):
         """Min constraint overrides when target falls below medical minimum."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("underweight", [
-            MedicalConstraint(
-                nutrient="kcal",
-                constraint_type="min",
-                value=1800,
-                reason="Underweight — minimum calorie floor",
-                severity="critical",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "underweight",
+            [
+                MedicalConstraint(
+                    nutrient="kcal",
+                    constraint_type="min",
+                    value=1800,
+                    reason="Underweight — minimum calorie floor",
+                    severity="critical",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=1500)
         state = MetabolicState(timestamp=NOW)
@@ -1385,15 +1449,18 @@ class TestConflictResolutionLayer:
     def test_conflict_in_modifications_audit(self):
         """Conflict resolution also appears in standard modifications list."""
         calc = NutrientDemandCalculator()
-        calc.set_medical_constraints("mod-audit", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD",
-                severity="critical",
-            ),
-        ])
+        calc.set_medical_constraints(
+            "mod-audit",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD",
+                    severity="critical",
+                ),
+            ],
+        )
 
         targets = create_default_targets(kcal=2000, weight_kg=70)
         state = MetabolicState(timestamp=NOW)
@@ -1408,10 +1475,7 @@ class TestConflictResolutionLayer:
         )
 
         # Find conflict_resolution step in modifications
-        conflict_mods = [
-            m for m in budget.modifications
-            if m.get("step") == "conflict_resolution"
-        ]
+        conflict_mods = [m for m in budget.modifications if m.get("step") == "conflict_resolution"]
         assert len(conflict_mods) >= 1
         cm = conflict_mods[0]
         assert cm["winner"] == "medical_critical"
@@ -1430,12 +1494,18 @@ class TestConflictResolutionLayer:
     def test_medical_constraint_priority_property(self):
         """MedicalConstraint.priority returns correct level."""
         critical = MedicalConstraint(
-            nutrient="protein_g", constraint_type="max",
-            value=56, reason="CKD", severity="critical",
+            nutrient="protein_g",
+            constraint_type="max",
+            value=56,
+            reason="CKD",
+            severity="critical",
         )
         warning = MedicalConstraint(
-            nutrient="sodium_mg", constraint_type="max",
-            value=1500, reason="HT", severity="warning",
+            nutrient="sodium_mg",
+            constraint_type="max",
+            value=1500,
+            reason="HT",
+            severity="warning",
         )
 
         assert critical.priority > warning.priority
@@ -1443,15 +1513,18 @@ class TestConflictResolutionLayer:
     def test_pipeline_conflict_resolution_integration(self):
         """Conflict resolution works through the full pipeline."""
         pipeline = _make_pipeline()
-        pipeline._nutrient_calculator.set_medical_constraints("pipe-conflict", [
-            MedicalConstraint(
-                nutrient="protein_g",
-                constraint_type="max",
-                value=56,
-                reason="CKD",
-                severity="critical",
-            ),
-        ])
+        pipeline._nutrient_calculator.set_medical_constraints(
+            "pipe-conflict",
+            [
+                MedicalConstraint(
+                    nutrient="protein_g",
+                    constraint_type="max",
+                    value=56,
+                    reason="CKD",
+                    severity="critical",
+                ),
+            ],
+        )
 
         result = pipeline.execute(
             user_id="pipe-conflict",
@@ -1463,9 +1536,11 @@ class TestConflictResolutionLayer:
         # Conflict resolution should be documented
         assert len(result.budget.conflict_resolutions) >= 1
 
+
 # ═══════════════════════════════════════════════════════════════════════
 # Dynamic Epsilon Budget Management Tests
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class TestDynamicEpsilonBudget:
     """Tests for dynamic privacy budget allocation based on data sensitivity.
@@ -1508,9 +1583,19 @@ class TestDynamicEpsilonBudget:
     def test_all_nutrients_mapped(self):
         """Every nutrient in the standard target set must have a tier."""
         expected_nutrients = [
-            "kcal", "carbs_g", "protein_g", "fat_g", "fiber_g",
-            "water_ml", "folate_mcg", "b12_mcg", "vitamin_d_iu",
-            "magnesium_mg", "caffeine_mg", "calcium_mg", "sodium_mg",
+            "kcal",
+            "carbs_g",
+            "protein_g",
+            "fat_g",
+            "fiber_g",
+            "water_ml",
+            "folate_mcg",
+            "b12_mcg",
+            "vitamin_d_iu",
+            "magnesium_mg",
+            "caffeine_mg",
+            "calcium_mg",
+            "sodium_mg",
             "vitamin_b6_mg",
         ]
         for n in expected_nutrients:
@@ -1525,19 +1610,17 @@ class TestDynamicEpsilonBudget:
         eps_folate = allocator.get_epsilon_for_nutrient("folate_mcg")
         eps_fiber = allocator.get_epsilon_for_nutrient("fiber_g")
 
-        assert eps_folate < eps_fiber, (
-            f"folate ε={eps_folate} should be < fiber ε={eps_fiber}"
-        )
+        assert eps_folate < eps_fiber, f"folate ε={eps_folate} should be < fiber ε={eps_fiber}"
 
     def test_dynamic_epsilon_critical_vs_low(self):
         """CRITICAL tier nutrient ε must be ≤ 1/4 of LOW tier ε."""
         allocator = DynamicEpsilonAllocator()
 
         eps_critical = allocator.get_epsilon_for_nutrient("b12_mcg")  # CRITICAL
-        eps_low = allocator.get_epsilon_for_nutrient("protein_g")     # LOW
+        eps_low = allocator.get_epsilon_for_nutrient("protein_g")  # LOW
 
         assert eps_critical <= eps_low / 4, (
-            f"CRITICAL ε={eps_critical} should be ≤ LOW ε/4={eps_low/4}"
+            f"CRITICAL ε={eps_critical} should be ≤ LOW ε/4={eps_low / 4}"
         )
 
     def test_unknown_nutrient_defaults_to_medium(self):
@@ -1661,6 +1744,7 @@ class TestDynamicEpsilonBudget:
         )
 
         import random
+
         random.seed(42)
 
         result = pipeline.execute(user_id="dp-test-1", readings={})
@@ -1676,10 +1760,11 @@ class TestDynamicEpsilonBudget:
         """Genetic-derived nutrients should have MORE noise (larger scale)
         than activity-derived nutrients, because ε is smaller → scale = S/ε is larger.
         """
-        from app.engine.metabolic_state import MetabolicStateEstimator
-
         # Run many times and measure variance
         import random
+
+        from app.engine.metabolic_state import MetabolicStateEstimator
+
         random.seed(99)
 
         N = 200
@@ -1706,19 +1791,23 @@ class TestDynamicEpsilonBudget:
 
         if len(folate_values) >= 10 and len(fiber_values) >= 10:
             # Folate (CRITICAL) should have higher variance than fiber (LOW)
-            folate_var = sum((v - sum(folate_values)/len(folate_values))**2 for v in folate_values) / len(folate_values)
-            fiber_var = sum((v - sum(fiber_values)/len(fiber_values))**2 for v in fiber_values) / len(fiber_values)
+            folate_var = sum(
+                (v - sum(folate_values) / len(folate_values)) ** 2 for v in folate_values
+            ) / len(folate_values)
+            fiber_var = sum(
+                (v - sum(fiber_values) / len(fiber_values)) ** 2 for v in fiber_values
+            ) / len(fiber_values)
 
             # Relative variance (normalized by mean²) should be higher for folate
             folate_mean = sum(folate_values) / len(folate_values)
             fiber_mean = sum(fiber_values) / len(fiber_values)
 
             if folate_mean > 0 and fiber_mean > 0:
-                folate_cv = (folate_var ** 0.5) / folate_mean
-                fiber_cv = (fiber_var ** 0.5) / fiber_mean
+                folate_cv = (folate_var**0.5) / folate_mean
+                fiber_cv = (fiber_var**0.5) / fiber_mean
                 # CRITICAL tier's smaller ε produces larger noise
                 assert folate_cv > fiber_cv * 0.5, (
-                    f"Folate CV={folate_cv:.4f} should be > fiber CV×0.5={fiber_cv*0.5:.4f}"
+                    f"Folate CV={folate_cv:.4f} should be > fiber CV×0.5={fiber_cv * 0.5:.4f}"
                 )
 
     def test_pipeline_exposure_report_accessible(self):
@@ -1737,6 +1826,7 @@ class TestDynamicEpsilonBudget:
         )
 
         import random
+
         random.seed(123)
 
         pipeline.execute(user_id="report-test", readings={})
@@ -1748,4 +1838,3 @@ class TestDynamicEpsilonBudget:
         assert report.exposure_index > 0
         assert report.risk_level in ("low", "moderate", "high", "critical")
         assert sum(report.per_tier_query_count.values()) > 0
-

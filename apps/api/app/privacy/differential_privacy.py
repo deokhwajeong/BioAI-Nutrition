@@ -23,18 +23,17 @@ insights without exposing individual health signals.
 
 from __future__ import annotations
 
-import hashlib
 import math
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
 
 # ── Sensitivity Tiers ───────────────────────────────────────────────
 # Data types are classified by privacy sensitivity. More sensitive data
 # receives a SMALLER ε (more noise), consuming less total budget per
 # query but providing stronger privacy guarantees.
+
 
 class SensitivityTier(Enum):
     """Privacy sensitivity classification for biomarker data types.
@@ -44,22 +43,24 @@ class SensitivityTier(Enum):
     determine per-query epsilon allocation, with genetically derived
     data receiving the strongest privacy protection."
     """
-    CRITICAL = "critical"      # Genetic data, rare conditions
-    HIGH = "high"              # Glucose, blood tests, medications
-    MEDIUM = "medium"          # Heart rate, HRV, sleep
-    LOW = "low"                # Steps, exercise, activity calories
+
+    CRITICAL = "critical"  # Genetic data, rare conditions
+    HIGH = "high"  # Glucose, blood tests, medications
+    MEDIUM = "medium"  # Heart rate, HRV, sleep
+    LOW = "low"  # Steps, exercise, activity calories
+
 
 # Per-tier ε allocation: more sensitive → smaller ε → more noise
-TIER_EPSILON_MAP: Dict[SensitivityTier, float] = {
-    SensitivityTier.CRITICAL: 0.1,    # Strongest protection
+TIER_EPSILON_MAP: dict[SensitivityTier, float] = {
+    SensitivityTier.CRITICAL: 0.1,  # Strongest protection
     SensitivityTier.HIGH: 0.3,
     SensitivityTier.MEDIUM: 0.5,
-    SensitivityTier.LOW: 0.8,         # Least protection needed
+    SensitivityTier.LOW: 0.8,  # Least protection needed
 }
 
 # Map nutrient targets to their source biomarker sensitivity tier
 # Nutrients derived from high-sensitivity biomarkers inherit that tier
-NUTRIENT_SENSITIVITY_TIERS: Dict[str, SensitivityTier] = {
+NUTRIENT_SENSITIVITY_TIERS: dict[str, SensitivityTier] = {
     # Genetics-derived adjustments → CRITICAL
     "folate_mcg": SensitivityTier.CRITICAL,
     "b12_mcg": SensitivityTier.CRITICAL,
@@ -80,14 +81,17 @@ NUTRIENT_SENSITIVITY_TIERS: Dict[str, SensitivityTier] = {
     "calcium_mg": SensitivityTier.LOW,
 }
 
+
 @dataclass
 class QueryRecord:
     """Records a single privacy-consuming query."""
+
     timestamp: datetime
     nutrient: str
     tier: SensitivityTier
     epsilon_consumed: float
     noise_scale: float
+
 
 @dataclass
 class PrivacyExposureReport:
@@ -98,15 +102,17 @@ class PrivacyExposureReport:
     index, and triggers protective actions when exposure thresholds
     are approached."
     """
+
     user_id: str
     total_epsilon_spent: float
     total_epsilon_budget: float
-    per_tier_spent: Dict[str, float]
-    per_tier_query_count: Dict[str, int]
-    exposure_index: float        # 0.0 (fresh) to 1.0 (exhausted)
-    risk_level: str              # "low", "moderate", "high", "critical"
+    per_tier_spent: dict[str, float]
+    per_tier_query_count: dict[str, int]
+    exposure_index: float  # 0.0 (fresh) to 1.0 (exhausted)
+    risk_level: str  # "low", "moderate", "high", "critical"
     queries_until_exhaustion: int  # Estimated remaining queries
     period_hours_remaining: float
+
 
 class DynamicEpsilonAllocator:
     """Allocates per-query epsilon based on data sensitivity tier.
@@ -127,8 +133,8 @@ class DynamicEpsilonAllocator:
 
     def __init__(
         self,
-        tier_epsilon_map: Optional[Dict[SensitivityTier, float]] = None,
-        nutrient_tier_map: Optional[Dict[str, SensitivityTier]] = None,
+        tier_epsilon_map: dict[SensitivityTier, float] | None = None,
+        nutrient_tier_map: dict[str, SensitivityTier] | None = None,
         budget_warning_threshold: float = 0.7,
         budget_critical_threshold: float = 0.9,
     ):
@@ -136,7 +142,7 @@ class DynamicEpsilonAllocator:
         self._nutrient_tiers = nutrient_tier_map or dict(NUTRIENT_SENSITIVITY_TIERS)
         self._warning_threshold = budget_warning_threshold
         self._critical_threshold = budget_critical_threshold
-        self._query_history: Dict[str, List[QueryRecord]] = {}
+        self._query_history: dict[str, list[QueryRecord]] = {}
 
     def get_epsilon_for_nutrient(self, nutrient: str) -> float:
         """Get the dynamically allocated epsilon for a nutrient target.
@@ -153,7 +159,7 @@ class DynamicEpsilonAllocator:
     def get_adaptive_epsilon(
         self,
         nutrient: str,
-        budget: "PrivacyBudget",
+        budget: PrivacyBudget,
     ) -> float:
         """Get epsilon that adapts based on remaining budget.
 
@@ -181,26 +187,30 @@ class DynamicEpsilonAllocator:
         """Record a privacy-consuming query for exposure tracking."""
         if user_id not in self._query_history:
             self._query_history[user_id] = []
-        self._query_history[user_id].append(QueryRecord(
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
-            nutrient=nutrient,
-            tier=self.get_tier_for_nutrient(nutrient),
-            epsilon_consumed=epsilon_consumed,
-            noise_scale=noise_scale,
-        ))
+        self._query_history[user_id].append(
+            QueryRecord(
+                timestamp=datetime.now(UTC).replace(tzinfo=None),
+                nutrient=nutrient,
+                tier=self.get_tier_for_nutrient(nutrient),
+                epsilon_consumed=epsilon_consumed,
+                noise_scale=noise_scale,
+            )
+        )
 
-    def get_exposure_report(self, user_id: str, budget: "PrivacyBudget") -> PrivacyExposureReport:
+    def get_exposure_report(self, user_id: str, budget: PrivacyBudget) -> PrivacyExposureReport:
         """Generate a comprehensive privacy exposure report."""
         history = self._query_history.get(user_id, [])
 
-        per_tier_spent: Dict[str, float] = {t.value: 0.0 for t in SensitivityTier}
-        per_tier_count: Dict[str, int] = {t.value: 0 for t in SensitivityTier}
+        per_tier_spent: dict[str, float] = {t.value: 0.0 for t in SensitivityTier}
+        per_tier_count: dict[str, int] = {t.value: 0 for t in SensitivityTier}
 
         for record in history:
             per_tier_spent[record.tier.value] += record.epsilon_consumed
             per_tier_count[record.tier.value] += 1
 
-        exposure_index = budget.epsilon_spent / budget.epsilon_total if budget.epsilon_total > 0 else 1.0
+        exposure_index = (
+            budget.epsilon_spent / budget.epsilon_total if budget.epsilon_total > 0 else 1.0
+        )
 
         if exposure_index >= self._critical_threshold:
             risk_level = "critical"
@@ -215,11 +225,15 @@ class DynamicEpsilonAllocator:
         total_queries = len(history)
         if total_queries > 0:
             avg_eps_per_query = budget.epsilon_spent / total_queries
-            queries_remaining = int(budget.epsilon_remaining / avg_eps_per_query) if avg_eps_per_query > 0 else 0
+            queries_remaining = (
+                int(budget.epsilon_remaining / avg_eps_per_query) if avg_eps_per_query > 0 else 0
+            )
         else:
             queries_remaining = int(budget.epsilon_remaining / 0.3)  # Default estimate
 
-        hours_since_reset = (datetime.now(timezone.utc).replace(tzinfo=None) - budget.last_reset).total_seconds() / 3600
+        hours_since_reset = (
+            datetime.now(UTC).replace(tzinfo=None) - budget.last_reset
+        ).total_seconds() / 3600
         hours_remaining = max(0, budget.reset_period_hours - hours_since_reset)
 
         return PrivacyExposureReport(
@@ -237,6 +251,7 @@ class DynamicEpsilonAllocator:
     def reset_history(self, user_id: str) -> None:
         """Clear query history for a user (on budget reset)."""
         self._query_history.pop(user_id, None)
+
 
 @dataclass
 class PrivacyBudget:
@@ -257,7 +272,7 @@ class PrivacyBudget:
     epsilon_spent: float = 0.0
     delta: float = 1e-5
     reset_period_hours: int = 24
-    last_reset: datetime = field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    last_reset: datetime = field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
 
     @property
     def epsilon_remaining(self) -> float:
@@ -274,15 +289,16 @@ class PrivacyBudget:
         self.epsilon_spent += epsilon
         return True
 
-    def maybe_reset(self, now: Optional[datetime] = None) -> bool:
+    def maybe_reset(self, now: datetime | None = None) -> bool:
         """Reset budget if the period has elapsed."""
-        now = now or datetime.now(timezone.utc).replace(tzinfo=None)
+        now = now or datetime.now(UTC).replace(tzinfo=None)
         hours_elapsed = (now - self.last_reset).total_seconds() / 3600
         if hours_elapsed >= self.reset_period_hours:
             self.epsilon_spent = 0.0
             self.last_reset = now
             return True
         return False
+
 
 class DifferentialPrivacyEngine:
     """Applies differential privacy to biomarker data and aggregations.
@@ -298,17 +314,13 @@ class DifferentialPrivacyEngine:
     """
 
     def __init__(self, default_epsilon: float = 1.0):
-        self._budgets: Dict[str, PrivacyBudget] = {}
+        self._budgets: dict[str, PrivacyBudget] = {}
         self._default_epsilon = default_epsilon
 
-    def get_or_create_budget(
-        self, user_id: str, epsilon_total: float = 1.0
-    ) -> PrivacyBudget:
+    def get_or_create_budget(self, user_id: str, epsilon_total: float = 1.0) -> PrivacyBudget:
         """Get or create a privacy budget for a user."""
         if user_id not in self._budgets:
-            self._budgets[user_id] = PrivacyBudget(
-                epsilon_total=epsilon_total
-            )
+            self._budgets[user_id] = PrivacyBudget(epsilon_total=epsilon_total)
         budget = self._budgets[user_id]
         budget.maybe_reset()
         return budget
@@ -318,8 +330,8 @@ class DifferentialPrivacyEngine:
         user_id: str,
         value: float,
         sensitivity: float,
-        epsilon: Optional[float] = None,
-    ) -> Optional[float]:
+        epsilon: float | None = None,
+    ) -> float | None:
         """Add Laplace noise to a numeric value.
 
         The Laplace mechanism adds noise drawn from Lap(sensitivity/ε).
@@ -349,9 +361,9 @@ class DifferentialPrivacyEngine:
         user_id: str,
         value: float,
         sensitivity: float,
-        epsilon: Optional[float] = None,
+        epsilon: float | None = None,
         delta: float = 1e-5,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Add Gaussian noise for (ε, δ)-differential privacy.
 
         More efficient than Laplace for high-dimensional queries.
@@ -378,11 +390,11 @@ class DifferentialPrivacyEngine:
 
     def privatize_aggregation(
         self,
-        user_ids: List[str],
-        values: Dict[str, float],
-        sensitivities: Dict[str, float],
+        user_ids: list[str],
+        values: dict[str, float],
+        sensitivities: dict[str, float],
         epsilon_per_query: float = 0.1,
-    ) -> Dict[str, Optional[float]]:
+    ) -> dict[str, float | None]:
         """Apply differential privacy to a multi-user aggregation.
 
         Used for household-level statistics where individual values
@@ -397,7 +409,7 @@ class DifferentialPrivacyEngine:
         Returns:
             Privatized aggregation with noise.
         """
-        result: Dict[str, Optional[float]] = {}
+        result: dict[str, float | None] = {}
 
         for metric, value in values.items():
             sensitivity = sensitivities.get(metric, 1.0)
@@ -433,9 +445,7 @@ class DifferentialPrivacyEngine:
         return -scale * math.copysign(1, u) * math.log(1 - 2 * abs(u))
 
     @staticmethod
-    def compute_sensitivity_nutrient_mean(
-        n_users: int, value_range: float
-    ) -> float:
+    def compute_sensitivity_nutrient_mean(n_users: int, value_range: float) -> float:
         """Compute sensitivity for mean nutrient calculation.
 
         Sensitivity of mean = range / n_users.
@@ -443,5 +453,3 @@ class DifferentialPrivacyEngine:
         if n_users == 0:
             return value_range
         return value_range / n_users
-
-

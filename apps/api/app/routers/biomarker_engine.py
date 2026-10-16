@@ -14,36 +14,34 @@ This router ties together all engine components into a usable API.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
 
+from ..biomarkers.activity_adapter import ActivityAdapter
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 from ..biomarkers.cgm_adapter import CGMAdapter
-from ..biomarkers.activity_adapter import ActivityAdapter
-from ..biomarkers.sleep_adapter import SleepAdapter
 from ..biomarkers.genetic_adapter import GeneticAdapter
 from ..biomarkers.location_adapter import LocationAdapter
-from ..engine.temporal_sync import TemporalSynchronizer, Resolution
-from ..engine.normalization import PhysiologicalNormalizer, GeneticBaselineCalculator
+from ..biomarkers.sleep_adapter import SleepAdapter
 from ..engine.interpolation import CircadianInterpolator
 from ..engine.metabolic_state import MetabolicStateEstimator
+from ..engine.normalization import GeneticBaselineCalculator, PhysiologicalNormalizer
 from ..engine.nutrient_calculator import (
-    NutrientDemandCalculator,
     MedicalConstraint,
-    create_default_targets,
+    NutrientDemandCalculator,
 )
-from ..engine.pipeline import NutritionPipeline, PipelineResult, BIOMARKER_CONSENT_MAP
-from ..privacy.consent_manager import DynamicConsentManager, ConsentScope
+from ..engine.pipeline import BIOMARKER_CONSENT_MAP, NutritionPipeline
+from ..engine.temporal_sync import Resolution, TemporalSynchronizer
+from ..privacy.consent_manager import ConsentScope, DynamicConsentManager
 from ..privacy.differential_privacy import DifferentialPrivacyEngine
-from ..privacy.graph_embedding import HealthGraphEmbedding
 from ..privacy.edge_processor import EdgeProcessor
+from ..privacy.graph_embedding import HealthGraphEmbedding
 from ..schemas.biomarker_schemas import (
     AlignedSignalOut,
     BiomarkerBatchIn,
     BiomarkerIngestionResult,
-    BiomarkerReadingIn,
     ConflictResolutionOut,
     ConsentRequest,
     ConsentStatusOut,
@@ -58,9 +56,9 @@ from ..schemas.biomarker_schemas import (
     NutrientBudgetResponse,
     NutrientTargetOut,
     PipelineStatusOut,
+    SynchronizedFrameOut,
     SyncRequest,
     SyncResponse,
-    SynchronizedFrameOut,
     TimeBucketOut,
 )
 
@@ -132,6 +130,7 @@ import logging as _logging
 
 _seed_logger = _logging.getLogger("biomarker_engine.seed")
 
+
 def _run_seed() -> None:
     """Seed default data synchronously at import time."""
     from ..seed_data import seed_default_data
@@ -149,16 +148,18 @@ def _run_seed() -> None:
         _seed_logger.info("Default sample data seeded: %s", counts)
 
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         # Inside running loop (e.g. uvicorn startup) — create task
         asyncio.ensure_future(_do_seed())
     except RuntimeError:
         # No running loop — run synchronously
         asyncio.run(_do_seed())
 
+
 _run_seed()
 
 # ── Helper ──────────────────────────────────────────────────────────
+
 
 def _parse_biomarker_type(raw: str) -> BiomarkerType:
     """Parse a string into a BiomarkerType enum."""
@@ -167,11 +168,12 @@ def _parse_biomarker_type(raw: str) -> BiomarkerType:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown biomarker type: {raw}. "
-            f"Valid: {[b.value for b in BiomarkerType]}",
+            detail=f"Unknown biomarker type: {raw}. Valid: {[b.value for b in BiomarkerType]}",
         )
 
+
 # ── Endpoints ───────────────────────────────────────────────────────
+
 
 @router.post(
     "/ingest",
@@ -187,7 +189,7 @@ async def ingest_biomarkers(
 ) -> BiomarkerIngestionResult:
     accepted = 0
     rejected = 0
-    details: List[Dict[str, Any]] = []
+    details: list[dict[str, Any]] = []
 
     for r in batch.readings:
         bt = _parse_biomarker_type(r.biomarker_type)
@@ -195,11 +197,13 @@ async def ingest_biomarkers(
 
         if adapter is None:
             rejected += 1
-            details.append({
-                "index": accepted + rejected - 1,
-                "status": "rejected",
-                "reason": f"No adapter for {r.biomarker_type}",
-            })
+            details.append(
+                {
+                    "index": accepted + rejected - 1,
+                    "status": "rejected",
+                    "reason": f"No adapter for {r.biomarker_type}",
+                }
+            )
             continue
 
         reading = BiomarkerReading(
@@ -236,15 +240,16 @@ async def ingest_biomarkers(
                 )
         else:
             rejected += 1
-            details.append({
-                "index": accepted + rejected - 1,
-                "status": "rejected",
-                "reason": "Adapter validation failed",
-            })
+            details.append(
+                {
+                    "index": accepted + rejected - 1,
+                    "status": "rejected",
+                    "reason": "Adapter validation failed",
+                }
+            )
 
-    return BiomarkerIngestionResult(
-        accepted=accepted, rejected=rejected, details=details
-    )
+    return BiomarkerIngestionResult(accepted=accepted, rejected=rejected, details=details)
+
 
 @router.post(
     "/sync",
@@ -264,7 +269,7 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
     resolution = resolution_map.get(req.resolution, Resolution.MEDIUM)
 
     # Gather readings from all adapters (consent-filtered)
-    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    all_readings: dict[BiomarkerType, list[BiomarkerReading]] = {}
 
     # Build set of allowed biomarker types based on consent
     allowed_types: set = set()
@@ -276,9 +281,7 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
         allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
-                readings = await adapter.fetch_readings(
-                    req.user_id, bt, req.start, req.end
-                )
+                readings = await adapter.fetch_readings(req.user_id, bt, req.start, req.end)
                 if readings:
                     all_readings[bt] = readings
             except Exception:
@@ -286,7 +289,10 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
 
     # Synchronize
     frames = _synchronizer.synchronize(
-        all_readings, req.start, req.end, resolution,
+        all_readings,
+        req.start,
+        req.end,
+        resolution,
         user_id=req.user_id,
     )
 
@@ -334,6 +340,7 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
         total_frames=len(frame_outputs),
     )
 
+
 @router.post(
     "/nutrient-budget",
     response_model=NutrientBudgetResponse,
@@ -347,17 +354,15 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
 async def calculate_nutrient_budget(
     req: NutrientBudgetRequest,
 ) -> NutrientBudgetResponse:
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = datetime.now(UTC).replace(tzinfo=None)
     window_start = now - timedelta(hours=2)
 
     # Gather readings from all adapters
-    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    all_readings: dict[BiomarkerType, list[BiomarkerReading]] = {}
     for bt, adapter in _ADAPTER_MAP.items():
         if bt in adapter.supported_biomarkers:
             try:
-                readings = await adapter.fetch_readings(
-                    req.user_id, bt, window_start, now
-                )
+                readings = await adapter.fetch_readings(req.user_id, bt, window_start, now)
                 if readings:
                     all_readings[bt] = readings
             except Exception:
@@ -380,9 +385,7 @@ async def calculate_nutrient_budget(
     # Execute the 5-stage pipeline (correct ordering enforced)
     # model_training consent controls whether self-calibration feedback
     # loop is enabled (pipeline learns from user data to improve predictions)
-    allow_calibration = _consent_manager.check_consent(
-        req.user_id, ConsentScope.MODEL_TRAINING
-    )
+    allow_calibration = _consent_manager.check_consent(req.user_id, ConsentScope.MODEL_TRAINING)
     pipeline_result = _pipeline.execute(
         user_id=req.user_id,
         readings=all_readings,
@@ -449,13 +452,8 @@ async def calculate_nutrient_budget(
         user_id=budget.user_id,
         targets=targets_out,
         time_buckets=buckets_out,
-        metabolic_state=(
-            metabolic_state.to_context_string() if metabolic_state else "unknown"
-        ),
-        active_phases=(
-            [p.value for p in metabolic_state.active_phases]
-            if metabolic_state else []
-        ),
+        metabolic_state=(metabolic_state.to_context_string() if metabolic_state else "unknown"),
+        active_phases=([p.value for p in metabolic_state.active_phases] if metabolic_state else []),
         modifications=mods_out,
         conflict_resolutions=[
             ConflictResolutionOut(
@@ -477,6 +475,7 @@ async def calculate_nutrient_budget(
         confidence=budget.confidence,
     )
 
+
 @router.post(
     "/metabolic-state",
     response_model=MetabolicStateOut,
@@ -484,10 +483,10 @@ async def calculate_nutrient_budget(
 )
 async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
     """Infer the user's current metabolic state from recent biomarker data."""
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = datetime.now(UTC).replace(tzinfo=None)
     # Ensure 'now' matches frame timestamp awareness
     now_aware = now
-    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    all_readings: dict[BiomarkerType, list[BiomarkerReading]] = {}
     allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
         # ── Consent gate ──
@@ -497,16 +496,17 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
         allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
-                readings = await adapter.fetch_readings(
-                    req.user_id, bt, req.start, req.end
-                )
+                readings = await adapter.fetch_readings(req.user_id, bt, req.start, req.end)
                 if readings:
                     all_readings[bt] = readings
             except Exception:
                 pass
 
     frames = _synchronizer.synchronize(
-        all_readings, req.start, req.end, Resolution.MEDIUM,
+        all_readings,
+        req.start,
+        req.end,
+        Resolution.MEDIUM,
         user_id=req.user_id,
     )
 
@@ -516,6 +516,7 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
 
     if not frames or not any(f.signals for f in frames):
         from ..engine.metabolic_state import MetabolicState
+
         state = MetabolicState(timestamp=now)
     else:
         state = _metabolic_estimator.estimate(req.user_id, frames[-1], now_aware)
@@ -524,19 +525,16 @@ async def get_metabolic_state(req: SyncRequest) -> MetabolicStateOut:
         timestamp=state.timestamp,
         active_phases=[p.value for p in state.active_phases],
         primary_phase=state.primary_phase.value,
-        phase_intensities={
-            p.value: round(v, 3) for p, v in state.phase_intensities.items()
-        },
+        phase_intensities={p.value: round(v, 3) for p, v in state.phase_intensities.items()},
         hours_since_last_meal=round(state.hours_since_last_meal, 2),
         hours_since_last_exercise=round(state.hours_since_last_exercise, 2),
-        insulin_sensitivity_estimate=round(
-            state.insulin_sensitivity_estimate, 3
-        ),
+        insulin_sensitivity_estimate=round(state.insulin_sensitivity_estimate, 3),
         nutrient_priority_shifts={
             k: round(v, 3) for k, v in state.nutrient_priority_shifts.items()
         },
         decision_log=state.decision_log,
     )
+
 
 @router.post(
     "/genetic-profile",
@@ -551,7 +549,7 @@ async def set_genetic_profile(
         source_id="genetic_profile",
         user_id=profile.user_id,
         biomarker_type=BiomarkerType.GENOTYPE,
-        timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+        timestamp=datetime.now(UTC).replace(tzinfo=None),
         value=len(profile.genotypes),
         unit="variants",
         metadata={"genotypes": profile.genotypes},
@@ -581,6 +579,7 @@ async def set_genetic_profile(
         genetic_baseline=baseline.to_dict() if baseline else None,
     )
 
+
 @router.post(
     "/consent",
     response_model=ConsentStatusOut,
@@ -593,19 +592,16 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown scope: {req.scope}. "
-            f"Valid: {[s.value for s in ConsentScope]}",
+            detail=f"Unknown scope: {req.scope}. Valid: {[s.value for s in ConsentScope]}",
         )
 
     if req.action == "grant":
         expires_at = None
         if req.expires_in_hours:
-            expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+            expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(
                 hours=req.expires_in_hours
             )
-        _consent_manager.grant_consent(
-            req.user_id, scope, req.reason, expires_at
-        )
+        _consent_manager.grant_consent(req.user_id, scope, req.reason, expires_at)
     elif req.action == "revoke":
         _consent_manager.revoke_consent(req.user_id, scope, req.reason)
     else:
@@ -618,7 +614,9 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
     # Build policy gate status
     policy_gates = {
         "third_party_sharing": {
-            "granted": _consent_manager.check_consent(req.user_id, ConsentScope.THIRD_PARTY_SHARING),
+            "granted": _consent_manager.check_consent(
+                req.user_id, ConsentScope.THIRD_PARTY_SHARING
+            ),
             "controls": "Edge processing — transmitting embeddings off-device",
         },
         "research_use": {
@@ -641,6 +639,7 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
         allowed_biomarkers=sorted(state.get_allowed_biomarkers()),
         policy_gates=policy_gates,
     )
+
 
 @router.get(
     "/consent/{user_id}",
@@ -676,6 +675,7 @@ async def get_consent_status(user_id: str) -> ConsentStatusOut:
         policy_gates=policy_gates,
     )
 
+
 @router.get(
     "/status",
     response_model=PipelineStatusOut,
@@ -684,12 +684,8 @@ async def get_consent_status(user_id: str) -> ConsentStatusOut:
 async def get_pipeline_status() -> PipelineStatusOut:
     """Get status of the biomarker processing pipeline."""
     return PipelineStatusOut(
-        registered_sources=list(
-            set(a.source_id for a in _ADAPTER_MAP.values())
-        ),
-        registered_biomarker_types=[
-            bt.value for bt in _synchronizer._characteristics.keys()
-        ],
+        registered_sources=list(set(a.source_id for a in _ADAPTER_MAP.values())),
+        registered_biomarker_types=[bt.value for bt in _synchronizer._characteristics.keys()],
         users_with_data=len(
             set().union(
                 *[
@@ -703,7 +699,9 @@ async def get_pipeline_status() -> PipelineStatusOut:
         privacy_engine_active=True,
     )
 
+
 # ── Edge-Processing / On-Device Privacy Endpoints ──────────────────
+
 
 @router.post(
     "/lag-comparison",
@@ -715,7 +713,7 @@ async def get_pipeline_status() -> PipelineStatusOut:
         "Returns Pearson correlation metrics before and after correction."
     ),
 )
-async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
+async def lag_comparison(req: SyncRequest) -> dict[str, Any]:
     """Compute Before vs After t_sync correction metrics.
 
     Requires `research_use` consent since lag analysis generates
@@ -736,7 +734,7 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
     resolution = Resolution.MEDIUM
 
     # Gather readings (consent-filtered)
-    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    all_readings: dict[BiomarkerType, list[BiomarkerReading]] = {}
     allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
         # ── Consent gate ──
@@ -746,9 +744,7 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
         allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
-                readings = await adapter.fetch_readings(
-                    req.user_id, bt, req.start, req.end
-                )
+                readings = await adapter.fetch_readings(req.user_id, bt, req.start, req.end)
                 if readings:
                     all_readings[bt] = readings
             except Exception:
@@ -756,7 +752,10 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
 
     # --- WITH lag correction (normal pipeline) ---
     frames_corrected = _synchronizer.synchronize(
-        all_readings, req.start, req.end, resolution,
+        all_readings,
+        req.start,
+        req.end,
+        resolution,
         user_id=req.user_id,
     )
     # Post-filter: remove non-consented signals
@@ -768,7 +767,10 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
     original_modifiers = dict(_synchronizer.lag_model._genetic_modifiers)
     _synchronizer.lag_model._genetic_modifiers = {}
     frames_uncorrected = _synchronizer.synchronize(
-        all_readings, req.start, req.end, resolution,
+        all_readings,
+        req.start,
+        req.end,
+        resolution,
         user_id=None,  # No user → no genetic/personal lag
     )
     _synchronizer.lag_model._genetic_modifiers = original_modifiers
@@ -809,15 +811,17 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
     for f in frames_corrected:
         for lc in f.lag_computations:
             if lc.base_lag_seconds > 0:
-                lag_audits.append({
-                    "biomarker": lc.biomarker_type,
-                    "base_lag_s": lc.base_lag_seconds,
-                    "genetic_modifier": round(lc.genetic_modifier, 3),
-                    "circadian_modifier": round(lc.circadian_modifier, 3),
-                    "effective_lag_s": round(lc.effective_lag_seconds, 1),
-                    "hour": lc.hour_of_day,
-                    "factors": lc.genetic_factors_used,
-                })
+                lag_audits.append(
+                    {
+                        "biomarker": lc.biomarker_type,
+                        "base_lag_s": lc.base_lag_seconds,
+                        "genetic_modifier": round(lc.genetic_modifier, 3),
+                        "circadian_modifier": round(lc.circadian_modifier, 3),
+                        "effective_lag_s": round(lc.effective_lag_seconds, 1),
+                        "hour": lc.hour_of_day,
+                        "factors": lc.genetic_factors_used,
+                    }
+                )
                 break  # One sample per biomarker is enough
 
     return {
@@ -841,6 +845,7 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
         },
     }
 
+
 @router.get(
     "/edge-manifest",
     summary="Get on-device processing manifest",
@@ -850,7 +855,7 @@ async def lag_comparison(req: SyncRequest) -> Dict[str, Any]:
         "This manifest is the foundation of the on-device privacy layer."
     ),
 )
-async def get_edge_manifest() -> Dict[str, Any]:
+async def get_edge_manifest() -> dict[str, Any]:
     """Return the EdgeProcessor privacy manifest."""
     manifest = _edge_processor.get_manifest()
     return {
@@ -863,6 +868,7 @@ async def get_edge_manifest() -> Dict[str, Any]:
         "embedding_dim": _edge_processor.embedding_dim,
     }
 
+
 @router.post(
     "/edge-process",
     summary="Simulate on-device edge processing",
@@ -872,7 +878,7 @@ async def get_edge_manifest() -> Dict[str, Any]:
         "differentially-private aggregations leave the device."
     ),
 )
-async def edge_process(req: SyncRequest) -> Dict[str, Any]:
+async def edge_process(req: SyncRequest) -> dict[str, Any]:
     """Run edge processing on synchronized frames.
 
     Requires `third_party_sharing` consent since edge-processed embeddings
@@ -895,7 +901,7 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
     resolution = resolution_map.get(req.resolution, Resolution.MEDIUM)
 
     # Gather readings (consent-filtered)
-    all_readings: Dict[BiomarkerType, List[BiomarkerReading]] = {}
+    all_readings: dict[BiomarkerType, list[BiomarkerReading]] = {}
     allowed_types: set = set()
     for bt, adapter in _ADAPTER_MAP.items():
         # ── Consent gate ──
@@ -905,16 +911,17 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
         allowed_types.add(bt)
         if bt in adapter.supported_biomarkers:
             try:
-                readings = await adapter.fetch_readings(
-                    req.user_id, bt, req.start, req.end
-                )
+                readings = await adapter.fetch_readings(req.user_id, bt, req.start, req.end)
                 if readings:
                     all_readings[bt] = readings
             except Exception:
                 pass
 
     frames = _synchronizer.synchronize(
-        all_readings, req.start, req.end, resolution,
+        all_readings,
+        req.start,
+        req.end,
+        resolution,
         user_id=req.user_id,
     )
     # Post-filter: remove non-consented signals
@@ -940,9 +947,7 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
 
         # Attempt to estimate metabolic state
         try:
-            state = _metabolic_estimator.estimate(
-                req.user_id, frame, frame.window_end
-            )
+            state = _metabolic_estimator.estimate(req.user_id, frame, frame.window_end)
             metabolic_label = state.primary_phase.value
         except Exception:
             pass
@@ -954,17 +959,19 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
             genetic_modifiers=genetic_mods,
             raw_reading_count=sum(s.sample_count for s in frame.signals.values()),
         )
-        edge_outputs.append({
-            "window_start": frame.window_start.isoformat(),
-            "window_end": frame.window_end.isoformat(),
-            "feature_embedding": output.feature_embedding[:8],  # truncate for display
-            "embedding_dim": len(output.feature_embedding),
-            "dp_aggregations": output.dp_aggregations,
-            "metabolic_label": output.metabolic_label,
-            "confidence_scores": output.confidence_scores,
-            "genetic_modifier_hash": output.genetic_modifier_hash[:16] + "…",
-            "raw_data_retained_on_device": True,
-        })
+        edge_outputs.append(
+            {
+                "window_start": frame.window_start.isoformat(),
+                "window_end": frame.window_end.isoformat(),
+                "feature_embedding": output.feature_embedding[:8],  # truncate for display
+                "embedding_dim": len(output.feature_embedding),
+                "dp_aggregations": output.dp_aggregations,
+                "metabolic_label": output.metabolic_label,
+                "confidence_scores": output.confidence_scores,
+                "genetic_modifier_hash": output.genetic_modifier_hash[:16] + "…",
+                "raw_data_retained_on_device": True,
+            }
+        )
 
     return {
         "user_id": req.user_id,
@@ -973,7 +980,9 @@ async def edge_process(req: SyncRequest) -> Dict[str, Any]:
         "privacy_manifest": _edge_processor.get_manifest().to_dict(),
     }
 
+
 # ── Medical Constraints ─────────────────────────────────────────────
+
 
 @router.post(
     "/medical-constraints",
@@ -1018,6 +1027,7 @@ async def set_medical_constraints(
         count=len(constraints),
     )
 
+
 @router.get(
     "/medical-constraints/{user_id}",
     response_model=MedicalConstraintsResponse,
@@ -1040,4 +1050,3 @@ async def get_medical_constraints(user_id: str) -> MedicalConstraintsResponse:
         ],
         count=len(constraints),
     )
-

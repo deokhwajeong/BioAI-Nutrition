@@ -23,12 +23,11 @@ cached calculations are invalidated) is the inventive step.
 
 from __future__ import annotations
 
-import hashlib
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any
 
 
 class ConsentScope(str, Enum):
@@ -59,9 +58,11 @@ class ConsentScope(str, Enum):
     RESEARCH_USE = "research_use"
     MODEL_TRAINING = "model_training"
 
+
 class ConsentAction(str, Enum):
     GRANTED = "granted"
     REVOKED = "revoked"
+
 
 @dataclass
 class ConsentRecord:
@@ -71,7 +72,7 @@ class ConsentRecord:
     scope: ConsentScope
     action: ConsentAction
     timestamp: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     reason: str = ""
     ip_hash: str = ""  # Hashed IP for audit without PII
     consent_version: str = "1.0"
@@ -80,22 +81,23 @@ class ConsentRecord:
     def is_expired(self) -> bool:
         if self.expires_at is None:
             return False
-        return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
+        return datetime.now(UTC).replace(tzinfo=None) > self.expires_at
+
 
 @dataclass
 class ConsentState:
     """Current consent state for a user — all active scopes."""
 
     user_id: str
-    granted_scopes: Set[ConsentScope] = field(default_factory=set)
-    revoked_scopes: Set[ConsentScope] = field(default_factory=set)
-    last_updated: Optional[datetime] = None
+    granted_scopes: set[ConsentScope] = field(default_factory=set)
+    revoked_scopes: set[ConsentScope] = field(default_factory=set)
+    last_updated: datetime | None = None
 
     def is_granted(self, scope: ConsentScope) -> bool:
         """Check if a specific scope is currently consented."""
         return scope in self.granted_scopes and scope not in self.revoked_scopes
 
-    def get_allowed_biomarkers(self) -> Set[str]:
+    def get_allowed_biomarkers(self) -> set[str]:
         """Map consent scopes to allowed biomarker types."""
         scope_to_biomarkers = {
             ConsentScope.GLUCOSE_DATA: {"glucose"},
@@ -110,11 +112,12 @@ class ConsentState:
             ConsentScope.LOCATION_DATA: {"location"},
         }
 
-        allowed: Set[str] = set()
+        allowed: set[str] = set()
         for scope in self.granted_scopes:
             if scope not in self.revoked_scopes:
                 allowed.update(scope_to_biomarkers.get(scope, set()))
         return allowed
+
 
 class DynamicConsentManager:
     """Manages real-time consent with propagation to the data pipeline.
@@ -131,15 +134,11 @@ class DynamicConsentManager:
     """
 
     def __init__(self):
-        self._states: Dict[str, ConsentState] = {}
-        self._audit_log: List[ConsentRecord] = []
-        self._revocation_callbacks: List[
-            Callable[[str, ConsentScope], None]
-        ] = []
+        self._states: dict[str, ConsentState] = {}
+        self._audit_log: list[ConsentRecord] = []
+        self._revocation_callbacks: list[Callable[[str, ConsentScope], None]] = []
 
-    def register_revocation_callback(
-        self, callback: Callable[[str, ConsentScope], None]
-    ) -> None:
+    def register_revocation_callback(self, callback: Callable[[str, ConsentScope], None]) -> None:
         """Register a callback to fire when consent is revoked.
 
         Used by the graph engine, cache layer, and recommendation
@@ -152,19 +151,19 @@ class DynamicConsentManager:
         user_id: str,
         scope: ConsentScope,
         reason: str = "",
-        expires_at: Optional[datetime] = None,
+        expires_at: datetime | None = None,
     ) -> ConsentRecord:
         """Grant consent for a specific data scope."""
         state = self._get_or_create_state(user_id)
         state.granted_scopes.add(scope)
         state.revoked_scopes.discard(scope)
-        state.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
+        state.last_updated = datetime.now(UTC).replace(tzinfo=None)
 
         record = ConsentRecord(
             user_id=user_id,
             scope=scope,
             action=ConsentAction.GRANTED,
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             expires_at=expires_at,
             reason=reason,
         )
@@ -184,13 +183,13 @@ class DynamicConsentManager:
         state = self._get_or_create_state(user_id)
         state.revoked_scopes.add(scope)
         state.granted_scopes.discard(scope)
-        state.last_updated = datetime.now(timezone.utc).replace(tzinfo=None)
+        state.last_updated = datetime.now(UTC).replace(tzinfo=None)
 
         record = ConsentRecord(
             user_id=user_id,
             scope=scope,
             action=ConsentAction.REVOKED,
-            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
+            timestamp=datetime.now(UTC).replace(tzinfo=None),
             reason=reason,
         )
         self._audit_log.append(record)
@@ -221,9 +220,9 @@ class DynamicConsentManager:
 
     def get_audit_log(
         self,
-        user_id: Optional[str] = None,
-        scope: Optional[ConsentScope] = None,
-    ) -> List[ConsentRecord]:
+        user_id: str | None = None,
+        scope: ConsentScope | None = None,
+    ) -> list[ConsentRecord]:
         """Retrieve consent audit log with optional filters."""
         records = self._audit_log
         if user_id:
@@ -235,16 +234,16 @@ class DynamicConsentManager:
     def filter_data_by_consent(
         self,
         user_id: str,
-        data: Dict[str, Any],
-        scope_mapping: Dict[str, ConsentScope],
-    ) -> Dict[str, Any]:
+        data: dict[str, Any],
+        scope_mapping: dict[str, ConsentScope],
+    ) -> dict[str, Any]:
         """Filter a data dictionary to only include consented fields.
 
         Patent-relevant: This is called at every pipeline stage to ensure
         revoked data doesn't leak into computations.
         """
         state = self._get_or_create_state(user_id)
-        filtered: Dict[str, Any] = {}
+        filtered: dict[str, Any] = {}
 
         for key, value in data.items():
             scope = scope_mapping.get(key)
@@ -267,15 +266,9 @@ class DynamicConsentManager:
         grants = [
             r
             for r in self._audit_log
-            if r.user_id == user_id
-            and r.scope == scope
-            and r.action == ConsentAction.GRANTED
+            if r.user_id == user_id and r.scope == scope and r.action == ConsentAction.GRANTED
         ]
         for grant in grants:
             if grant.is_expired:
                 # Auto-revoke expired consent
-                self.revoke_consent(
-                    user_id, scope, reason="Consent expired automatically"
-                )
-
-
+                self.revoke_consent(user_id, scope, reason="Consent expired automatically")

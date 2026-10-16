@@ -55,9 +55,8 @@ import math
 import random
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from ..biomarkers.base import BiomarkerType
 
 @dataclass
 class EdgeProcessingManifest:
@@ -79,10 +78,10 @@ class EdgeProcessingManifest:
 
     user_id: str
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    on_device_operations: List[str] = field(default_factory=list)
-    transmitted_fields: List[str] = field(default_factory=list)
-    retained_fields: List[str] = field(default_factory=list)
-    privacy_guarantees: List[str] = field(default_factory=list)
+    on_device_operations: list[str] = field(default_factory=list)
+    transmitted_fields: list[str] = field(default_factory=list)
+    retained_fields: list[str] = field(default_factory=list)
+    privacy_guarantees: list[str] = field(default_factory=list)
     embedding_dimension: int = 64
     epsilon_budget_used: float = 0.0
     total_readings_processed: int = 0
@@ -96,11 +95,9 @@ class EdgeProcessingManifest:
             return 0.0
         return 1.0 - (self.transmitted_bytes / max(1, self.raw_bytes_retained))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            "user_id_hash": hashlib.sha256(
-                self.user_id.encode()
-            ).hexdigest()[:16],
+            "user_id_hash": hashlib.sha256(self.user_id.encode()).hexdigest()[:16],
             "timestamp": self.timestamp.isoformat(),
             "on_device_operations": self.on_device_operations,
             "transmitted_fields": self.transmitted_fields,
@@ -112,6 +109,7 @@ class EdgeProcessingManifest:
             "data_reduction_ratio": round(self.compression_ratio, 3),
             "raw_data_leaves_device": False,
         }
+
 
 @dataclass
 class EdgeProcessedOutput:
@@ -134,26 +132,23 @@ class EdgeProcessedOutput:
         manifest: Privacy manifest for audit.
     """
 
-    feature_embedding: List[float]
-    dp_aggregations: Dict[str, float]
+    feature_embedding: list[float]
+    dp_aggregations: dict[str, float]
     metabolic_label: str
-    confidence_scores: Dict[str, float]
+    confidence_scores: dict[str, float]
     genetic_modifier_hash: str
     manifest: EdgeProcessingManifest
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "feature_embedding": [round(v, 6) for v in self.feature_embedding],
-            "dp_aggregations": {
-                k: round(v, 2) for k, v in self.dp_aggregations.items()
-            },
+            "dp_aggregations": {k: round(v, 2) for k, v in self.dp_aggregations.items()},
             "metabolic_label": self.metabolic_label,
-            "confidence_scores": {
-                k: round(v, 3) for k, v in self.confidence_scores.items()
-            },
+            "confidence_scores": {k: round(v, 3) for k, v in self.confidence_scores.items()},
             "genetic_modifier_hash": self.genetic_modifier_hash,
             "manifest": self.manifest.to_dict(),
         }
+
 
 class EdgeProcessor:
     """Simulates on-device (edge) biomarker processing.
@@ -254,9 +249,9 @@ class EdgeProcessor:
     def process_frame(
         self,
         user_id: str,
-        frame_features: Dict[str, float],
+        frame_features: dict[str, float],
         metabolic_label: str,
-        genetic_modifiers: Dict[str, float],
+        genetic_modifiers: dict[str, float],
         raw_reading_count: int = 0,
     ) -> EdgeProcessedOutput:
         """Process a synchronized frame on-device and produce transmittable output.
@@ -346,8 +341,8 @@ class EdgeProcessor:
     def _compute_embedding(
         self,
         user_id: str,
-        features: Dict[str, float],
-    ) -> List[float]:
+        features: dict[str, float],
+    ) -> list[float]:
         """Compute a fixed-dimensional embedding from frame features.
 
         Uses a deterministic but non-invertible projection:
@@ -368,7 +363,7 @@ class EdgeProcessor:
             for i in range(self._dim):
                 # Use hash bytes to determine projection coefficient
                 byte_val = h[i % len(h)]
-                coeff = (byte_val / 128.0 - 1.0)  # Normalize to [-1, 1]
+                coeff = byte_val / 128.0 - 1.0  # Normalize to [-1, 1]
                 embedding[i] += value * coeff
 
         # Apply tanh activation to bound and obscure magnitudes
@@ -378,8 +373,8 @@ class EdgeProcessor:
 
     def _dp_aggregate(
         self,
-        features: Dict[str, float],
-    ) -> Dict[str, float]:
+        features: dict[str, float],
+    ) -> dict[str, float]:
         """Apply differential privacy to aggregated feature values.
 
         Adds calibrated Laplace noise to value-type features.
@@ -387,7 +382,7 @@ class EdgeProcessor:
 
         Only transmits NOISY aggregations, never exact values.
         """
-        dp_result: Dict[str, float] = {}
+        dp_result: dict[str, float] = {}
 
         for key, value in features.items():
             if key.endswith("_value"):
@@ -403,7 +398,7 @@ class EdgeProcessor:
         return dp_result
 
     @staticmethod
-    def _hash_genetics(modifiers: Dict[str, float]) -> str:
+    def _hash_genetics(modifiers: dict[str, float]) -> str:
         """Hash genetic modifiers — transmit hash, never raw genotypes.
 
         The server can use this hash for cache lookup but cannot
@@ -414,4 +409,3 @@ class EdgeProcessor:
         sorted_items = sorted(modifiers.items())
         raw = "|".join(f"{k}:{v:.4f}" for k, v in sorted_items)
         return hashlib.sha256(raw.encode()).hexdigest()[:32]
-

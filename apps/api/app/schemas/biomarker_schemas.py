@@ -5,11 +5,12 @@ Pydantic schemas for the biomarker synchronization engine API.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 # ── Biomarker Ingestion ──────────────────────────────────────────────
+
 
 class BiomarkerReadingIn(BaseModel):
     """Input schema for a single biomarker reading."""
@@ -25,19 +26,23 @@ class BiomarkerReadingIn(BaseModel):
     value: float
     unit: str = ""
     confidence: float = Field(1.0, ge=0, le=1)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
 
 class BiomarkerBatchIn(BaseModel):
     """Batch ingestion of multiple readings."""
 
-    readings: List[BiomarkerReadingIn]
+    readings: list[BiomarkerReadingIn]
+
 
 class BiomarkerIngestionResult(BaseModel):
     accepted: int
     rejected: int
-    details: List[Dict[str, Any]] = []
+    details: list[dict[str, Any]] = []
+
 
 # ── Synchronization ─────────────────────────────────────────────────
+
 
 class SyncRequest(BaseModel):
     """Request to synchronize biomarker data for a user."""
@@ -50,6 +55,7 @@ class SyncRequest(BaseModel):
         description="Temporal resolution: fine (5min), medium (1hr), coarse (24hr)",
     )
 
+
 class AlignedSignalOut(BaseModel):
     biomarker_type: str
     value: float
@@ -57,21 +63,25 @@ class AlignedSignalOut(BaseModel):
     sample_count: int
     lag_compensated: bool
 
+
 class SynchronizedFrameOut(BaseModel):
     window_start: datetime
     window_end: datetime
     resolution: str
-    signals: Dict[str, AlignedSignalOut]
+    signals: dict[str, AlignedSignalOut]
     frame_confidence: float
     completeness: float
-    feature_vector: Dict[str, float]
+    feature_vector: dict[str, float]
+
 
 class SyncResponse(BaseModel):
     user_id: str
-    frames: List[SynchronizedFrameOut]
+    frames: list[SynchronizedFrameOut]
     total_frames: int
 
+
 # ── Nutrient Budget ─────────────────────────────────────────────────
+
 
 class NutrientBudgetRequest(BaseModel):
     """Request a real-time nutrient budget calculation."""
@@ -80,10 +90,11 @@ class NutrientBudgetRequest(BaseModel):
     # Optional overrides
     kcal_target: float = Field(2000, description="Daily calorie target")
     weight_kg: float = Field(70, description="Body weight in kg")
-    consumed_today: Dict[str, float] = Field(
+    consumed_today: dict[str, float] = Field(
         default_factory=dict,
         description="Already consumed nutrients {name: amount}",
     )
+
 
 class NutrientTargetOut(BaseModel):
     name: str
@@ -92,6 +103,7 @@ class NutrientTargetOut(BaseModel):
     remaining: float
     remaining_pct: float
     unit: str
+
 
 class TimeBucketOut(BaseModel):
     start_hour: int
@@ -103,12 +115,14 @@ class TimeBucketOut(BaseModel):
     water_pct: float
     rationale: str
 
+
 class ModificationOut(BaseModel):
     step: str
     nutrient: str
     old_value: float
     new_value: float
     reason: str
+
 
 class ConflictResolutionOut(BaseModel):
     """Audit record of a Safety-First Override conflict resolution."""
@@ -125,48 +139,52 @@ class ConflictResolutionOut(BaseModel):
     severity: str
     resolution_rationale: str
 
+
 class NutrientBudgetResponse(BaseModel):
     timestamp: datetime
     user_id: str
-    targets: Dict[str, NutrientTargetOut]
-    time_buckets: List[TimeBucketOut]
+    targets: dict[str, NutrientTargetOut]
+    time_buckets: list[TimeBucketOut]
     metabolic_state: str
-    active_phases: List[str]
-    modifications: List[ModificationOut]
-    conflict_resolutions: List[ConflictResolutionOut] = []
-    next_meal_recommendation: Dict[str, float]
+    active_phases: list[str]
+    modifications: list[ModificationOut]
+    conflict_resolutions: list[ConflictResolutionOut] = []
+    next_meal_recommendation: dict[str, float]
     confidence: float
+
 
 # ── Metabolic State ─────────────────────────────────────────────────
 
+
 class MetabolicStateOut(BaseModel):
     timestamp: datetime
-    active_phases: List[str]
+    active_phases: list[str]
     primary_phase: str
-    phase_intensities: Dict[str, float]
+    phase_intensities: dict[str, float]
     hours_since_last_meal: float
     hours_since_last_exercise: float
     insulin_sensitivity_estimate: float
-    nutrient_priority_shifts: Dict[str, float]
-    decision_log: List[str] = []
+    nutrient_priority_shifts: dict[str, float]
+    decision_log: list[str] = []
+
 
 # ── Consent ─────────────────────────────────────────────────────────
+
 
 class ConsentRequest(BaseModel):
     user_id: str
     scope: str
-    action: str = Field(
-        ..., description="'grant' or 'revoke'"
-    )
+    action: str = Field(..., description="'grant' or 'revoke'")
     reason: str = ""
-    expires_in_hours: Optional[float] = None
+    expires_in_hours: float | None = None
+
 
 class ConsentStatusOut(BaseModel):
     user_id: str
-    granted_scopes: List[str]
-    revoked_scopes: List[str]
-    allowed_biomarkers: List[str]
-    policy_gates: Optional[Dict[str, Any]] = Field(
+    granted_scopes: list[str]
+    revoked_scopes: list[str]
+    allowed_biomarkers: list[str]
+    policy_gates: dict[str, Any] | None = Field(
         None,
         description=(
             "Status of policy-level consent gates that control specific "
@@ -175,22 +193,25 @@ class ConsentStatusOut(BaseModel):
         ),
     )
 
+
 # ── Genetic Profile ─────────────────────────────────────────────────
+
 
 class GeneticProfileIn(BaseModel):
     """Input for genetic variant data."""
 
     user_id: str
-    genotypes: Dict[str, str] = Field(
+    genotypes: dict[str, str] = Field(
         ...,
         description="SNP ID → genotype mapping, e.g. {'rs1801133': 'CT'}",
     )
 
+
 class GeneticModifiersOut(BaseModel):
     user_id: str
     variant_count: int
-    modifiers: Dict[str, float]
-    genetic_baseline: Optional[Dict[str, Any]] = Field(
+    modifiers: dict[str, float]
+    genetic_baseline: dict[str, Any] | None = Field(
         None,
         description=(
             "Genotype-adjusted reference ranges for each biomarker, "
@@ -199,47 +220,43 @@ class GeneticModifiersOut(BaseModel):
         ),
     )
 
+
 # ── Pipeline Status ─────────────────────────────────────────────────
+
 
 class PipelineStatusOut(BaseModel):
     """Status of the biomarker processing pipeline."""
 
-    registered_sources: List[str]
-    registered_biomarker_types: List[str]
+    registered_sources: list[str]
+    registered_biomarker_types: list[str]
     users_with_data: int
     consent_manager_active: bool
     privacy_engine_active: bool
 
+
 # ── Medical Constraints ─────────────────────────────────────────────
+
 
 class MedicalConstraintIn(BaseModel):
     """Input schema for a single medical or safety constraint."""
 
-    nutrient: str = Field(
-        ..., description="Target nutrient key, e.g. 'protein_g', 'sodium_mg'"
-    )
-    constraint_type: str = Field(
-        ..., description="One of: 'max', 'min', 'range', 'consistency'"
-    )
-    value: float = Field(
-        ..., description="Constraint value (e.g. max grams per day)"
-    )
-    reason: str = Field(
-        ..., description="Medical reason for the constraint"
-    )
-    severity: str = Field(
-        "warning", description="'warning' or 'critical'"
-    )
+    nutrient: str = Field(..., description="Target nutrient key, e.g. 'protein_g', 'sodium_mg'")
+    constraint_type: str = Field(..., description="One of: 'max', 'min', 'range', 'consistency'")
+    value: float = Field(..., description="Constraint value (e.g. max grams per day)")
+    reason: str = Field(..., description="Medical reason for the constraint")
+    severity: str = Field("warning", description="'warning' or 'critical'")
     source: str = Field(
         "user_reported",
         description="'user_reported', 'medical_record', or 'genetic'",
     )
 
+
 class MedicalConstraintsRequest(BaseModel):
     """Request to set medical constraints for a user."""
 
     user_id: str
-    constraints: List[MedicalConstraintIn]
+    constraints: list[MedicalConstraintIn]
+
 
 class MedicalConstraintOut(BaseModel):
     nutrient: str
@@ -249,9 +266,8 @@ class MedicalConstraintOut(BaseModel):
     severity: str
     source: str
 
+
 class MedicalConstraintsResponse(BaseModel):
     user_id: str
-    active_constraints: List[MedicalConstraintOut]
+    active_constraints: list[MedicalConstraintOut]
     count: int
-
-

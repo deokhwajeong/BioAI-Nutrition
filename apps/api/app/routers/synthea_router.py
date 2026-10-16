@@ -11,18 +11,16 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from ..services.synthea_loader import (
-    SyntheaLoader,
     SyntheaPatient,
     load_synthea_patients,
     synthea_patient_to_seed_readings,
 )
-from ..biomarkers.base import BiomarkerType
 
 logger = logging.getLogger(__name__)
 
@@ -32,41 +30,47 @@ router = APIRouter(prefix="/synthea", tags=["synthea"])
 DEFAULT_FHIR_DIR = Path("data/synthea/output/fhir")
 
 # Cache loaded patients to avoid re-parsing on every call
-_patient_cache: Dict[str, SyntheaPatient] = {}
+_patient_cache: dict[str, SyntheaPatient] = {}
 
 # ── Schemas ─────────────────────────────────────────────────────────
+
 
 class PatientSummary(BaseModel):
     patient_id: str
     name: str
     gender: str
     birth_date: str
-    height_cm: Optional[float] = None
-    bmi: Optional[float] = None
+    height_cm: float | None = None
+    bmi: float | None = None
     total_readings: int
-    readings_by_type: Dict[str, int]
+    readings_by_type: dict[str, int]
     conditions: int
     medications: int
 
+
 class LoadPatientRequest(BaseModel):
     patient_id: str
-    override_user_id: Optional[str] = None
+    override_user_id: str | None = None
+
 
 class LoadPatientResponse(BaseModel):
     patient_id: str
     user_id: str
     readings_loaded: int
-    readings_by_type: Dict[str, int]
-    conditions: List[Dict[str, str]]
-    medications: List[Dict[str, str]]
+    readings_by_type: dict[str, int]
+    conditions: list[dict[str, str]]
+    medications: list[dict[str, str]]
+
 
 class SyntheaStatusResponse(BaseModel):
     fhir_directory: str
     files_found: int
     patients_cached: int
-    available_patients: List[PatientSummary]
+    available_patients: list[PatientSummary]
+
 
 # ── Helpers ─────────────────────────────────────────────────────────
+
 
 def _resolve_fhir_dir() -> Path:
     """Find the FHIR output directory, trying multiple base paths."""
@@ -80,6 +84,7 @@ def _resolve_fhir_dir() -> Path:
             return candidate
     return DEFAULT_FHIR_DIR
 
+
 def _ensure_cache() -> None:
     """Load patients into cache if not already loaded."""
     if _patient_cache:
@@ -91,7 +96,9 @@ def _ensure_cache() -> None:
     for p in patients:
         _patient_cache[p.patient_id] = p
 
+
 # ── Endpoints ───────────────────────────────────────────────────────
+
 
 @router.get("/status", response_model=SyntheaStatusResponse)
 async def synthea_status():
@@ -101,9 +108,7 @@ async def synthea_status():
 
     _ensure_cache()
 
-    summaries = [
-        PatientSummary(**p.summary()) for p in _patient_cache.values()
-    ]
+    summaries = [PatientSummary(**p.summary()) for p in _patient_cache.values()]
 
     return SyntheaStatusResponse(
         fhir_directory=str(fhir_dir),
@@ -111,6 +116,7 @@ async def synthea_status():
         patients_cached=len(_patient_cache),
         available_patients=summaries,
     )
+
 
 @router.post("/load", response_model=LoadPatientResponse)
 async def load_synthea_patient(req: LoadPatientRequest):
@@ -126,7 +132,7 @@ async def load_synthea_patient(req: LoadPatientRequest):
         raise HTTPException(
             status_code=404,
             detail=f"Patient '{req.patient_id}' not found. "
-                   f"Available: {list(_patient_cache.keys())}",
+            f"Available: {list(_patient_cache.keys())}",
         )
 
     user_id = req.override_user_id or patient.patient_id
@@ -134,14 +140,14 @@ async def load_synthea_patient(req: LoadPatientRequest):
 
     # Import engine singletons from the biomarker_engine router
     from ..routers.biomarker_engine import (
-        _cgm_adapter,
-        _activity_adapter,
         _ADAPTER_MAP,
+        _cgm_adapter,
     )
 
     # Push readings into adapters
     loaded = 0
     from collections import Counter
+
     type_counts: Counter = Counter()
 
     for reading in readings:
@@ -155,6 +161,7 @@ async def load_synthea_patient(req: LoadPatientRequest):
             mapped_reading = reading
             if reading.user_id != user_id:
                 from ..biomarkers.base import BiomarkerReading
+
                 mapped_reading = BiomarkerReading(
                     source_id=reading.source_id,
                     user_id=user_id,
@@ -179,7 +186,10 @@ async def load_synthea_patient(req: LoadPatientRequest):
 
     logger.info(
         "Loaded %d/%d readings for patient %s → user %s",
-        loaded, len(readings), req.patient_id, user_id,
+        loaded,
+        len(readings),
+        req.patient_id,
+        user_id,
     )
 
     return LoadPatientResponse(
@@ -190,6 +200,7 @@ async def load_synthea_patient(req: LoadPatientRequest):
         conditions=[c for c in patient.conditions],
         medications=[m for m in patient.medications],
     )
+
 
 @router.get("/patient/{patient_id}")
 async def get_patient_detail(patient_id: str):
@@ -205,14 +216,17 @@ async def get_patient_detail(patient_id: str):
 
     # Group readings by type with sample values
     from collections import defaultdict
-    by_type: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+
+    by_type: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for r in patient.readings:
-        by_type[r.biomarker_type.value].append({
-            "timestamp": r.timestamp.isoformat(),
-            "value": r.value,
-            "unit": r.unit,
-            "metadata": r.metadata,
-        })
+        by_type[r.biomarker_type.value].append(
+            {
+                "timestamp": r.timestamp.isoformat(),
+                "value": r.value,
+                "unit": r.unit,
+                "metadata": r.metadata,
+            }
+        )
 
     return {
         **patient.summary(),
@@ -228,10 +242,11 @@ async def get_patient_detail(patient_id: str):
         },
     }
 
+
 @router.post("/reload")
 async def reload_synthea_data(
-    directory: Optional[str] = Query(None, description="Custom FHIR directory path"),
-    max_patients: Optional[int] = Query(None, description="Max patients to load"),
+    directory: str | None = Query(None, description="Custom FHIR directory path"),
+    max_patients: int | None = Query(None, description="Max patients to load"),
 ):
     """Reload Synthea data from disk (clears cache)."""
     _patient_cache.clear()
@@ -252,4 +267,3 @@ async def reload_synthea_data(
         "total_readings": sum(len(p.readings) for p in patients),
         "patients": [p.patient_id for p in patients],
     }
-

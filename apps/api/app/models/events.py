@@ -1,27 +1,27 @@
 from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+
 
 class DietEvent(BaseModel):
     user_id: str
     timestamp: str
     food: str
     calories: float
-    protein: Optional[float] = None
-    carbs: Optional[float] = None
-    fat: Optional[float] = None
+    protein: float | None = None
+    carbs: float | None = None
+    fat: float | None = None
+
 
 class ActivityEvent(BaseModel):
     user_id: str
     timestamp: str
     activity_type: str
     duration_minutes: float
-    calories_burned: Optional[float] = None
-    steps: Optional[int] = None
+    calories_burned: float | None = None
+    steps: int | None = None
+
 
 class SleepEvent(BaseModel):
     user_id: str
     timestamp: str
     duration_minutes: float
-    quality: Optional[str] = None
-
+    quality: str | None = None

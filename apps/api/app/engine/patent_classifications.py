@@ -67,9 +67,8 @@ This positioning is critical for:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class PatentClassification(Enum):
@@ -98,8 +97,8 @@ class ClassificationEntry:
     code: PatentClassification
     title: str
     description: str
-    modules: List[str]
-    claim_keywords: List[str]
+    modules: list[str]
+    claim_keywords: list[str]
     defensive_rationale: str
 
 
@@ -107,8 +106,7 @@ class ClassificationEntry:
 # Complete Patent Classification Registry
 # ═══════════════════════════════════════════════════════════════════════
 
-PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] = {
-
+PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] = {
     PatentClassification.G16H_20_60: ClassificationEntry(
         code=PatentClassification.G16H_20_60,
         title="ICT for therapies — nutrition control",
@@ -123,15 +121,16 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "services.recommender",
         ],
         claim_keywords=[
-            "personalized nutrition", "real-time nutrient demand",
-            "multi-source biomarker integration", "dietary recommendation",
+            "personalized nutrition",
+            "real-time nutrient demand",
+            "multi-source biomarker integration",
+            "dietary recommendation",
         ],
         defensive_rationale=(
             "Establishes the domain scope. Paired with G06F/G06N codes "
             "to emphasize computational innovation over mere health advice."
         ),
     ),
-
     PatentClassification.G06F_16_27: ClassificationEntry(
         code=PatentClassification.G06F_16_27,
         title="Query processing; Data synchronization",
@@ -147,9 +146,12 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "engine.temporal_sync.PhysiologicalLagModel",
         ],
         claim_keywords=[
-            "temporal synchronization", "physiological lag compensation",
-            "multi-resolution temporal grid", "confidence-weighted aggregation",
-            "Gaussian kernel weighted average", "staleness decay",
+            "temporal synchronization",
+            "physiological lag compensation",
+            "multi-resolution temporal grid",
+            "confidence-weighted aggregation",
+            "Gaussian kernel weighted average",
+            "staleness decay",
         ],
         defensive_rationale=(
             "Defends the novelty of biologically-motivated data synchronization. "
@@ -157,7 +159,6 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "physiological lag models with genetic and circadian modifiers."
         ),
     ),
-
     PatentClassification.G06F_11_34: ClassificationEntry(
         code=PatentClassification.G06F_11_34,
         title="Performance analysis; Monitoring",
@@ -173,9 +174,12 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "engine.self_calibration.PeakDetector",
         ],
         claim_keywords=[
-            "adaptive self-calibration", "performance monitoring",
-            "convergence scoring", "prediction accuracy tracking",
-            "peak detection", "EMA-based accuracy assessment",
+            "adaptive self-calibration",
+            "performance monitoring",
+            "convergence scoring",
+            "prediction accuracy tracking",
+            "peak detection",
+            "EMA-based accuracy assessment",
         ],
         defensive_rationale=(
             "Defends the continuous performance monitoring aspect. "
@@ -183,7 +187,6 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "and adaptively improves, which is a computational system innovation."
         ),
     ),
-
     PatentClassification.G06N_20_00: ClassificationEntry(
         code=PatentClassification.G06N_20_00,
         title="Machine learning",
@@ -202,9 +205,12 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "engine.self_calibration.CalibrationResult",
         ],
         claim_keywords=[
-            "error back-propagation", "adaptive learning rate",
-            "EMA parameter update", "three-channel error decomposition",
-            "self-evolving model", "convergence time constant",
+            "error back-propagation",
+            "adaptive learning rate",
+            "EMA parameter update",
+            "three-channel error decomposition",
+            "self-evolving model",
+            "convergence time constant",
         ],
         defensive_rationale=(
             "Defends the machine learning aspect of self-calibration. "
@@ -213,7 +219,6 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "lag model refinement."
         ),
     ),
-
     PatentClassification.G06N_7_01: ClassificationEntry(
         code=PatentClassification.G06N_7_01,
         title="Probabilistic graphical models; Bayesian networks",
@@ -233,9 +238,12 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "privacy.graph_embedding.HealthGraphEmbedding",
         ],
         claim_keywords=[
-            "Gaussian kernel weighting", "probabilistic estimation",
-            "confidence-weighted fusion", "staleness decay",
-            "circadian prediction model", "anomaly scoring",
+            "Gaussian kernel weighting",
+            "probabilistic estimation",
+            "confidence-weighted fusion",
+            "staleness decay",
+            "circadian prediction model",
+            "anomaly scoring",
         ],
         defensive_rationale=(
             "Defends the probabilistic reasoning underlying data fusion "
@@ -244,7 +252,6 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "from deterministic interpolation methods."
         ),
     ),
-
     PatentClassification.G06F_21_62: ClassificationEntry(
         code=PatentClassification.G06F_21_62,
         title="Protecting access to data via access control rules",
@@ -262,10 +269,14 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "privacy.consent_manager.DynamicConsentManager",
         ],
         claim_keywords=[
-            "differential privacy", "sensitivity-tiered epsilon",
-            "dynamic epsilon allocation", "privacy budget tracking",
-            "consent propagation", "granular consent scopes",
-            "Laplace mechanism", "Gaussian mechanism",
+            "differential privacy",
+            "sensitivity-tiered epsilon",
+            "dynamic epsilon allocation",
+            "privacy budget tracking",
+            "consent propagation",
+            "granular consent scopes",
+            "Laplace mechanism",
+            "Gaussian mechanism",
         ],
         defensive_rationale=(
             "Defends the privacy-preserving computation architecture. "
@@ -275,7 +286,6 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "goes beyond simple access control."
         ),
     ),
-
     PatentClassification.H04L_9_32: ClassificationEntry(
         code=PatentClassification.H04L_9_32,
         title="Security protocols for protecting data",
@@ -294,9 +304,12 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
             "privacy.graph_embedding.HealthGraphEmbedding",
         ],
         claim_keywords=[
-            "edge-cloud architecture", "on-device processing",
-            "irreversible embedding", "hash projection",
-            "privacy contract", "processing manifest",
+            "edge-cloud architecture",
+            "on-device processing",
+            "irreversible embedding",
+            "hash projection",
+            "privacy contract",
+            "processing manifest",
             "multi-layer privacy guarantee",
         ],
         defensive_rationale=(
@@ -312,7 +325,8 @@ PATENT_CLASSIFICATION_REGISTRY: Dict[PatentClassification, ClassificationEntry] 
 
 # ── Convenience helpers ─────────────────────────────────────────────
 
-def get_classifications_for_module(module_path: str) -> List[ClassificationEntry]:
+
+def get_classifications_for_module(module_path: str) -> list[ClassificationEntry]:
     """Return all patent classifications that cover a given module.
 
     Args:
@@ -330,12 +344,11 @@ def get_classifications_for_module(module_path: str) -> List[ClassificationEntry
         ['G06F 16/27', 'G06N 7/01']
     """
     return [
-        entry for entry in PATENT_CLASSIFICATION_REGISTRY.values()
-        if module_path in entry.modules
+        entry for entry in PATENT_CLASSIFICATION_REGISTRY.values() if module_path in entry.modules
     ]
 
 
-def get_all_claim_keywords() -> List[str]:
+def get_all_claim_keywords() -> list[str]:
     """Return a deduplicated list of all claim keywords across classifications.
 
     Useful for patent drafting — ensures all key technical terms

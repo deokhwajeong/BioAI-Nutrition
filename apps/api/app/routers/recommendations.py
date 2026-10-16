@@ -1,24 +1,16 @@
 from fastapi import APIRouter
+
 from ..schemas.user_input import RecommendationRequest, RecommendationResponse
-from ..services.recommender import generate_recommendations
+from ..services.recommender import recommender
 
-router = APIRouter(prefix="", tags=["recommendations"])
+router = APIRouter(tags=["recommendations"])
 
-@router.post("/recommendations", response_model=RecommendationResponse)
-def post_recommendations(payload: RecommendationRequest):
-    recs = generate_recommendations(payload.daily_features, payload.user_targets)
+
+@router.post("", response_model=RecommendationResponse)
+def post_recommendations(payload: RecommendationRequest) -> RecommendationResponse:
+    """Rank rule-based nutrition recommendations for one day of features against user targets."""
+    recs = recommender.generate_recommendations(
+        daily_features=payload.daily_features.model_dump(exclude_none=True),
+        user_targets=payload.user_targets.model_dump(exclude_none=True),
+    )
     return RecommendationResponse(recommendations=recs)
-
-from typing import Any, Dict, List, Optional
-
-def generate_recommendations(payload: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Temporary stub to unblock API startup.
-    Replace with real recommendation logic later.
-    """
-    return {
-        "status": "ok",
-        "message": "generate_recommendations stub",
-        "input": payload,
-        "recommendations": []
-    }

@@ -12,25 +12,31 @@ The Settings class reads configuration from environment variables. Adjust the
 `allowed_origins` list and `api_key` to reflect real values in production.
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Security, status
+import logging
+from typing import Any
+
+from fastapi import Depends, FastAPI, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic_settings import BaseSettings
-from typing import Any
 
+from .routers import (
+    biomarker_engine,
+    events,
+    image_analyzer,
+    meal_router,
+    recommendations,
+    synthea_router,
+)
 from .routes import ingest, users
-from .routers import events, recommendations, image_analyzer, biomarker_engine, meal_router, synthea_router
-import logging
-
 from .services.privacy import PIIFilter
+
 
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables."""
 
     api_title: str = "BioAI Nutrition API"
-    api_description: str = (
-        "Backend services for secure data ingestion and analytics."
-    )
+    api_description: str = "Backend services for secure data ingestion and analytics."
     api_version: str = "0.1.0"
     # In production, specify actual allowed origins instead of "*"
     allowed_origins: list[str] = ["*"]
@@ -38,15 +44,25 @@ class Settings(BaseSettings):
     api_key: str = "dev-api-key"
     hash_pepper: str = "dev-pepper"
 
+    @property
+    def using_dev_secrets(self) -> bool:
+        return self.api_key == "dev-api-key" or self.hash_pepper == "dev-pepper"
+
+
 # Instantiate settings once at startup
 settings = Settings()
 
 # Configure global logger with PII filter
 logger = logging.getLogger()
 logger.addFilter(PIIFilter())
+if settings.using_dev_secrets:
+    logger.warning(
+        "Running with development API key / hash pepper. Set API_KEY and HASH_PEPPER in production."
+    )
 
 # Define API key header (looking for header `X-API-Key`)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
 
 async def verify_api_key(
     api_key: str | None = Security(api_key_header),
@@ -63,6 +79,7 @@ async def verify_api_key(
         )
     return api_key
 
+
 # Create FastAPI application with metadata from settings
 app = FastAPI(
     title=settings.api_title,
@@ -71,10 +88,12 @@ app = FastAPI(
 )
 
 # Configure CORS middleware
+# Browsers reject credentialed requests to a wildcard origin, so credentials are only
+# enabled when explicit origins are configured (ALLOWED_ORIGINS='["https://..."]').
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
-    allow_credentials=True,
+    allow_credentials="*" not in settings.allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -137,16 +156,18 @@ app.include_router(
     dependencies=[Depends(verify_api_key)],
 )
 
+
 @app.get("/api/metrics", tags=["metrics"])
 async def get_metrics(user_id: str = "default") -> dict[str, Any]:
     """Get aggregated metrics for a user (placeholder for now)."""
     # TODO: Fetch real events from database and aggregate
     from .services.recommendations import aggregate_metrics
+
     # Mock events for demo
     mock_events = [
         {"type": "diet", "calories": 500, "fiber_g": 5},
         {"type": "activity", "steps": 3000},
-        {"type": "sleep", "duration_minutes": 480}
+        {"type": "sleep", "duration_minutes": 480},
     ]
     metrics = aggregate_metrics(mock_events)
     return metrics
@@ -159,4 +180,3 @@ async def health() -> dict[str, str]:
     Returns a simple status object to indicate that the service is up.
     """
     return {"status": "ok"}
-

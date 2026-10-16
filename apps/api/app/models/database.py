@@ -1,19 +1,37 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON, Index
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship, Session
-from datetime import datetime, timezone
-from typing import Generator
+import os
+from collections.abc import Generator
+from datetime import UTC, datetime
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    create_engine,
+)
+from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
+
 
 def _utcnow():
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./nutrition.db"
+
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./nutrition.db")
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False}
+    if SQLALCHEMY_DATABASE_URL.startswith("sqlite")
+    else {},
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "users"
@@ -25,6 +43,7 @@ class User(Base):
     # Relationships
     events = relationship("Event", back_populates="user")
     targets = relationship("UserTarget", back_populates="user")
+
 
 class UserTarget(Base):
     __tablename__ = "user_targets"
@@ -39,6 +58,7 @@ class UserTarget(Base):
     created_at = Column(DateTime, default=_utcnow)
 
     user = relationship("User", back_populates="targets")
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -66,6 +86,7 @@ class Event(Base):
 
     user = relationship("User", back_populates="events")
 
+
 class Food(Base):
     __tablename__ = "foods"
 
@@ -83,6 +104,7 @@ class Food(Base):
 
     created_at = Column(DateTime, default=_utcnow)
 
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
@@ -90,9 +112,11 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 # ═════════════════════════════════════════════════════════════════
 #  Patent-Core: Biomarker Engine Models
 # ═════════════════════════════════════════════════════════════════
+
 
 class BiomarkerReading(Base):
     """Stores raw biomarker readings from heterogeneous sources.
@@ -100,6 +124,7 @@ class BiomarkerReading(Base):
     Patent reference: data ingestion layer for the heterogeneous
     biomarker temporal synchronization architecture.
     """
+
     __tablename__ = "biomarker_readings"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -114,9 +139,8 @@ class BiomarkerReading(Base):
     metadata_json = Column(Text, default="{}")  # JSON string
     created_at = Column(DateTime, default=_utcnow)
 
-    __table_args__ = (
-        Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),
-    )
+    __table_args__ = (Index("ix_reading_user_type_ts", "user_id", "biomarker_type", "timestamp"),)
+
 
 class PersonalBaseline(Base):
     """Stores learned personal baselines per user × biomarker.
@@ -124,6 +148,7 @@ class PersonalBaseline(Base):
     Patent reference: physiological-aware normalization layer with
     dual-timescale EWMA and circadian profile learning.
     """
+
     __tablename__ = "personal_baselines"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -138,9 +163,8 @@ class PersonalBaseline(Base):
     last_updated = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=_utcnow)
 
-    __table_args__ = (
-        Index("ix_baseline_user_type", "user_id", "biomarker_type", unique=True),
-    )
+    __table_args__ = (Index("ix_baseline_user_type", "user_id", "biomarker_type", unique=True),)
+
 
 class GeneticProfile(Base):
     """Stores genetic variant data for nutrigenomic personalization.
@@ -148,6 +172,7 @@ class GeneticProfile(Base):
     Patent reference: genetic modifier computation for
     dose-dependent nutrient demand adjustment.
     """
+
     __tablename__ = "genetic_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -157,12 +182,14 @@ class GeneticProfile(Base):
     created_at = Column(DateTime, default=_utcnow)
     updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
+
 class ConsentAuditLog(Base):
     """Immutable audit trail for consent grant/revocation events.
 
     Patent reference: dynamic consent management system with
     real-time revocation and cryptographic audit trail.
     """
+
     __tablename__ = "consent_audit_log"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -175,12 +202,14 @@ class ConsentAuditLog(Base):
     expires_at = Column(DateTime, nullable=True)
     timestamp = Column(DateTime, default=_utcnow)
 
+
 class NutrientBudgetSnapshot(Base):
     """Snapshots of calculated nutrient budgets for audit and ML training.
 
     Patent reference: real-time nutrient demand calculation output,
     preserving the full modification chain for reproducibility.
     """
+
     __tablename__ = "nutrient_budget_snapshots"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -193,4 +222,3 @@ class NutrientBudgetSnapshot(Base):
     confidence = Column(Float, default=0.0)
     frame_completeness = Column(Float, default=0.0)
     created_at = Column(DateTime, default=_utcnow)
-

@@ -35,15 +35,14 @@ Key inventive concepts:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any
 
 from ..biomarkers.base import BiomarkerType
-from .metabolic_state import MetabolicState, MetabolicPhase
+from .metabolic_state import MetabolicPhase, MetabolicState
 from .normalization import NormalizedSignal
-from .temporal_sync import SynchronizedFrame
+
 
 @dataclass
 class NutrientTarget:
@@ -75,16 +74,18 @@ class NutrientTarget:
             return 0
         return self.remaining / self.daily_target
 
+
 # ── Priority hierarchy for conflict resolution ──────────────────
 # Higher number = higher priority (overrides lower)
 PRIORITY_HIERARCHY = {
-    "base_rda": 0,              # RDA defaults
-    "metabolic_state": 1,       # Metabolic state adjustments
-    "biomarker_reactive": 2,    # Real-time biomarker-driven
-    "genetic": 3,               # Genetic optimization
-    "medical_warning": 4,       # Medical warnings
-    "medical_critical": 5,      # Medical critical constraints — ALWAYS WINS
+    "base_rda": 0,  # RDA defaults
+    "metabolic_state": 1,  # Metabolic state adjustments
+    "biomarker_reactive": 2,  # Real-time biomarker-driven
+    "genetic": 3,  # Genetic optimization
+    "medical_warning": 4,  # Medical warnings
+    "medical_critical": 5,  # Medical critical constraints — ALWAYS WINS
 }
+
 
 @dataclass
 class MedicalConstraint:
@@ -111,6 +112,7 @@ class MedicalConstraint:
             return PRIORITY_HIERARCHY["medical_critical"]
         return PRIORITY_HIERARCHY["medical_warning"]
 
+
 @dataclass
 class ConflictResolution:
     """Documents a resolved conflict between two nutrient adjustment sources.
@@ -122,14 +124,15 @@ class ConflictResolution:
     nutrient: str
     conflict_type: str  # "genetic_vs_medical", "metabolic_vs_medical", "reactive_vs_medical"
     genetic_recommended: float  # What genetics suggested
-    medical_limit: float        # What medicine requires
-    resolved_value: float       # Final resolved value
-    winner: str                 # "medical_critical", "medical_warning", "genetic"
-    loser: str                  # The overridden source
-    safety_margin: float        # How far the resolved value is from the medical limit
-    constraint_reason: str      # Why the medical constraint exists
-    severity: str               # "critical" or "warning"
-    resolution_rationale: str   # Human-readable explanation
+    medical_limit: float  # What medicine requires
+    resolved_value: float  # Final resolved value
+    winner: str  # "medical_critical", "medical_warning", "genetic"
+    loser: str  # The overridden source
+    safety_margin: float  # How far the resolved value is from the medical limit
+    constraint_reason: str  # Why the medical constraint exists
+    severity: str  # "critical" or "warning"
+    resolution_rationale: str  # Human-readable explanation
+
 
 @dataclass
 class TimeBucket:
@@ -143,12 +146,13 @@ class TimeBucket:
     start_hour: int
     end_hour: int
     label: str
-    carb_pct: float = 0.0      # % of remaining daily carbs for this window
-    protein_pct: float = 0.0   # % of remaining daily protein
+    carb_pct: float = 0.0  # % of remaining daily carbs for this window
+    protein_pct: float = 0.0  # % of remaining daily protein
     fat_pct: float = 0.0
     water_pct: float = 0.0
-    priority_nutrients: List[str] = field(default_factory=list)
+    priority_nutrients: list[str] = field(default_factory=list)
     rationale: str = ""
+
 
 @dataclass
 class NutrientBudget:
@@ -171,27 +175,27 @@ class NutrientBudget:
     user_id: str
 
     # Adjusted targets (after all modifications)
-    targets: Dict[str, NutrientTarget] = field(default_factory=dict)
+    targets: dict[str, NutrientTarget] = field(default_factory=dict)
 
     # Time-bucketed distribution
-    time_buckets: List[TimeBucket] = field(default_factory=list)
+    time_buckets: list[TimeBucket] = field(default_factory=list)
 
     # Current metabolic state that drove these adjustments
-    metabolic_state: Optional[MetabolicState] = None
+    metabolic_state: MetabolicState | None = None
 
     # Applied modifications with rationale
-    modifications: List[Dict[str, Any]] = field(default_factory=list)
+    modifications: list[dict[str, Any]] = field(default_factory=list)
 
     # Active medical constraints
-    active_constraints: List[MedicalConstraint] = field(default_factory=list)
+    active_constraints: list[MedicalConstraint] = field(default_factory=list)
 
     # Conflict resolutions (genetic vs. medical)
-    conflict_resolutions: List[ConflictResolution] = field(default_factory=list)
+    conflict_resolutions: list[ConflictResolution] = field(default_factory=list)
 
     # Overall budget quality/confidence
     confidence: float = 0.0
 
-    def get_next_meal_recommendation(self) -> Dict[str, float]:
+    def get_next_meal_recommendation(self) -> dict[str, float]:
         """Get recommended nutrient amounts for the next meal.
 
         Calculates optimal meal composition based on current time,
@@ -211,12 +215,11 @@ class NutrientBudget:
             # Default even distribution
             remaining_meals = max(1, (22 - current_hour) // 4)
             return {
-                name: target.remaining / remaining_meals
-                for name, target in self.targets.items()
+                name: target.remaining / remaining_meals for name, target in self.targets.items()
             }
 
         # Allocate based on bucket percentages
-        recommendation: Dict[str, float] = {}
+        recommendation: dict[str, float] = {}
         for name, target in self.targets.items():
             if "carb" in name:
                 pct = current_bucket.carb_pct
@@ -233,7 +236,7 @@ class NutrientBudget:
 
         return recommendation
 
-    def to_summary(self) -> Dict[str, Any]:
+    def to_summary(self) -> dict[str, Any]:
         """Produce a human-readable summary of the budget."""
         return {
             "timestamp": self.timestamp.isoformat(),
@@ -249,9 +252,7 @@ class NutrientBudget:
                 for name, t in self.targets.items()
             },
             "metabolic_state": (
-                self.metabolic_state.to_context_string()
-                if self.metabolic_state
-                else "unknown"
+                self.metabolic_state.to_context_string() if self.metabolic_state else "unknown"
             ),
             "active_phases": (
                 [p.value for p in self.metabolic_state.active_phases]
@@ -263,6 +264,7 @@ class NutrientBudget:
             "confidence": round(self.confidence, 3),
             "next_meal": self.get_next_meal_recommendation(),
         }
+
 
 class NutrientDemandCalculator:
     """Calculates real-time nutrient demands from the full biomarker pipeline.
@@ -302,21 +304,19 @@ class NutrientDemandCalculator:
     """
 
     def __init__(self):
-        self._user_constraints: Dict[str, List[MedicalConstraint]] = {}
+        self._user_constraints: dict[str, list[MedicalConstraint]] = {}
 
-    def set_medical_constraints(
-        self, user_id: str, constraints: List[MedicalConstraint]
-    ) -> None:
+    def set_medical_constraints(self, user_id: str, constraints: list[MedicalConstraint]) -> None:
         """Set medical constraints for a user."""
         self._user_constraints[user_id] = constraints
 
     def calculate(
         self,
         user_id: str,
-        base_targets: Dict[str, NutrientTarget],
+        base_targets: dict[str, NutrientTarget],
         metabolic_state: MetabolicState,
-        normalized_signals: Dict[BiomarkerType, NormalizedSignal],
-        genetic_modifiers: Dict[str, float],
+        normalized_signals: dict[BiomarkerType, NormalizedSignal],
+        genetic_modifiers: dict[str, float],
         frame_confidence: float = 1.0,
     ) -> NutrientBudget:
         """Calculate real-time nutrient budget.
@@ -349,9 +349,7 @@ class NutrientDemandCalculator:
         self._apply_genetic_modifiers(adjusted, genetic_modifiers, budget)
 
         # Step 4: Apply biomarker-driven adjustments
-        self._apply_biomarker_adjustments(
-            adjusted, normalized_signals, metabolic_state, budget
-        )
+        self._apply_biomarker_adjustments(adjusted, normalized_signals, metabolic_state, budget)
 
         # Step 5: Consumed amounts already applied in base_targets
 
@@ -362,9 +360,7 @@ class NutrientDemandCalculator:
         )
 
         # Step 7: Distribute across time buckets
-        budget.time_buckets = self._create_time_buckets(
-            metabolic_state, adjusted
-        )
+        budget.time_buckets = self._create_time_buckets(metabolic_state, adjusted)
 
         budget.targets = adjusted
         budget.active_constraints = constraints
@@ -374,7 +370,7 @@ class NutrientDemandCalculator:
 
     def _apply_metabolic_modifiers(
         self,
-        targets: Dict[str, NutrientTarget],
+        targets: dict[str, NutrientTarget],
         state: MetabolicState,
         budget: NutrientBudget,
     ) -> None:
@@ -402,19 +398,21 @@ class NutrientDemandCalculator:
             if target_name and target_name in targets:
                 old_target = targets[target_name].daily_target
                 targets[target_name].daily_target *= modifier
-                budget.modifications.append({
-                    "step": "metabolic_state",
-                    "nutrient": target_name,
-                    "old_value": round(old_target, 1),
-                    "new_value": round(targets[target_name].daily_target, 1),
-                    "modifier": modifier,
-                    "reason": f"Metabolic phases: {[p.value for p in state.active_phases]}",
-                })
+                budget.modifications.append(
+                    {
+                        "step": "metabolic_state",
+                        "nutrient": target_name,
+                        "old_value": round(old_target, 1),
+                        "new_value": round(targets[target_name].daily_target, 1),
+                        "modifier": modifier,
+                        "reason": f"Metabolic phases: {[p.value for p in state.active_phases]}",
+                    }
+                )
 
     def _apply_genetic_modifiers(
         self,
-        targets: Dict[str, NutrientTarget],
-        genetic_modifiers: Dict[str, float],
+        targets: dict[str, NutrientTarget],
+        genetic_modifiers: dict[str, float],
         budget: NutrientBudget,
     ) -> None:
         """Apply genetic modifier coefficients to nutrient targets."""
@@ -439,11 +437,11 @@ class NutrientDemandCalculator:
             "carb_sensitivity_modifier": ("carbs_g", True),
             "glycemic_load_threshold_modifier": ("carbs_g", False),
             # LCT (rs4988235)
-            "lactose_tolerance": ("calcium_mg", False),      # intolerant → alt calcium
+            "lactose_tolerance": ("calcium_mg", False),  # intolerant → alt calcium
             "calcium_alt_source_need": ("calcium_mg", False),
             # CYP1A2 (rs762551)
             "caffeine_metabolism_rate": ("caffeine_mg", False),  # slow → reduce
-            "caffeine_max_daily_mg": ("caffeine_mg", False),     # direct cap
+            "caffeine_max_daily_mg": ("caffeine_mg", False),  # direct cap
             # VDR (rs1544410)
             "vitamin_d_requirement_modifier": ("vitamin_d_iu", False),
             "calcium_absorption_modifier": ("calcium_mg", True),  # low absorb → more
@@ -466,20 +464,22 @@ class NutrientDemandCalculator:
 
             old_target = targets[target_name].daily_target
             targets[target_name].daily_target *= effective_modifier
-            budget.modifications.append({
-                "step": "genetic",
-                "nutrient": target_name,
-                "old_value": round(old_target, 1),
-                "new_value": round(targets[target_name].daily_target, 1),
-                "modifier": round(effective_modifier, 3),
-                "genetic_factor": genetic_key,
-                "reason": f"Genetic modifier {genetic_key}={modifier}",
-            })
+            budget.modifications.append(
+                {
+                    "step": "genetic",
+                    "nutrient": target_name,
+                    "old_value": round(old_target, 1),
+                    "new_value": round(targets[target_name].daily_target, 1),
+                    "modifier": round(effective_modifier, 3),
+                    "genetic_factor": genetic_key,
+                    "reason": f"Genetic modifier {genetic_key}={modifier}",
+                }
+            )
 
     def _apply_biomarker_adjustments(
         self,
-        targets: Dict[str, NutrientTarget],
-        signals: Dict[BiomarkerType, NormalizedSignal],
+        targets: dict[str, NutrientTarget],
+        signals: dict[BiomarkerType, NormalizedSignal],
         state: MetabolicState,
         budget: NutrientBudget,
     ) -> None:
@@ -496,28 +496,32 @@ class NutrientDemandCalculator:
                 # Elevated glucose → reduce carb target
                 reduction = min(0.25, (glucose_signal.z_score - 1.5) * 0.1)
                 old = targets["carbs_g"].daily_target
-                targets["carbs_g"].daily_target *= (1 - reduction)
-                budget.modifications.append({
-                    "step": "biomarker_reactive",
-                    "nutrient": "carbs_g",
-                    "old_value": round(old, 1),
-                    "new_value": round(targets["carbs_g"].daily_target, 1),
-                    "reason": f"Elevated glucose (z={glucose_signal.z_score:.1f})",
-                    "biomarker": "glucose",
-                })
+                targets["carbs_g"].daily_target *= 1 - reduction
+                budget.modifications.append(
+                    {
+                        "step": "biomarker_reactive",
+                        "nutrient": "carbs_g",
+                        "old_value": round(old, 1),
+                        "new_value": round(targets["carbs_g"].daily_target, 1),
+                        "reason": f"Elevated glucose (z={glucose_signal.z_score:.1f})",
+                        "biomarker": "glucose",
+                    }
+                )
             elif glucose_signal.z_score < -1.0:
                 # Low glucose → increase carb target
                 increase = min(0.20, abs(glucose_signal.z_score + 1.0) * 0.1)
                 old = targets["carbs_g"].daily_target
-                targets["carbs_g"].daily_target *= (1 + increase)
-                budget.modifications.append({
-                    "step": "biomarker_reactive",
-                    "nutrient": "carbs_g",
-                    "old_value": round(old, 1),
-                    "new_value": round(targets["carbs_g"].daily_target, 1),
-                    "reason": f"Low glucose (z={glucose_signal.z_score:.1f})",
-                    "biomarker": "glucose",
-                })
+                targets["carbs_g"].daily_target *= 1 + increase
+                budget.modifications.append(
+                    {
+                        "step": "biomarker_reactive",
+                        "nutrient": "carbs_g",
+                        "old_value": round(old, 1),
+                        "new_value": round(targets["carbs_g"].daily_target, 1),
+                        "reason": f"Low glucose (z={glucose_signal.z_score:.1f})",
+                        "biomarker": "glucose",
+                    }
+                )
 
         # HRV-based micronutrient adjustment
         hrv_signal = signals.get(BiomarkerType.HRV)
@@ -528,17 +532,17 @@ class NutrientDemandCalculator:
                     if nutrient in targets:
                         increase = 0.15
                         old = targets[nutrient].daily_target
-                        targets[nutrient].daily_target *= (1 + increase)
-                        budget.modifications.append({
-                            "step": "biomarker_reactive",
-                            "nutrient": nutrient,
-                            "old_value": round(old, 1),
-                            "new_value": round(
-                                targets[nutrient].daily_target, 1
-                            ),
-                            "reason": f"Low HRV stress (z={hrv_signal.z_score:.1f})",
-                            "biomarker": "hrv",
-                        })
+                        targets[nutrient].daily_target *= 1 + increase
+                        budget.modifications.append(
+                            {
+                                "step": "biomarker_reactive",
+                                "nutrient": nutrient,
+                                "old_value": round(old, 1),
+                                "new_value": round(targets[nutrient].daily_target, 1),
+                                "reason": f"Low HRV stress (z={hrv_signal.z_score:.1f})",
+                                "biomarker": "hrv",
+                            }
+                        )
 
         # Heart-rate-based hydration adjustment
         hr_signal = signals.get(BiomarkerType.HEART_RATE)
@@ -547,38 +551,42 @@ class NutrientDemandCalculator:
                 # Elevated HR → potential dehydration → more water
                 increase = min(0.3, (hr_signal.z_score - 1.0) * 0.15)
                 old = targets["water_ml"].daily_target
-                targets["water_ml"].daily_target *= (1 + increase)
-                budget.modifications.append({
-                    "step": "biomarker_reactive",
-                    "nutrient": "water_ml",
-                    "old_value": round(old, 1),
-                    "new_value": round(targets["water_ml"].daily_target, 1),
-                    "reason": f"Elevated HR (z={hr_signal.z_score:.1f})",
-                    "biomarker": "heart_rate",
-                })
+                targets["water_ml"].daily_target *= 1 + increase
+                budget.modifications.append(
+                    {
+                        "step": "biomarker_reactive",
+                        "nutrient": "water_ml",
+                        "old_value": round(old, 1),
+                        "new_value": round(targets["water_ml"].daily_target, 1),
+                        "reason": f"Elevated HR (z={hr_signal.z_score:.1f})",
+                        "biomarker": "heart_rate",
+                    }
+                )
 
         # Insulin sensitivity-based glycemic load adjustment
         if state.insulin_sensitivity_estimate < 0.5 and "carbs_g" in targets:
             # Low insulin sensitivity → prefer low-GI carbs
-            budget.modifications.append({
-                "step": "biomarker_reactive",
-                "nutrient": "carbs_g",
-                "old_value": targets["carbs_g"].daily_target,
-                "new_value": targets["carbs_g"].daily_target,
-                "reason": (
-                    f"Low insulin sensitivity ({state.insulin_sensitivity_estimate:.2f})"
-                    " — prefer low-GI carb sources"
-                ),
-                "biomarker": "insulin_sensitivity",
-                "qualitative": "prefer_low_gi",
-            })
+            budget.modifications.append(
+                {
+                    "step": "biomarker_reactive",
+                    "nutrient": "carbs_g",
+                    "old_value": targets["carbs_g"].daily_target,
+                    "new_value": targets["carbs_g"].daily_target,
+                    "reason": (
+                        f"Low insulin sensitivity ({state.insulin_sensitivity_estimate:.2f})"
+                        " — prefer low-GI carb sources"
+                    ),
+                    "biomarker": "insulin_sensitivity",
+                    "qualitative": "prefer_low_gi",
+                }
+            )
 
     def _resolve_conflicts_and_apply_constraints(
         self,
-        targets: Dict[str, NutrientTarget],
-        constraints: List[MedicalConstraint],
+        targets: dict[str, NutrientTarget],
+        constraints: list[MedicalConstraint],
         budget: NutrientBudget,
-        genetic_modifiers: Dict[str, float],
+        genetic_modifiers: dict[str, float],
     ) -> None:
         """Conflict Resolution Layer: hierarchical safety-first decision-making.
 
@@ -600,7 +608,7 @@ class NutrientDemandCalculator:
         record is emitted for audit.
         """
         # Identify which nutrients had genetic modifications applied
-        genetic_modified_nutrients: Dict[str, float] = {}
+        genetic_modified_nutrients: dict[str, float] = {}
         for mod in budget.modifications:
             if mod.get("step") == "genetic":
                 nutrient = mod["nutrient"]
@@ -608,9 +616,7 @@ class NutrientDemandCalculator:
                 genetic_modified_nutrients[nutrient] = mod["old_value"]
 
         # Sort constraints: critical first, then warning
-        sorted_constraints = sorted(
-            constraints, key=lambda c: c.priority, reverse=True
-        )
+        sorted_constraints = sorted(constraints, key=lambda c: c.priority, reverse=True)
 
         for constraint in sorted_constraints:
             if constraint.nutrient not in targets:
@@ -624,14 +630,12 @@ class NutrientDemandCalculator:
             if constraint.constraint_type == "max":
                 if target.daily_target > constraint.value:
                     conflict_detected = True
-                    old = target.daily_target
                     target.daily_target = constraint.value
                     target.maximum = constraint.value
 
             elif constraint.constraint_type == "min":
                 if target.daily_target < constraint.value:
                     conflict_detected = True
-                    old = target.daily_target
                     target.daily_target = constraint.value
                     target.minimum = constraint.value
 
@@ -639,19 +643,16 @@ class NutrientDemandCalculator:
                 continue
 
             # Determine if this was a genetic vs. medical conflict
-            was_genetically_modified = (
-                constraint.nutrient in genetic_modified_nutrients
-            )
+            was_genetically_modified = constraint.nutrient in genetic_modified_nutrients
 
             if was_genetically_modified:
                 conflict_type = "genetic_vs_medical"
-                base_value = genetic_modified_nutrients[constraint.nutrient]
             else:
                 # Check if metabolic or reactive modification caused it
                 for mod in budget.modifications:
-                    if (
-                        mod["nutrient"] == constraint.nutrient
-                        and mod["step"] in ("metabolic_state", "biomarker_reactive")
+                    if mod["nutrient"] == constraint.nutrient and mod["step"] in (
+                        "metabolic_state",
+                        "biomarker_reactive",
                     ):
                         conflict_type = f"{mod['step']}_vs_medical"
                         break
@@ -665,12 +666,11 @@ class NutrientDemandCalculator:
                 medical_limit=constraint.value,
                 resolved_value=target.daily_target,
                 winner=(
-                    "medical_critical"
-                    if constraint.severity == "critical"
-                    else "medical_warning"
+                    "medical_critical" if constraint.severity == "critical" else "medical_warning"
                 ),
                 loser=(
-                    "genetic" if was_genetically_modified
+                    "genetic"
+                    if was_genetically_modified
                     else conflict_type.split("_vs_")[0]
                     if "_vs_" in conflict_type
                     else "adjustment"
@@ -689,24 +689,26 @@ class NutrientDemandCalculator:
             budget.conflict_resolutions.append(resolution)
 
             # Also add to standard modifications audit trail
-            budget.modifications.append({
-                "step": "conflict_resolution",
-                "nutrient": constraint.nutrient,
-                "old_value": round(pre_resolution_value, 1),
-                "new_value": constraint.value,
-                "reason": constraint.reason,
-                "severity": constraint.severity,
-                "conflict_type": conflict_type,
-                "winner": resolution.winner,
-                "loser": resolution.loser,
-                "resolution": resolution.resolution_rationale,
-            })
+            budget.modifications.append(
+                {
+                    "step": "conflict_resolution",
+                    "nutrient": constraint.nutrient,
+                    "old_value": round(pre_resolution_value, 1),
+                    "new_value": constraint.value,
+                    "reason": constraint.reason,
+                    "severity": constraint.severity,
+                    "conflict_type": conflict_type,
+                    "winner": resolution.winner,
+                    "loser": resolution.loser,
+                    "resolution": resolution.resolution_rationale,
+                }
+            )
 
     def _create_time_buckets(
         self,
         state: MetabolicState,
-        targets: Dict[str, NutrientTarget],
-    ) -> List[TimeBucket]:
+        targets: dict[str, NutrientTarget],
+    ) -> list[TimeBucket]:
         """Create time-bucketed nutrient distribution plan.
 
         Patent-relevant: The time buckets are dynamically generated
@@ -715,7 +717,7 @@ class NutrientDemandCalculator:
         that wouldn't exist in a sedentary day.
         """
         now_hour = state.timestamp.hour
-        buckets: List[TimeBucket] = []
+        buckets: list[TimeBucket] = []
 
         # Dynamic bucket generation based on current state
         if MetabolicPhase.RECOVERY_IMMEDIATE in state.active_phases:
@@ -786,11 +788,12 @@ class NutrientDemandCalculator:
 
         return buckets
 
+
 def create_default_targets(
     kcal: float = 2000,
     weight_kg: float = 70,
     activity_level: str = "moderate",
-) -> Dict[str, NutrientTarget]:
+) -> dict[str, NutrientTarget]:
     """Create default nutrient targets based on basic user profile.
 
     This provides baseline targets that the calculator then adjusts
@@ -902,5 +905,3 @@ def create_default_targets(
             unit="mg",
         ),
     }
-
-
