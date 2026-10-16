@@ -1,4 +1,4 @@
-.PHONY: setup dev api web test lint format gen-api check demo demo-fixtures up down
+.PHONY: setup dev api web test lint format gen-api check demo demo-api demo-fixtures ml-eval up down
 
 setup:            ## Install API (uv) and web (pnpm) dependencies
 	cd apps/api && uv sync
@@ -29,8 +29,14 @@ check: lint test  ## Everything CI runs, locally
 demo:             ## Static no-backend demo for GitHub Pages -> apps/web/out (basePath /demos/nutri-node)
 	cd apps/web && pnpm build:demo
 
+demo-api:         ## API from the repo root with fixed DP noise, for make demo-fixtures
+	DP_SEED=20261016 uv run --project apps/api uvicorn app.main:app --app-dir apps/api --port 8000
+
 demo-fixtures:    ## Recapture demo responses from a live API started at the repo root (see the script docstring)
 	uv run --project apps/api python apps/api/scripts/capture_demo_fixtures.py $${API_URL:-http://localhost:8000}
+
+ml-eval:          ## Train and score the synthetic glucose-response model -> output/glycemic_model_eval.md
+	uv run --project apps/api python apps/api/scripts/train_eval_glycemic.py
 
 up:               ## Full stack in Docker: http://localhost:3000
 	docker compose up --build

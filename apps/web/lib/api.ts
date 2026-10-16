@@ -11,6 +11,8 @@ import type {
   GeneticModifiers,
   IngestionResult,
   JsonObject,
+  Macros,
+  MealPlanView,
   MetabolicStateView,
   NutrientBudgetView,
   RecommendationsView,
@@ -19,6 +21,7 @@ import type {
   SyncResponse,
   SyntheaLoadResult,
   SyntheaStatus,
+  TrendsView,
   UserTargets,
 } from "./types";
 import type { components } from "./api-schema";
@@ -249,3 +252,86 @@ export async function syntheaLoadPatient(patientId: string, userId?: string) {
 
 export const syntheaPatientDetail = <T = JsonObject>(patientId: string) =>
   request<T>(`/synthea/patient/${encodeURIComponent(patientId)}`);
+
+
+/* ── Weekly meal plan ──────────────────────────────────────────── */
+
+/** Sample medical limit offered on the Meal plan tab: 0.8 g/kg/day protein at 70 kg. */
+export const SAMPLE_PROTEIN_LIMIT: Schemas["MedicalConstraintIn"] = {
+  nutrient: "protein_g",
+  constraint_type: "max",
+  value: 56,
+  reason: "Sample kidney-related protein limit (0.8 g/kg/day)",
+  severity: "critical",
+  source: "user_reported",
+};
+
+const macros = (m: Schemas["MacroTotals"]): Macros => ({
+  kcal: m.kcal,
+  protein_g: m.protein_g,
+  carbs_g: m.carbs_g,
+  fat_g: m.fat_g,
+});
+
+export async function planMeals(
+  targets: Partial<Macros> & { kcal: number },
+  applySampleLimit: boolean,
+): Promise<MealPlanView> {
+  const raw = await post<Schemas["MealPlanResponse"]>("/meal-plan", {
+    targets: {
+      kcal: Math.round(targets.kcal),
+      protein_g: targets.protein_g != null ? Math.round(targets.protein_g) : null,
+      carbs_g: targets.carbs_g != null ? Math.round(targets.carbs_g) : null,
+      fat_g: targets.fat_g != null ? Math.round(targets.fat_g) : null,
+    },
+    days: 7,
+    constraints: applySampleLimit ? [SAMPLE_PROTEIN_LIMIT] : [],
+  } satisfies Schemas["MealPlanRequest"]);
+  return {
+    days: raw.days.map((d) => ({
+      day: d.day,
+      totals: macros(d.totals),
+      withinLimits: d.within_limits,
+      meals: d.meals.map((m) => ({
+        slot: m.slot,
+        kcal: m.kcal,
+        items: m.items.map((i) => ({ food: i.food, servings: i.servings, kcal: i.kcal, protein: i.protein_g })),
+      })),
+    })),
+    requested: macros(raw.requested_targets),
+    effective: macros(raw.effective_targets),
+    ceilings: raw.ceilings,
+    weeklyAverage: macros(raw.weekly_average),
+    adjustments: raw.adjustments,
+    notes: raw.notes,
+    disclaimer: raw.disclaimer,
+  };
+}
+
+/* ── Trend analytics ───────────────────────────────────────────── */
+
+export async function getSampleTrends(): Promise<TrendsView> {
+  const raw = await request<Schemas["TrendsResponse"]>("/analytics/sample");
+  return {
+    days: raw.days,
+    start: raw.start ?? null,
+    end: raw.end ?? null,
+    synthetic: raw.synthetic ?? false,
+    note: raw.note ?? "",
+    metrics: raw.metrics.map((m) => ({
+      key: m.key,
+      label: m.label,
+      unit: m.unit,
+      goal: m.goal,
+      direction: m.direction,
+      points: m.series.map((p) => ({ date: p.date, value: p.value ?? null, rolling: p.rolling_7 ?? null })),
+      firstWeek: m.first_week_mean ?? null,
+      lastWeek: m.last_week_mean ?? null,
+      changePct: m.change_pct ?? null,
+      slopePerWeek: m.slope_per_week ?? null,
+      adherencePct: m.adherence_pct ?? null,
+    })),
+    ruleFrequency: raw.rule_frequency.map((r) => ({ ruleId: r.rule_id, days: r.days })),
+    ruleCounts: raw.rule_days.map((r) => ({ date: r.date, count: r.count })),
+  };
+}

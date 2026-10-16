@@ -31,6 +31,8 @@ import type { EdgeManifest } from "./components/EdgeBoundaryBar";
 import type { LagComparison } from "./components/LagComparisonView";
 import type { DailyFeatures, EngineStatusView, RecommendationsView } from "../lib/types";
 import RecommendationsPanel from "./components/RecommendationsPanel";
+import MealPlanPanel from "./components/MealPlanPanel";
+import TrendsPanel from "./components/TrendsPanel";
 
 /* ── Types ──────────────────────────────────────────── */
 
@@ -39,6 +41,8 @@ type TabType =
   | "consent"
   | "genetic"
   | "meal_predict"
+  | "meal_plan"
+  | "trends"
   | "synthea";
 
 interface PipelineStage {
@@ -367,6 +371,17 @@ export default function HomePage() {
     }
   };
 
+  /* ── Targets for the meal plan when the pipeline has not run ── */
+
+  const loadTargets = async () => {
+    const budget = await engineNutrientBudget(USER_ID, 70, 175, 30, "male", "moderate");
+    setNutrientTargets(budget.targets);
+    setNutrientModifications(budget.modifications);
+    setNutrientState(budget.metabolic_state);
+    setConflictResolutions(budget.conflict_resolutions);
+    return budget.targets;
+  };
+
   /* ── Tab Config ──────────────────────────────────── */
 
   const TABS: { id: TabType; label: string }[] = [
@@ -374,6 +389,8 @@ export default function HomePage() {
     { id: "consent",      label: "Consent" },
     { id: "genetic",      label: "Genetic profile" },
     { id: "meal_predict", label: "Meal check" },
+    { id: "meal_plan",    label: "Meal plan" },
+    { id: "trends",       label: "Trends" },
     { id: "synthea",      label: "Sample patients" },
   ];
 
@@ -609,6 +626,34 @@ export default function HomePage() {
                 onApprove={handleMealApprove}
               />
             </div>
+          </div>
+        )}
+
+        {/* ── Meal Plan Tab ────────────────────────── */}
+        {activeTab === "meal_plan" && (
+          <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold">Meal plan</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                A week of breakfasts, lunches, dinners, and snacks built from the app&apos;s food table so each day lands near
+                the nutrient targets. Medical limits are applied first and are never exceeded.
+              </p>
+            </div>
+            <MealPlanPanel targets={nutrientTargets} loadTargets={loadTargets} />
+          </div>
+        )}
+
+        {/* ── Trends Tab ───────────────────────────── */}
+        {activeTab === "trends" && (
+          <div className="animate-fade-in">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold">Trends</h2>
+              <p className="text-slate-400 text-sm mt-1 max-w-3xl">
+                Four weeks of logged days for a fictional user (synthetic data), summarized by the API: rolling averages,
+                weekly trend, how often each goal was met, and which suggestions fired.
+              </p>
+            </div>
+            <TrendsPanel />
           </div>
         )}
 

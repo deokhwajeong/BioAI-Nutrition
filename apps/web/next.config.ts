@@ -25,6 +25,10 @@ const nextConfig: NextConfig = DEMO ? demoConfig : {
       { source: "/analyze-meal",  destination: `${BACKEND}/analyze-meal` },
       { source: "/image-analyze/:path*", destination: `${BACKEND}/image-analyze/:path*` },
       { source: "/recommendations", destination: `${BACKEND}/recommendations` },
+      { source: "/meal-plan",     destination: `${BACKEND}/meal-plan` },
+      { source: "/analytics/:path*", destination: `${BACKEND}/analytics/:path*` },
+      { source: "/auth/:path*",   destination: `${BACKEND}/auth/:path*` },
+      { source: "/users/:path*",  destination: `${BACKEND}/users/:path*` },
       { source: "/health",        destination: `${BACKEND}/health` },
       { source: "/api/metrics",   destination: `${BACKEND}/api/metrics` },
     ];

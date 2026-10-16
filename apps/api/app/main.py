@@ -20,15 +20,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic_settings import BaseSettings
 
+from .models.database import Base, engine
 from .routers import (
+    analytics,
     biomarker_engine,
     events,
     image_analyzer,
+    meal_plan,
     meal_router,
     recommendations,
     synthea_router,
 )
-from .routes import ingest, users
+from .routes import auth, ingest, users
 from .services.privacy import PIIFilter
 
 
@@ -80,6 +83,10 @@ async def verify_api_key(
     return api_key
 
 
+# Create any missing tables (accounts, daily logs, ...). Idempotent; Alembic migrations in
+# alembic/versions describe the same schema for managed databases.
+Base.metadata.create_all(bind=engine)
+
 # Create FastAPI application with metadata from settings
 app = FastAPI(
     title=settings.api_title,
@@ -112,11 +119,27 @@ app.include_router(
     dependencies=[Depends(verify_api_key)],
 )
 
-# users router for delete endpoint
+# Accounts: register/login issue bearer tokens; /users/* acts on the token's own account.
+app.include_router(
+    auth.router,
+    dependencies=[Depends(verify_api_key)],
+)
 app.include_router(
     users.router,
     prefix="/users",
     tags=["users"],
+    dependencies=[Depends(verify_api_key)],
+)
+
+# Weekly meal plans from the nutrient budget and the food table
+app.include_router(
+    meal_plan.router,
+    dependencies=[Depends(verify_api_key)],
+)
+
+# Trend analytics over logged days
+app.include_router(
+    analytics.router,
     dependencies=[Depends(verify_api_key)],
 )
 

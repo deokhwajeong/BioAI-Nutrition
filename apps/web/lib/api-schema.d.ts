@@ -26,6 +26,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sample Trends
+         * @description Trends for 28 days of a fictional user (fixed seed, identical on every call).
+         */
+        get: operations["sample_trends_analytics_sample_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Trends
+         * @description Rolling means, weekly slopes, goal adherence, and rule hits for the days sent.
+         */
+        post: operations["post_trends_analytics_trends_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/analyze-meal": {
         parameters: {
             query?: never;
@@ -60,6 +100,57 @@ export interface paths {
         get: operations["get_metrics_api_metrics_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register */
+        post: operations["register_auth_register_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -443,6 +534,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/meal-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Meal Plan
+         * @description Plan up to 7 days of meals from the built-in food table against daily targets.
+         *
+         *     Medical constraints (from the request and, with ``user_id``, those stored in the engine)
+         *     are applied before planning and enforced as hard ceilings after it, so they always win
+         *     over the targets. General wellness guidance, not medical advice.
+         */
+        post: operations["create_meal_plan_meal_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recommendations": {
         parameters: {
             query?: never;
@@ -549,6 +664,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_users_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Analytics */
+        get: operations["my_analytics_users_me_analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Consent */
+        get: operations["get_consent_users_me_consent_get"];
+        /**
+         * Set Consent
+         * @description Store the decision and apply it to the engine's consent gate for this user id.
+         */
+        put: operations["set_consent_users_me_consent_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Days */
+        get: operations["list_days_users_me_days_get"];
+        /**
+         * Log Day
+         * @description Create or replace the log for one date.
+         */
+        put: operations["log_day_users_me_days_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Profile */
+        put: operations["update_profile_users_me_profile_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user_id}": {
         parameters: {
             query?: never;
@@ -561,8 +769,9 @@ export interface paths {
         post?: never;
         /**
          * Delete User
-         * @description Schedule deletion of all data associated with a user. In a real implementation,
-         *     this would enqueue a task to delete user data from the database and storage.
+         * @description Erase the account and all of its data: stored rows and in-process engine state.
+         *
+         *     Only the account itself may do this. Tokens stop working immediately.
          */
         delete: operations["delete_user_users__user_id__delete"];
         options?: never;
@@ -574,6 +783,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountConsentOut */
+        AccountConsentOut: {
+            /**
+             * Scopes
+             * @description Every scope the user has decided on
+             */
+            scopes: {
+                [key: string]: boolean;
+            };
+            /** User Id */
+            user_id: string;
+        };
+        /** AccountOut */
+        AccountOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            profile: components["schemas"]["Profile"];
+            /** User Id */
+            user_id: string;
+            /** Username */
+            username: string;
+        };
         /** ActivityEvent */
         ActivityEvent: {
             /** Activity Type */
@@ -723,6 +957,12 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * ConsentScope
+         * @description Granular data categories that can be independently consented.
+         * @enum {string}
+         */
+        ConsentScope: "glucose_data" | "activity_data" | "sleep_data" | "genetic_data" | "meal_data" | "medication_data" | "weight_data" | "heart_rate_data" | "blood_test_data" | "water_intake_data" | "location_data" | "metabolic_state" | "nutrient_budget" | "recommendations" | "household_sharing" | "research_sharing" | "provider_sharing" | "third_party_sharing" | "research_use" | "model_training";
         /** ConsentStatusOut */
         ConsentStatusOut: {
             /** Allowed Biomarkers */
@@ -740,6 +980,19 @@ export interface components {
             revoked_scopes: string[];
             /** User Id */
             user_id: string;
+        };
+        /** ConsentUpdate */
+        ConsentUpdate: {
+            /** Granted */
+            granted: boolean;
+            scope: components["schemas"]["ConsentScope"];
+        };
+        /** Credentials */
+        Credentials: {
+            /** Password */
+            password: string;
+            /** Username */
+            username: string;
         };
         /**
          * DailyFeatures
@@ -772,6 +1025,18 @@ export interface components {
             sugar_g?: number | null;
             /** Water Ml */
             water_ml?: number | null;
+        };
+        /** DeletionReport */
+        DeletionReport: {
+            /**
+             * Deleted
+             * @description Rows removed per table
+             */
+            deleted: {
+                [key: string]: number;
+            };
+            /** User Id */
+            user_id: string;
         };
         /** DietEvent */
         DietEvent: {
@@ -906,6 +1171,98 @@ export interface components {
             user_id: string;
         };
         /**
+         * LoggedDay
+         * @description A DailyFeatures row whose date is required.
+         */
+        LoggedDay: {
+            /**
+             * Calories
+             * @description Energy intake (kcal)
+             */
+            calories?: number | null;
+            /** Carbs G */
+            carbs_g?: number | null;
+            /**
+             * Date
+             * @description ISO date
+             */
+            date: string;
+            /** Fiber G */
+            fiber_g?: number | null;
+            /** Omega3 G */
+            omega3_g?: number | null;
+            /** Protein G */
+            protein_g?: number | null;
+            /** Sleep Hours */
+            sleep_hours?: number | null;
+            /** Steps */
+            steps?: number | null;
+            /** Sugar G */
+            sugar_g?: number | null;
+            /** Water Ml */
+            water_ml?: number | null;
+        };
+        /** MacroTotals */
+        MacroTotals: {
+            /** Carbs G */
+            carbs_g: number;
+            /** Fat G */
+            fat_g: number;
+            /** Kcal */
+            kcal: number;
+            /** Protein G */
+            protein_g: number;
+        };
+        /** MealPlanRequest */
+        MealPlanRequest: {
+            /**
+             * Constraints
+             * @description Medical limits. They override the targets and are hard ceilings.
+             */
+            constraints?: components["schemas"]["MedicalConstraintIn"][];
+            /**
+             * Days
+             * @description Number of days to plan
+             * @default 7
+             */
+            days?: number;
+            /**
+             * Exclude Foods
+             * @description Foods to leave out (allergies, dislikes)
+             */
+            exclude_foods?: string[];
+            targets: components["schemas"]["PlanTargets"];
+            /**
+             * User Id
+             * @description Also apply the medical constraints stored for this user in the engine
+             */
+            user_id?: string | null;
+        };
+        /** MealPlanResponse */
+        MealPlanResponse: {
+            /** Adjustments */
+            adjustments: string[];
+            /**
+             * Ceilings
+             * @description Hard medical ceilings the plan respects
+             */
+            ceilings: {
+                [key: string]: number;
+            };
+            /** Days */
+            days: components["schemas"]["PlannedDayOut"][];
+            /** Disclaimer */
+            disclaimer: string;
+            /** @description Targets after medical limits and energy balancing */
+            effective_targets: components["schemas"]["MacroTotals"];
+            /** Guardrails */
+            guardrails?: string[];
+            /** Notes */
+            notes: string[];
+            requested_targets: components["schemas"]["MacroTotals"];
+            weekly_average: components["schemas"]["MacroTotals"];
+        };
+        /**
          * MedicalConstraintIn
          * @description Input schema for a single medical or safety constraint.
          */
@@ -1007,6 +1364,47 @@ export interface components {
              * Format: date-time
              */
             timestamp: string;
+        };
+        /** MetricTrend */
+        MetricTrend: {
+            /**
+             * Adherence Pct
+             * @description Share of logged days that met the goal
+             */
+            adherence_pct: number | null;
+            /**
+             * Change Pct
+             * @description Last week versus first week, percent
+             */
+            change_pct: number | null;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "at_least" | "at_most" | "near";
+            /** First Week Mean */
+            first_week_mean: number | null;
+            /** Goal */
+            goal: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Last Week Mean */
+            last_week_mean: number | null;
+            /** Logged Days */
+            logged_days: number;
+            /** Mean */
+            mean: number | null;
+            /** Series */
+            series: components["schemas"]["TrendPoint"][];
+            /**
+             * Slope Per Week
+             * @description Least-squares slope, units per week
+             */
+            slope_per_week: number | null;
+            /** Unit */
+            unit: string;
         };
         /** ModificationOut */
         ModificationOut: {
@@ -1137,6 +1535,92 @@ export interface components {
             /** Users With Data */
             users_with_data: number;
         };
+        /**
+         * PlanTargets
+         * @description Daily targets to plan against. Usually the pipeline's nutrient budget.
+         */
+        PlanTargets: {
+            /**
+             * Carbs G
+             * @description Daily carbohydrate (g)
+             */
+            carbs_g?: number | null;
+            /**
+             * Fat G
+             * @description Daily fat target (g)
+             */
+            fat_g?: number | null;
+            /**
+             * Kcal
+             * @description Daily energy target (kcal)
+             */
+            kcal: number;
+            /**
+             * Protein G
+             * @description Daily protein target (g)
+             */
+            protein_g?: number | null;
+        };
+        /** PlannedDayOut */
+        PlannedDayOut: {
+            /** Day */
+            day: number;
+            /**
+             * Deviation Pct
+             * @description Percent difference from the effective targets, per nutrient
+             */
+            deviation_pct: {
+                [key: string]: number;
+            };
+            /** Meals */
+            meals: components["schemas"]["PlannedMealOut"][];
+            totals: components["schemas"]["MacroTotals"];
+            /**
+             * Within Limits
+             * @description True when every medical ceiling holds
+             */
+            within_limits: boolean;
+        };
+        /** PlannedItemOut */
+        PlannedItemOut: {
+            /** Carbs G */
+            carbs_g: number;
+            /** Fat G */
+            fat_g: number;
+            /** Food */
+            food: string;
+            /** Kcal */
+            kcal: number;
+            /** Protein G */
+            protein_g: number;
+            /** Servings */
+            servings: number;
+        };
+        /** PlannedMealOut */
+        PlannedMealOut: {
+            /** Items */
+            items: components["schemas"]["PlannedItemOut"][];
+            /** Kcal */
+            kcal: number;
+            /**
+             * Slot
+             * @description breakfast, lunch, dinner, or snack
+             */
+            slot: string;
+        };
+        /** Profile */
+        Profile: {
+            /** Activity Level */
+            activity_level?: ("sedentary" | "light" | "moderate" | "active" | "very_active") | null;
+            /** Age */
+            age?: number | null;
+            /** Height Cm */
+            height_cm?: number | null;
+            /** Sex */
+            sex?: ("male" | "female") | null;
+            /** Weight Kg */
+            weight_kg?: number | null;
+        };
         /** Recommendation */
         Recommendation: {
             /**
@@ -1183,6 +1667,22 @@ export interface components {
             disclaimer?: string;
             /** Recommendations */
             recommendations: components["schemas"]["Recommendation"][];
+        };
+        /** RuleDay */
+        RuleDay: {
+            /** Count */
+            count: number;
+            /** Date */
+            date: string;
+            /** Rule Ids */
+            rule_ids: string[];
+        };
+        /** RuleFrequency */
+        RuleFrequency: {
+            /** Days */
+            days: number;
+            /** Rule Id */
+            rule_id: string;
         };
         /** SleepEvent */
         SleepEvent: {
@@ -1285,6 +1785,68 @@ export interface components {
             /** Water Pct */
             water_pct: number;
         };
+        /** TokenOut */
+        TokenOut: {
+            /** Access Token */
+            access_token: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Token Type
+             * @default bearer
+             * @constant
+             */
+            token_type?: "bearer";
+            /** User Id */
+            user_id: string;
+        };
+        /** TrendPoint */
+        TrendPoint: {
+            /** Date */
+            date: string;
+            /**
+             * Rolling 7
+             * @description Mean of the last 7 logged values
+             */
+            rolling_7: number | null;
+            /** Value */
+            value: number | null;
+        };
+        /** TrendsRequest */
+        TrendsRequest: {
+            /** Days */
+            days: components["schemas"]["LoggedDay"][];
+            user_targets?: components["schemas"]["UserTargets"];
+        };
+        /** TrendsResponse */
+        TrendsResponse: {
+            /** Days */
+            days: number;
+            /** End */
+            end: string | null;
+            /** Metrics */
+            metrics: components["schemas"]["MetricTrend"][];
+            /**
+             * Note
+             * @default Descriptive statistics on logged days. Not a health assessment.
+             */
+            note?: string;
+            /** Rule Days */
+            rule_days: components["schemas"]["RuleDay"][];
+            /** Rule Frequency */
+            rule_frequency: components["schemas"]["RuleFrequency"][];
+            /** Start */
+            start: string | null;
+            /**
+             * Synthetic
+             * @description True when the days are generated sample data
+             * @default false
+             */
+            synthetic?: boolean;
+        };
         /**
          * UserTargets
          * @description Daily targets. Anything left out falls back to the engine's defaults.
@@ -1360,6 +1922,59 @@ export interface operations {
             };
         };
     };
+    sample_trends_analytics_sample_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendsResponse"];
+                };
+            };
+        };
+    };
+    post_trends_analytics_trends_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrendsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     analyze_meal_endpoint_analyze_meal_post: {
         parameters: {
             query?: never;
@@ -1413,6 +2028,90 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Credentials"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    register_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Credentials"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOut"];
                 };
             };
             /** @description Validation Error */
@@ -2029,6 +2728,39 @@ export interface operations {
             };
         };
     };
+    create_meal_plan_meal_plan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MealPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealPlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     post_recommendations_recommendations_post: {
         parameters: {
             query?: never;
@@ -2180,6 +2912,185 @@ export interface operations {
             };
         };
     };
+    me_users_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOut"];
+                };
+            };
+        };
+    };
+    my_analytics_users_me_analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendsResponse"];
+                };
+            };
+        };
+    };
+    get_consent_users_me_consent_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountConsentOut"];
+                };
+            };
+        };
+    };
+    set_consent_users_me_consent_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountConsentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_days_users_me_days_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoggedDay"][];
+                };
+            };
+        };
+    };
+    log_day_users_me_days_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoggedDay"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoggedDay"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_profile_users_me_profile_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Profile"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_user_users__user_id__delete: {
         parameters: {
             query?: never;
@@ -2192,11 +3103,13 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DeletionReport"];
+                };
             };
             /** @description Validation Error */
             422: {

@@ -14,6 +14,7 @@ This router ties together all engine components into a usable API.
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -79,7 +80,10 @@ _interpolator = CircadianInterpolator()
 _metabolic_estimator = MetabolicStateEstimator()
 _nutrient_calculator = NutrientDemandCalculator()
 _consent_manager = DynamicConsentManager()
-_privacy_engine = DifferentialPrivacyEngine()
+# DP_SEED fixes the noise sequence (used when capturing the static demo fixtures, so the
+# published numbers are reproducible). Unset in normal runs.
+_dp_seed = os.getenv("DP_SEED")
+_privacy_engine = DifferentialPrivacyEngine(seed=int(_dp_seed) if _dp_seed else None)
 _graph_embedding = HealthGraphEmbedding()
 _edge_processor = EdgeProcessor(embedding_dim=64, dp_epsilon=1.0)
 
@@ -1050,3 +1054,37 @@ async def get_medical_constraints(user_id: str) -> MedicalConstraintsResponse:
         ],
         count=len(constraints),
     )
+
+
+# ── Account deletion support ────────────────────────────────────────
+
+
+def purge_user_state(user_id: str) -> None:
+    """Remove everything the in-process engine holds for ``user_id``.
+
+    The adapters, estimators, and privacy components keep per-user state in dicts keyed by
+    user id (adapters use "user_id:biomarker_type"). Each top-level dict attribute is
+    cleared of those keys, then the consent audit log and the pipeline's cached releases.
+    Called by DELETE /users/{user_id}.
+    """
+    prefix = f"{user_id}:"
+    components: list[Any] = [
+        *{id(a): a for a in _ADAPTER_MAP.values()}.values(),
+        _synchronizer,
+        _synchronizer.lag_model,
+        _normalizer,
+        _interpolator,
+        _metabolic_estimator,
+        _nutrient_calculator,
+        _consent_manager,
+        _privacy_engine,
+    ]
+    for component in components:
+        for value in vars(component).values():
+            if isinstance(value, dict):
+                for key in [k for k in value if k == user_id or str(k).startswith(prefix)]:
+                    del value[key]
+    _consent_manager._audit_log[:] = [
+        r for r in _consent_manager._audit_log if r.user_id != user_id
+    ]
+    _pipeline.forget_user(user_id)

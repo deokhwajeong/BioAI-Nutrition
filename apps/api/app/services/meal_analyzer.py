@@ -69,6 +69,7 @@ NUTRITION_DB: dict[str, dict[str, float]] = {
     "peanut butter": {"calories": 188, "protein_g": 8, "carbs_g": 6, "fat_g": 16},
     "almonds": {"calories": 164, "protein_g": 6, "carbs_g": 6, "fat_g": 14},
     "walnuts": {"calories": 185, "protein_g": 4.3, "carbs_g": 3.9, "fat_g": 18.5},
+    "olive oil": {"calories": 119, "protein_g": 0, "carbs_g": 0, "fat_g": 13.5},  # 1 tbsp
     # ── Image-analyzer fallback categories ─────────
     # These keys match the outputs of _estimate_food_from_image()
     "grilled protein": {"calories": 220, "protein_g": 28, "carbs_g": 1, "fat_g": 11},

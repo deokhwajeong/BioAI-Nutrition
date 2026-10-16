@@ -3,6 +3,7 @@ from collections.abc import Generator
 from datetime import UTC, datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -11,6 +12,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     create_engine,
 )
 from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
@@ -103,6 +105,82 @@ class Food(Base):
     source = Column(String, nullable=True)  # usda, custom, etc.
 
     created_at = Column(DateTime, default=_utcnow)
+
+
+# ── Accounts: per-user auth, profile, consent, and logged days ──────
+# Deleting an Account cascades to its tokens, consents, and daily logs. Rows elsewhere that
+# are keyed by the same user id (events, biomarker readings, ...) are removed explicitly by
+# DELETE /users/{user_id}; see app/services/accounts.py.
+
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id = Column(String, primary_key=True)  # "usr_" + random hex; also the engine user_id
+    username = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)  # scrypt, see app/services/accounts.py
+    created_at = Column(DateTime, default=_utcnow)
+
+    # Profile (all optional; used to estimate energy needs)
+    weight_kg = Column(Float, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    age = Column(Integer, nullable=True)
+    sex = Column(String, nullable=True)
+    activity_level = Column(String, nullable=True)
+
+    tokens = relationship("AuthToken", cascade="all, delete-orphan", back_populates="account")
+    consents = relationship(
+        "AccountConsent", cascade="all, delete-orphan", back_populates="account"
+    )
+    daily_logs = relationship("DailyLog", cascade="all, delete-orphan", back_populates="account")
+
+
+class AuthToken(Base):
+    """Opaque bearer token. Only its SHA-256 digest is stored."""
+
+    __tablename__ = "auth_tokens"
+
+    token_hash = Column(String, primary_key=True)
+    account_id = Column(String, ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    created_at = Column(DateTime, default=_utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
+    account = relationship("Account", back_populates="tokens")
+
+
+class AccountConsent(Base):
+    __tablename__ = "account_consents"
+    __table_args__ = (UniqueConstraint("account_id", "scope", name="uq_account_scope"),)
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(String, ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    scope = Column(String, nullable=False)
+    granted = Column(Boolean, nullable=False)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+    account = relationship("Account", back_populates="consents")
+
+
+class DailyLog(Base):
+    """One logged day of intake, activity, and sleep (the DailyFeatures fields)."""
+
+    __tablename__ = "daily_logs"
+    __table_args__ = (UniqueConstraint("account_id", "date", name="uq_account_date"),)
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(String, ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    date = Column(String, nullable=False)  # ISO date
+    calories = Column(Float, nullable=True)
+    protein_g = Column(Float, nullable=True)
+    carbs_g = Column(Float, nullable=True)
+    fiber_g = Column(Float, nullable=True)
+    sugar_g = Column(Float, nullable=True)
+    omega3_g = Column(Float, nullable=True)
+    water_ml = Column(Float, nullable=True)
+    steps = Column(Float, nullable=True)
+    sleep_hours = Column(Float, nullable=True)
+
+    account = relationship("Account", back_populates="daily_logs")
 
 
 def get_db() -> Generator[Session, None, None]:
