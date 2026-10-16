@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BioAI Nutrition — Lag-Time Synchronization Visualization
+BioAI Nutrition - Lag-Time Synchronization Visualization
 =========================================================
 
 Visualizes before/after lag-time compensation to demonstrate the core algorithm's effectiveness.
@@ -351,14 +351,14 @@ def plot_before_after_panel(user: SyntheticUser, output_dir: str):
     """
     4-Panel comparison chart:
     
-    Panel 1: Before compensation — meal events + raw glucose (low correlation)
-    Panel 2: After compensation — lag-compensated glucose (high correlation)
+    Panel 1: Before compensation - meal events + raw glucose (low correlation)
+    Panel 2: After compensation - lag-compensated glucose (high correlation)
     Panel 3: Circadian variation visualization (morning vs evening lag time difference)
     Panel 4: Quantitative comparison bar chart
     """
     fig = plt.figure(figsize=(20, 16))
     fig.suptitle(
-        f"BioAI Nutrition — Lag-Time Synchronization: Before vs After\n"
+        f"BioAI Nutrition - Lag-Time Synchronization: Before vs After\n"
         f"User: {user.name} | Genotype: TCF7L2 {user.tcf7l2_genotype} | "
         f"γ_genetic = {user.gamma_genetic:.2f}",
         fontsize=16, fontweight="bold", y=0.98,
@@ -564,7 +564,7 @@ def plot_correlation_scatter(user: SyntheticUser, output_dir: str):
     """
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
     fig.suptitle(
-        f"Meal Carbohydrates vs Glucose Response — Correlation Analysis\n"
+        f"Meal Carbohydrates vs Glucose Response - Correlation Analysis\n"
         f"User: {user.name} | TCF7L2 {user.tcf7l2_genotype} | {len(user.meals)} meals over {3} days",
         fontsize=14, fontweight="bold",
     )
@@ -710,7 +710,7 @@ def generate_report(user: SyntheticUser, results: dict, output_dir: str):
     """
     report_lines = [
         "=" * 70,
-        "BioAI Nutrition — Lag-Time Synchronization Validation Report",
+        "BioAI Nutrition - Lag-Time Synchronization Validation Report",
         "=" * 70,
         "",
         f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
@@ -810,7 +810,7 @@ def generate_report(user: SyntheticUser, results: dict, output_dir: str):
 def main():
     print()
     print("=" * 60)
-    print("  BioAI Nutrition — Lag-Time Synchronization Visualizer")
+    print("  BioAI Nutrition - Lag-Time Synchronization Visualizer")
     print("=" * 60)
     print()
     
@@ -822,7 +822,7 @@ def main():
     random.seed(42)
     np.random.seed(42)
     
-    # Generate synthetic user (TCF7L2 TT — genotype showing the most dramatic difference)
+    # Generate synthetic user (TCF7L2 TT - genotype showing the most dramatic difference)
     print("[1/4] Generating synthetic user data...")
     user = generate_synthetic_user(
         name="Synthetic_Patient_001",

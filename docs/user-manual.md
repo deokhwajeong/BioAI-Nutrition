@@ -1,4 +1,4 @@
-# BioAI Nutrition — User Manual
+# BioAI Nutrition - User Manual
 
 > **Version:** 0.1.0
 > **Date:** February 2026
@@ -285,7 +285,7 @@ Submit genetic test results for personalized metabolic analysis.
 3. View the computed metabolic modifiers:
    - Values > 1.0 = **increased** need (↑)
    - Values < 1.0 = **decreased** need (↓)
-   - Values = 1.0 = **no change** (—)
+   - Values = 1.0 = **no change** (-)
 
 #### Example Modifiers
 
@@ -442,7 +442,7 @@ Visit **http://localhost:8000/docs** for the full Swagger UI with:
 - Try-it-out functionality for every endpoint
 - Automatic parameter validation
 
-### Example: cURL — Analyze a Meal
+### Example: cURL - Analyze a Meal
 
 ```bash
 curl -X POST http://localhost:8000/analyze-meal \
@@ -451,7 +451,7 @@ curl -X POST http://localhost:8000/analyze-meal \
   -d '{"items": [{"name": "salmon"}, {"name": "brown rice"}, {"name": "broccoli"}]}'
 ```
 
-### Example: cURL — Run Nutrient Budget
+### Example: cURL - Run Nutrient Budget
 
 ```bash
 curl -X POST http://localhost:8000/engine/nutrient-budget \
@@ -596,17 +596,17 @@ The BioAI edge manifest defines what stays on your device:
 |------|------------|
 | **BioSync Pipeline** | The 7-stage data processing pipeline (Stage 0–6 + Stage 4.5) from raw biomarkers to personalized nutrition |
 | **Biomarker** | A measurable indicator of biological state (glucose, heart rate, HRV, etc.) |
-| **CGM** | Continuous Glucose Monitor — a device worn on the body that measures blood glucose every 5 minutes |
+| **CGM** | Continuous Glucose Monitor - a device worn on the body that measures blood glucose every 5 minutes |
 | **Circadian Rhythm** | The ~24-hour biological cycle affecting metabolism, hormone levels, and sleep |
 | **Differential Privacy (DP)** | A mathematical framework (ε-privacy) that adds calibrated noise to data to protect individual privacy. BioAI uses 4-tier dynamic epsilon (0.1–0.8) with Privacy Exposure Index (PEI) tracking and 24-hour budget reset |
-| **FHIR** | Fast Healthcare Interoperability Resources — a standard for exchanging healthcare data electronically |
+| **FHIR** | Fast Healthcare Interoperability Resources - a standard for exchanging healthcare data electronically |
 | **Genotype** | The specific allele combination at a given genetic locus (e.g., CT for heterozygous) |
-| **HRV** | Heart Rate Variability — variation in time between heartbeats, indicating autonomic nervous system health |
-| **LOINC** | Logical Observation Identifiers Names and Codes — a universal standard for identifying medical lab observations |
+| **HRV** | Heart Rate Variability - variation in time between heartbeats, indicating autonomic nervous system health |
+| **LOINC** | Logical Observation Identifiers Names and Codes - a universal standard for identifying medical lab observations |
 | **Metabolic Phase** | One of 14 classified states of metabolism across 4 categories (dietary, exercise, sleep, stress/recovery); multiple phases can be simultaneously active |
 | **Nutrient Budget** | Personalized daily nutrition targets adjusted for genetics, metabolic state, circadian rhythm, and hierarchical conflict resolution (6 priority levels) |
 | **Nutrigenomics** | The study of how genetic variation affects nutritional requirements and metabolism |
-| **SNP** | Single Nucleotide Polymorphism — a single base-pair variation in DNA that may affect protein function |
+| **SNP** | Single Nucleotide Polymorphism - a single base-pair variation in DNA that may affect protein function |
 | **Synthea** | An open-source synthetic patient data generator producing realistic FHIR bundles |
 | **TCF7L2** | A gene strongly associated with type 2 diabetes risk; variants affect glucose clearance rate |
 | **Temporal Synchronization** | The process of aligning multi-source biomarker readings to a unified time grid using the Dynamic Physiological Lag Model (t_sync = t_event + Δt_base × γ_genetic × φ_circadian) |

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Feature Test — BioAI Nutrition
+Comprehensive Feature Test - BioAI Nutrition
 Tests every feature documented in USER_MANUAL.md
 """
 import requests
@@ -29,7 +29,7 @@ def test(name, condition, detail=""):
         print(f"  ✅ {name}")
     else:
         results[name] = f"FAIL: {detail}"
-        print(f"  ❌ {name} — {detail}")
+        print(f"  ❌ {name} - {detail}")
 
 # ============================================================
 # TEST 1: Health Check (Manual §2.2)
@@ -58,10 +58,10 @@ test("All 9 biomarker types registered", expected_types.issubset(actual_types),
      f"missing={expected_types - actual_types}")
 
 # ============================================================
-# TEST 3: Privacy Consent — Grant & Revoke (Manual §3.2)
+# TEST 3: Privacy Consent - Grant & Revoke (Manual §3.2)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 3: Privacy Consent — Grant & Revoke")
+print("TEST 3: Privacy Consent - Grant & Revoke")
 print("=" * 60)
 
 all_scopes = [
@@ -110,7 +110,7 @@ requests.post(f"{BASE}/engine/consent",
 # TEST 3b: Location Data Ingest & Consent Filter
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 3b: Location Data — Ingest & Consent")
+print("TEST 3b: Location Data - Ingest & Consent")
 print("=" * 60)
 
 # Ingest a location reading
@@ -158,10 +158,10 @@ requests.post(f"{BASE}/engine/consent",
               json={"user_id": USER, "scope": "location_data", "action": "grant"}, headers=HDR)
 
 # ============================================================
-# TEST 3c: Policy Consent Gates — Functional
+# TEST 3c: Policy Consent Gates - Functional
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 3c: Policy Gates — third_party / research / model_training")
+print("TEST 3c: Policy Gates - third_party / research / model_training")
 print("=" * 60)
 
 # Test third_party_sharing gate on edge-process
@@ -196,7 +196,7 @@ test("lag-comparison allowed with research_use", r.status_code == 200,
 # TEST 4: Genetic Profile (Manual §3.3)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 4: Genetic Profile — 8 SNP Variants")
+print("TEST 4: Genetic Profile - 8 SNP Variants")
 print("=" * 60)
 
 genotypes = {
@@ -228,7 +228,7 @@ if r.status_code == 200:
 # TEST 5: Biomarker Ingest (Manual §3.1 Stage 3)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 5: Biomarker Ingest — 100 readings")
+print("TEST 5: Biomarker Ingest - 100 readings")
 print("=" * 60)
 
 readings = []
@@ -260,7 +260,7 @@ if r.status_code == 200:
 # TEST 6: Temporal Sync (Manual §3.1 Stage 4)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 6: Temporal Sync — unified time grid")
+print("TEST 6: Temporal Sync - unified time grid")
 print("=" * 60)
 
 r = requests.post(f"{BASE}/engine/sync",
@@ -292,7 +292,7 @@ if r.status_code == 200:
 # TEST 7: Metabolic State (Manual §3.1 Stage 5)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 7: Metabolic State — 13-phase classifier")
+print("TEST 7: Metabolic State - 13-phase classifier")
 print("=" * 60)
 
 valid_phases = [
@@ -322,7 +322,7 @@ if r.status_code == 200:
 # TEST 8: Nutrient Budget (Manual §3.1 Stage 6)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 8: Nutrient Budget — personalized targets")
+print("TEST 8: Nutrient Budget - personalized targets")
 print("=" * 60)
 
 r = requests.post(f"{BASE}/engine/nutrient-budget",
@@ -350,7 +350,7 @@ if r.status_code == 200:
     test("Has fat_g target", "fat_g" in targets)
     test("Has fiber_g target", "fiber_g" in targets)
     test("Has water_ml target", "water_ml" in targets)
-    # kcal remaining — each target is a dict with "remaining" field
+    # kcal remaining - each target is a dict with "remaining" field
     kcal_info = targets.get("kcal", {})
     kcal_rem = kcal_info.get("remaining", kcal_info) if isinstance(kcal_info, dict) else kcal_info
     test("Remaining kcal > 0", isinstance(kcal_rem, (int, float)) and kcal_rem > 0, f"remaining_kcal={kcal_rem}")
@@ -359,7 +359,7 @@ if r.status_code == 200:
 # TEST 9: Meal Analysis (Manual §3.4)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 9: Meal Analysis — text-based")
+print("TEST 9: Meal Analysis - text-based")
 print("=" * 60)
 
 # Test with common foods
@@ -389,7 +389,7 @@ if r2.status_code == 200:
 # TEST 10: Food Image AI (Manual §3.5)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 10: Food Image AI — endpoint check")
+print("TEST 10: Food Image AI - endpoint check")
 print("=" * 60)
 
 # Image upload endpoint should exist (we just check it doesn't 404)
@@ -412,7 +412,7 @@ if r.status_code == 200:
 # TEST 11: Synthea FHIR (Manual §3.6)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 11: Synthea FHIR — patient data")
+print("TEST 11: Synthea FHIR - patient data")
 print("=" * 60)
 
 r = requests.get(f"{BASE}/synthea/status", headers=HDR)
@@ -440,7 +440,7 @@ test("POST synthea/load responds", r3.status_code in (200, 404, 422),
 # TEST 12: Medical Constraints (Manual §6)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 12: Medical Constraints — safety limits")
+print("TEST 12: Medical Constraints - safety limits")
 print("=" * 60)
 
 constraints = [
@@ -503,10 +503,10 @@ if r2.status_code == 200:
              first_out.get("raw_data_retained_on_device") is True)
 
 # ============================================================
-# TEST 14: Lag Comparison — Before/After t_sync (Manual §6)
+# TEST 14: Lag Comparison - Before/After t_sync (Manual §6)
 # ============================================================
 print("\n" + "=" * 60)
-print("TEST 14: Lag Comparison — t_sync correction")
+print("TEST 14: Lag Comparison - t_sync correction")
 print("=" * 60)
 
 r = requests.post(f"{BASE}/engine/lag-comparison",

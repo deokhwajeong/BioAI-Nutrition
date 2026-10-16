@@ -2,9 +2,9 @@
 Temporal Synchronization Engine.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06F 16/27 — Query processing; Data synchronization
-               G06N 7/01 — Probabilistic graphical models (Gaussian kernel weighting)
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06F 16/27 - Query processing; Data synchronization
+               G06N 7/01 - Probabilistic graphical models (Gaussian kernel weighting)
 
 Defensive Scope (G06F 16/27):
     This module implements biologically-motivated data synchronization that
@@ -22,15 +22,15 @@ Core module: Aligns heterogeneous biomarker data streams with
 different sampling rates onto a unified multi-resolution temporal grid.
 
 Key inventive concepts:
-1. Adaptive Time Window Alignment — automatically selects window size
+1. Adaptive Time Window Alignment - automatically selects window size
    based on each source's SamplingCharacteristics
-2. Physiological Lag Compensation — shifts signals by their known
+2. Physiological Lag Compensation - shifts signals by their known
    cause-effect delays (e.g., meal → glucose response = 30-120 min)
-3. Multi-Resolution Temporal Frames — produces aligned snapshots at
+3. Multi-Resolution Temporal Frames - produces aligned snapshots at
    different granularities (5min, 1hr, daily) from the same raw data
-4. Confidence-Weighted Aggregation — stale or uncertain readings are
+4. Confidence-Weighted Aggregation - stale or uncertain readings are
    down-weighted rather than discarded
-5. Dynamic Lag Model — physiological lag adapts to genetic profile and
+5. Dynamic Lag Model - physiological lag adapts to genetic profile and
    circadian phase via the formula:
        t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)
 
@@ -87,7 +87,7 @@ if TYPE_CHECKING:
 # ═══════════════════════════════════════════════════════════════════════
 
 
-# Circadian lag modifiers per hour — derived from insulin sensitivity
+# Circadian lag modifiers per hour - derived from insulin sensitivity
 # and metabolic rate circadian profiles (chronobiology literature)
 # < 1.0 = faster response (shorter lag), > 1.0 = slower (longer lag)
 CIRCADIAN_LAG_MODIFIERS: dict[int, float] = {
@@ -144,9 +144,9 @@ class LagComputation:
 
     Attributes:
         biomarker_type: Which signal the lag applies to.
-        base_lag_seconds: Δt_base(b) — intrinsic delay.
-        genetic_modifier: γ_genetic(g) — SNP-derived scaling.
-        circadian_modifier: φ_circadian(c) — time-of-day scaling.
+        base_lag_seconds: Δt_base(b) - intrinsic delay.
+        genetic_modifier: γ_genetic(g) - SNP-derived scaling.
+        circadian_modifier: φ_circadian(c) - time-of-day scaling.
         effective_lag_seconds: Final computed lag in seconds.
         hour_of_day: Hour used for circadian lookup.
         genetic_factors_used: Which SNP modifiers contributed.
@@ -223,7 +223,7 @@ class PhysiologicalLagModel:
         base_seconds = base_lag.total_seconds()
 
         if base_seconds == 0:
-            # No lag for this signal type — skip computation
+            # No lag for this signal type - skip computation
             return LagComputation(
                 biomarker_type=biomarker_type.value,
                 base_lag_seconds=0,
@@ -639,11 +639,11 @@ class TemporalSynchronizer:
         if in_window:
             return self._aggregate_readings(in_window, biomarker_type, chars, frame_start, True)
 
-        # No readings in window — delegate to CircadianInterpolator
+        # No readings in window - delegate to CircadianInterpolator
         # for gap filling using biological rhythm models.
         nearest = self._find_nearest_reading(raw_readings, query_start, query_end)
         if nearest is None:
-            # No data at all — try circadian-only interpolation
+            # No data at all - try circadian-only interpolation
             if (
                 chars.temporal_behavior == TemporalBehavior.CONTINUOUS
                 and self._interpolator is not None
@@ -682,7 +682,7 @@ class TemporalSynchronizer:
             gap = nearest.timestamp - query_end
 
         if gap > chars.max_gap_before_stale:
-            # Data too stale — use CircadianInterpolator to blend
+            # Data too stale - use CircadianInterpolator to blend
             # nearest reading with circadian prediction
             if (
                 chars.temporal_behavior == TemporalBehavior.CONTINUOUS

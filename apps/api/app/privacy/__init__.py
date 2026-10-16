@@ -2,9 +2,9 @@
 Privacy-preserving computation engine.
 
 USPTO/IPC Classifications:
-    G06F 21/62 — Protecting access to data via access control rules
+    G06F 21/62 - Protecting access to data via access control rules
                (differential_privacy, consent_manager)
-    H04L 9/32  — Security protocols for protecting data
+    H04L 9/32  - Security protocols for protecting data
                (edge_processor, graph_embedding)
 
 Defensive Scope:
@@ -17,7 +17,7 @@ Defensive Scope:
 Implements differential privacy, on-device graph embedding simulation,
 and dynamic consent management for the household health graph.
 
-Patent-relevant: These modules support Independent Claim 3 —
+Patent-relevant: These modules support Independent Claim 3 -
 "Privacy-preserving household health graph with on-device embedding
 and differential privacy aggregation."
 """

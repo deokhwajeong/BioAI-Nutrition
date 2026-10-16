@@ -1950,7 +1950,7 @@
     },
     "/engine/edge-process": {
       "post": {
-        "description": "Demonstrates the on-device privacy pipeline: raw biomarker data is processed locally \u2014 only non-invertible embeddings and differentially-private aggregations leave the device.",
+        "description": "Demonstrates the on-device privacy pipeline: raw biomarker data is processed locally - only non-invertible embeddings and differentially-private aggregations leave the device.",
         "operationId": "edge_process_engine_edge_process_post",
         "requestBody": {
           "content": {

@@ -2,13 +2,13 @@
 Comprehensive tests for the patent-core Biomarker Synchronization Engine.
 
 Tests cover:
-1. Biomarker adapters — data ingestion and retrieval
-2. Temporal synchronization — heterogeneous signal alignment
-3. Physiological normalization — circadian correction + genetic modifiers
-4. Metabolic state estimation — multi-phase detection
-5. Nutrient demand calculation — full pipeline integration
-6. Privacy — differential privacy, consent management
-7. API router — endpoint integration tests
+1. Biomarker adapters - data ingestion and retrieval
+2. Temporal synchronization - heterogeneous signal alignment
+3. Physiological normalization - circadian correction + genetic modifiers
+4. Metabolic state estimation - multi-phase detection
+5. Nutrient demand calculation - full pipeline integration
+6. Privacy - differential privacy, consent management
+7. API router - endpoint integration tests
 """
 
 from __future__ import annotations
@@ -298,7 +298,7 @@ class TestGeneticAdapter:
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  2a. Physiological Lag Model — Core Patent Formula Unit Tests
+#  2a. Physiological Lag Model - Core Patent Formula Unit Tests
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -515,7 +515,7 @@ class TestPhysiologicalLagModel:
         # The difference should be significant (>10%)
         ratio = lag_night.effective_lag_seconds / lag_morning.effective_lag_seconds
         assert ratio > 1.1, (
-            f"Night/Morning ratio={ratio:.3f} — should be >1.1 to demonstrate "
+            f"Night/Morning ratio={ratio:.3f} - should be >1.1 to demonstrate "
             f"clinically meaningful circadian variation"
         )
 
@@ -1186,7 +1186,7 @@ class TestGraphEmbedding:
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  10. Integration — Full Pipeline
+#  10. Integration - Full Pipeline
 # ═══════════════════════════════════════════════════════════════════
 
 

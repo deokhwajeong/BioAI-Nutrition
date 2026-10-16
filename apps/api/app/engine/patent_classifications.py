@@ -9,7 +9,7 @@ Strategic Patent Classification Architecture
 =============================================
 
 Primary Classification:
-    G16H 20/60 — ICT specially adapted for therapies or health-improving
+    G16H 20/60 - ICT specially adapted for therapies or health-improving
                   plans, e.g. for handling prescriptions, for steering
                   therapy or for monitoring patient compliance relating
                   to nutrition control
@@ -57,7 +57,7 @@ Technology Center (TC) Strategy
 ===============================
 By pairing G16H 20/60 (health) with G06F/G06N (computing/AI)
 classifications, the application emphasizes that this is a
-**data processing system innovation** — not merely health advice.
+**data processing system innovation** - not merely health advice.
 This positioning is critical for:
   • Avoiding § 101 Abstract Idea rejections
   • Targeting TC 2100/3600 (Computer Architecture & Software)
@@ -109,7 +109,7 @@ class ClassificationEntry:
 PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] = {
     PatentClassification.G16H_20_60: ClassificationEntry(
         code=PatentClassification.G16H_20_60,
-        title="ICT for therapies — nutrition control",
+        title="ICT for therapies - nutrition control",
         description=(
             "Primary classification covering the overall system: "
             "personalized, real-time nutrient demand computation "
@@ -183,7 +183,7 @@ PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] 
         ],
         defensive_rationale=(
             "Defends the continuous performance monitoring aspect. "
-            "The system doesn't just compute — it monitors its own accuracy "
+            "The system doesn't just compute - it monitors its own accuracy "
             "and adaptively improves, which is a computational system innovation."
         ),
     ),
@@ -195,9 +195,9 @@ PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] 
             "Self-Calibration Engine. The prediction error ε_k is "
             "decomposed into three channels and used to update model "
             "parameters via adaptive Exponential Moving Average (EMA): "
-            "1) δ_base(b) — per-biomarker additive correction, "
-            "2) δ_circ(h) — per-hour circadian phase correction, "
-            "3) κ_genetic — multiplicative genetic factor correction. "
+            "1) δ_base(b) - per-biomarker additive correction, "
+            "2) δ_circ(h) - per-hour circadian phase correction, "
+            "3) κ_genetic - multiplicative genetic factor correction. "
             "Learning rate: α(k) = α_0 / (1 + k/τ)"
         ),
         modules=[
@@ -280,7 +280,7 @@ PATENT_CLASSIFICATION_REGISTRY: dict[PatentClassification, ClassificationEntry] 
         ],
         defensive_rationale=(
             "Defends the privacy-preserving computation architecture. "
-            "The tiered ε allocation based on biomarker sensitivity is novel — "
+            "The tiered ε allocation based on biomarker sensitivity is novel - "
             "existing DP implementations use uniform ε across all data types. "
             "The dynamic consent manager with real-time graph edge severance "
             "goes beyond simple access control."
@@ -351,7 +351,7 @@ def get_classifications_for_module(module_path: str) -> list[ClassificationEntry
 def get_all_claim_keywords() -> list[str]:
     """Return a deduplicated list of all claim keywords across classifications.
 
-    Useful for patent drafting — ensures all key technical terms
+    Useful for patent drafting - ensures all key technical terms
     appear in the specification and claims.
     """
     seen = set()
@@ -378,7 +378,7 @@ def get_tc_strategy_summary() -> str:
         "           G06N 20/00, G06N 7/01 (AI / Machine Learning)\n"
         "           H04L 9/32 (Security Protocols)\n\n"
         "Target: TC 2100/3600 (Computer Architecture & Software / E-Commerce)\n"
-        "Avoid:  TC 1600 (Biotechnology) — stricter examination\n\n"
+        "Avoid:  TC 1600 (Biotechnology) - stricter examination\n\n"
         "Rationale: Emphasize that the invention is a DATA PROCESSING SYSTEM\n"
         "innovation, not mere health advice. The combination of temporal\n"
         "synchronization, self-calibrating ML feedback loops, and\n"

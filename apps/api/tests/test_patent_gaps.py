@@ -114,7 +114,7 @@ def _make_pipeline() -> NutritionPipeline:
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  G2+G5: NutritionPipeline — 5-stage orchestrator
+#  G2+G5: NutritionPipeline - 5-stage orchestrator
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -197,7 +197,7 @@ class TestNutritionPipeline:
 
 class TestGeneticModifierCompleteness:
     """All 22 genetic modifiers from NUTRIGENOMIC_VARIANTS should be
-    mapped to nutrient targets — no dead code."""
+    mapped to nutrient targets - no dead code."""
 
     def test_default_targets_include_micronutrients(self):
         targets = create_default_targets()
@@ -322,7 +322,7 @@ class TestGeneticModifierCompleteness:
                 for m in budget.modifications
                 if m.get("step") == "genetic" and m.get("genetic_factor") == key
             ]
-            assert len(genetic_mods) >= 1, f"Genetic modifier '{key}' has no effect — dead code!"
+            assert len(genetic_mods) >= 1, f"Genetic modifier '{key}' has no effect - dead code!"
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -394,7 +394,7 @@ class TestConsentAndPrivacy:
         cm = pipeline._consent_manager
         cm.grant_consent("rev", ConsentScope.GLUCOSE_DATA)
 
-        # First call — data flows
+        # First call - data flows
         r1 = pipeline.execute(
             user_id="rev",
             readings={BiomarkerType.GLUCOSE: _make_glucose_readings(6)},
@@ -404,7 +404,7 @@ class TestConsentAndPrivacy:
         # Revoke consent
         cm.revoke_consent("rev", ConsentScope.GLUCOSE_DATA)
 
-        # Second call — data blocked
+        # Second call - data blocked
         r2 = pipeline.execute(
             user_id="rev",
             readings={BiomarkerType.GLUCOSE: _make_glucose_readings(6)},
@@ -430,7 +430,7 @@ class TestMedicalConstraints:
                     nutrient="protein_g",
                     constraint_type="max",
                     value=56,
-                    reason="CKD stage 3 — protein restriction",
+                    reason="CKD stage 3 - protein restriction",
                     severity="critical",
                     source="medical_record",
                 ),
@@ -461,7 +461,7 @@ class TestMedicalConstraints:
                     nutrient="sodium_mg",
                     constraint_type="max",
                     value=1500,
-                    reason="Hypertension — sodium restriction",
+                    reason="Hypertension - sodium restriction",
                     severity="warning",
                 ),
             ],
@@ -490,7 +490,7 @@ class TestMedicalConstraints:
                     nutrient="kcal",
                     constraint_type="min",
                     value=1800,
-                    reason="Underweight — minimum calorie floor",
+                    reason="Underweight - minimum calorie floor",
                     severity="critical",
                 ),
             ],
@@ -551,7 +551,7 @@ class TestCircadianPredictionAccuracy:
         interp = CircadianInterpolator()
         baseline = 100.0
 
-        # Predict at 7AM (peak for glucose — circadian_phase_hours=7)
+        # Predict at 7AM (peak for glucose - circadian_phase_hours=7)
         pred_7am = interp._circadian_predict(
             user_id="test",
             biomarker_type=BiomarkerType.GLUCOSE,
@@ -559,7 +559,7 @@ class TestCircadianPredictionAccuracy:
             baseline_mean=baseline,
         )
 
-        # Predict at 19:00 (anti-phase nadir — 12h offset from peak)
+        # Predict at 19:00 (anti-phase nadir - 12h offset from peak)
         pred_19 = interp._circadian_predict(
             user_id="test",
             biomarker_type=BiomarkerType.GLUCOSE,
@@ -691,7 +691,7 @@ class TestReactiveBiomarkerAdjustments:
         assert budget.targets["carbs_g"].daily_target < original_carbs
         # Reduction should be significant (at least 5%)
         reduction_pct = 1 - (budget.targets["carbs_g"].daily_target / original_carbs)
-        assert reduction_pct >= 0.05, f"Reduction only {reduction_pct * 100:.1f}% — too small"
+        assert reduction_pct >= 0.05, f"Reduction only {reduction_pct * 100:.1f}% - too small"
 
     def test_low_glucose_increases_carbs(self):
         """glucose z < -1.0 → carb_target increased."""
@@ -1215,7 +1215,7 @@ class TestSelfCalibrationFeedbackLoop:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# G12: Conflict Resolution Layer — Medical Safety vs Genetic Optimization
+# G12: Conflict Resolution Layer - Medical Safety vs Genetic Optimization
 # ═══════════════════════════════════════════════════════════════════════
 
 
@@ -1238,7 +1238,7 @@ class TestConflictResolutionLayer:
                     nutrient="protein_g",
                     constraint_type="max",
                     value=56,
-                    reason="CKD stage 3 — protein restriction",
+                    reason="CKD stage 3 - protein restriction",
                     severity="critical",
                     source="medical_record",
                 ),
@@ -1279,7 +1279,7 @@ class TestConflictResolutionLayer:
                     nutrient="sodium_mg",
                     constraint_type="max",
                     value=1500,
-                    reason="Hypertension — sodium restriction",
+                    reason="Hypertension - sodium restriction",
                     severity="warning",
                     source="medical_record",
                 ),
@@ -1358,7 +1358,7 @@ class TestConflictResolutionLayer:
                     nutrient="protein_g",
                     constraint_type="max",
                     value=56,
-                    reason="CKD — strict limit",
+                    reason="CKD - strict limit",
                     severity="critical",
                 ),
             ],
@@ -1424,7 +1424,7 @@ class TestConflictResolutionLayer:
                     nutrient="kcal",
                     constraint_type="min",
                     value=1800,
-                    reason="Underweight — minimum calorie floor",
+                    reason="Underweight - minimum calorie floor",
                     severity="critical",
                 ),
             ],

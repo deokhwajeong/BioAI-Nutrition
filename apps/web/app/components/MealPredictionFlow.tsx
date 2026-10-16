@@ -326,7 +326,7 @@ export default function MealPredictionFlow({
             {/* Individual items (collapsed) */}
             <details className="text-xs">
               <summary className="cursor-pointer text-gray-400 hover:text-gray-300 transition">
-                {results.length} items detected — click to expand
+                {results.length} items detected - click to expand
               </summary>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {results.map((item, i) => (
@@ -343,7 +343,7 @@ export default function MealPredictionFlow({
             </details>
           </div>
 
-          {/* Glucose Prediction Chart — THE CORE PATENT VALUE */}
+          {/* Glucose prediction chart */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-4">
             <GlucosePredictionChart
               carbsG={mealTotal.carbs_g}
@@ -442,7 +442,7 @@ export default function MealPredictionFlow({
                       </div>
                     </div>
                     <div className="text-xs text-gray-300 bg-white/5 rounded-lg px-3 py-2">
-                      💊 <span className="font-semibold">{c.constraint_reason}</span> — {c.resolution_rationale}
+                      💊 <span className="font-semibold">{c.constraint_reason}</span> - {c.resolution_rationale}
                     </div>
                   </div>
                 );

@@ -2,7 +2,7 @@
 
 ---
 
-## PTO/SB/16 — PROVISIONAL APPLICATION FOR PATENT COVER SHEET
+## PTO/SB/16 - PROVISIONAL APPLICATION FOR PATENT COVER SHEET
 
 *This is a request for filing a PROVISIONAL APPLICATION FOR PATENT under 37 CFR § 1.53(c).*
 
@@ -32,7 +32,7 @@
 | Micro Entity Filing Fee (37 CFR § 1.16(d)) | $80 USD |
 | | |
 | **SPECIFICATION** | Attached (pages 1–[XX]) |
-| **DRAWING(S)** | 10 Sheets (FIG. 1 through FIG. 10) — formal drawings to be prepared per 37 CFR § 1.84 |
+| **DRAWING(S)** | 10 Sheets (FIG. 1 through FIG. 10) - formal drawings to be prepared per 37 CFR § 1.84 |
 | | |
 | **APPLICATION FILED UNDER** | 35 U.S.C. § 111(b) |
 | **APPLICABLE REGULATIONS** | 37 CFR § 1.53(c) |
@@ -46,7 +46,7 @@
 | Signature | Date |
 |---|---|
 | /Deokhwa Jeong/ | [Filing Date] |
-| Deokhwa Jeong — Applicant / Pro Se | |
+| Deokhwa Jeong - Applicant / Pro Se | |
 
 ---
 
@@ -118,17 +118,17 @@ The following table identifies the most relevant prior art systems and patent pu
 
 | Prior Art | Approach | Critical Limitation | How the Present Invention Differs |
 |---|---|---|---|
-| **Medtronic — US 9,649,428 (2016)** "Method and system for prediction of glucose levels in diabetic patients" | Multi-input time-series model (glucose history + meal timing + activity) using **autoregressive/Kalman filtering** | (1) Models only a **single biomarker** (glucose); does not fuse heart rate, HRV, sleep, or genotype into temporal alignment. (2) Uses **additive offset** model, not multiplicative 3-axis model. (3) No genetic modifier or circadian rhythm decomposition. (4) No self-calibration feedback loop with 3 independent correction channels. | The present invention multiplies three independent biological axes (Δt_base × γ_genetic × φ_circadian), enabling personalized lag computation across **all** biomarker types, not just glucose. The multiplicative formulation captures cross-axis interactions (a genetically slow metabolizer at night experiences compounded delay, not merely summed delay). |
-| **Roche — US 10,307,067 (2019)** Glucose prediction with circadian elements | Glucose prediction incorporating time-of-day features as regression inputs | (1) Circadian rhythm is one of many **opaque regression features**, not an explicit physiological modifier with traceable values. (2) No genomic personalization. (3) Requires large training datasets per patient. | The present invention models circadian modulation as an **explicit, interpretable lookup table** (φ = 0.82 to 1.20) derived from published chronobiology literature, enabling per-coefficient audit by clinicians and regulators. |
-| **Abbott FreeStyle Libre — FDA 510(k) K203515** | Sensor lag correction for interstitial-to-blood glucose delay (~10–15 min) | (1) Corrects only the **sensor hardware lag** (interstitial diffusion), not physiological cause-effect delay. (2) Fixed correction factor, not personalized. (3) Single biomarker (glucose), no multi-signal synchronization. | The present invention addresses **physiological cause-effect lag** (60+ min for glucose), which is one to two orders of magnitude larger than sensor hardware lag and varies by genotype and time of day. |
-| **Dexcom G7 algorithm** | Predictive glucose alerting using trend estimation and short-horizon forecasting | (1) Forward-looking prediction ("glucose will be X in 20 min"), not backward-looking causal attribution ("this glucose peak was caused by a meal 61.5 min ago"). (2) No multi-biomarker temporal synchronization. | The present invention performs **retrospective causal temporal alignment** — a fundamentally different computational task that enables nutrient-to-biomarker attribution, which forward prediction cannot achieve. |
-| **Levels Health mobile application** | Machine learning glucose scoring (black-box) | (1) Black-box model: cannot decompose prediction into genetic, circadian, or biomarker-specific components. (2) Requires population-scale training data. (3) No per-user genomic adaptation. (4) No self-calibrating feedback with decomposed error channels. | The present invention is a **white-box model** where every intermediate value (Δt_base, γ_genetic, φ_circadian, δ_base, κ_genetic, δ_circ) is individually auditable, traceable, and explainable — a critical advantage for FDA/CE regulatory approval via the audit trail requirement. |
+| **Medtronic - US 9,649,428 (2016)** "Method and system for prediction of glucose levels in diabetic patients" | Multi-input time-series model (glucose history + meal timing + activity) using **autoregressive/Kalman filtering** | (1) Models only a **single biomarker** (glucose); does not fuse heart rate, HRV, sleep, or genotype into temporal alignment. (2) Uses **additive offset** model, not multiplicative 3-axis model. (3) No genetic modifier or circadian rhythm decomposition. (4) No self-calibration feedback loop with 3 independent correction channels. | The present invention multiplies three independent biological axes (Δt_base × γ_genetic × φ_circadian), enabling personalized lag computation across **all** biomarker types, not just glucose. The multiplicative formulation captures cross-axis interactions (a genetically slow metabolizer at night experiences compounded delay, not merely summed delay). |
+| **Roche - US 10,307,067 (2019)** Glucose prediction with circadian elements | Glucose prediction incorporating time-of-day features as regression inputs | (1) Circadian rhythm is one of many **opaque regression features**, not an explicit physiological modifier with traceable values. (2) No genomic personalization. (3) Requires large training datasets per patient. | The present invention models circadian modulation as an **explicit, interpretable lookup table** (φ = 0.82 to 1.20) derived from published chronobiology literature, enabling per-coefficient audit by clinicians and regulators. |
+| **Abbott FreeStyle Libre - FDA 510(k) K203515** | Sensor lag correction for interstitial-to-blood glucose delay (~10–15 min) | (1) Corrects only the **sensor hardware lag** (interstitial diffusion), not physiological cause-effect delay. (2) Fixed correction factor, not personalized. (3) Single biomarker (glucose), no multi-signal synchronization. | The present invention addresses **physiological cause-effect lag** (60+ min for glucose), which is one to two orders of magnitude larger than sensor hardware lag and varies by genotype and time of day. |
+| **Dexcom G7 algorithm** | Predictive glucose alerting using trend estimation and short-horizon forecasting | (1) Forward-looking prediction ("glucose will be X in 20 min"), not backward-looking causal attribution ("this glucose peak was caused by a meal 61.5 min ago"). (2) No multi-biomarker temporal synchronization. | The present invention performs **retrospective causal temporal alignment** - a fundamentally different computational task that enables nutrient-to-biomarker attribution, which forward prediction cannot achieve. |
+| **Levels Health mobile application** | Machine learning glucose scoring (black-box) | (1) Black-box model: cannot decompose prediction into genetic, circadian, or biomarker-specific components. (2) Requires population-scale training data. (3) No per-user genomic adaptation. (4) No self-calibrating feedback with decomposed error channels. | The present invention is a **white-box model** where every intermediate value (Δt_base, γ_genetic, φ_circadian, δ_base, κ_genetic, δ_circ) is individually auditable, traceable, and explainable - a critical advantage for FDA/CE regulatory approval via the audit trail requirement. |
 | **Apple Health / HealthKit** | Data aggregation from multiple sources with timestamp alignment | (1) Simple timestamp-based data aggregation with no causal lag computation. (2) No cross-signal temporal synchronization. (3) No nutrient recommendation engine. | The present invention goes beyond data aggregation by computing **causal temporal relationships** between biomarker streams, producing cross-signal correlations (r ≈ 0.78) versus timestamp-based correlation (r ≈ 0.15). |
-| **Published nutrigenomics (polygenetic risk scores)** | Linear additive polygenetic risk score: PRS = Σ βᵢ × dosageᵢ | (1) Standard PRS uses **weighted sum** (linear additive model). (2) PRS predicts disease risk, not metabolic lag duration. | The present invention uses **geometric mean of inverse modifier coefficients** (exp((1/k) × Σ ln(1/mᵢ))) — a multiplicative aggregation that correctly models the compounding nature of metabolic rate modifiers, where two independent 20% reductions produce a 36% overall reduction (multiplicative: 0.8 × 0.8 = 0.64), not 40% (additive: 0.2 + 0.2 = 0.4). This distinction is physiologically grounded: metabolic pathways operate in series, not in parallel. |
+| **Published nutrigenomics (polygenetic risk scores)** | Linear additive polygenetic risk score: PRS = Σ βᵢ × dosageᵢ | (1) Standard PRS uses **weighted sum** (linear additive model). (2) PRS predicts disease risk, not metabolic lag duration. | The present invention uses **geometric mean of inverse modifier coefficients** (exp((1/k) × Σ ln(1/mᵢ))) - a multiplicative aggregation that correctly models the compounding nature of metabolic rate modifiers, where two independent 20% reductions produce a 36% overall reduction (multiplicative: 0.8 × 0.8 = 0.64), not 40% (additive: 0.2 + 0.2 = 0.4). This distinction is physiologically grounded: metabolic pathways operate in series, not in parallel. |
 
 **Key Distinguishing Factors of the Present Invention (Non-Obvious Combination):**
 
-The above analysis demonstrates that while individual components — circadian modeling, genetic modification, sensor lag correction, and time-series processing — exist in the prior art independently, no prior art system combines them in the specific manner claimed:
+The above analysis demonstrates that while individual components - circadian modeling, genetic modification, sensor lag correction, and time-series processing - exist in the prior art independently, no prior art system combines them in the specific manner claimed:
 
 **(1) Multiplicative vs. Additive:** Prior art systems use additive offset models (t_sync = t + Δt₁ + Δt₂ + Δt₃). The present invention's multiplicative model (Δt × γ × φ) captures biological cross-axis interactions that an additive model cannot represent.
 
@@ -142,15 +142,15 @@ The above-described limitations of prior art systems constitute a concrete techn
 
 Specifically, the technical problems addressed include:
 
-**(i) Signal Alignment Failure:** Existing computing systems apply naive timestamp-based sorting or fixed-offset resampling to biomarker time series. This produces systematically incorrect temporal alignments because the actual causal delay varies by biomarker type (0 seconds for genotype to 8 hours for sleep cycle observation), by individual genotype (±25% or more), and by time of day (±20%). The result is that cross-signal correlation analyses in prior art systems produce Pearson correlation coefficients of approximately 0.15 — effectively noise-level — rendering the computational output unreliable for any downstream decision-making.
+**(i) Signal Alignment Failure:** Existing computing systems apply naive timestamp-based sorting or fixed-offset resampling to biomarker time series. This produces systematically incorrect temporal alignments because the actual causal delay varies by biomarker type (0 seconds for genotype to 8 hours for sleep cycle observation), by individual genotype (±25% or more), and by time of day (±20%). The result is that cross-signal correlation analyses in prior art systems produce Pearson correlation coefficients of approximately 0.15 - effectively noise-level - rendering the computational output unreliable for any downstream decision-making.
 
-**(ii) Data Processing Bottleneck:** Processing heterogeneous sensor data with sampling rates ranging from 1 reading per 5 minutes (CGM) to 1 reading per day (sleep) to 1 reading per lifetime (genotype) on a unified temporal grid requires an unconventional data processing architecture. Standard time-series resampling techniques (linear interpolation, nearest-neighbor, forward-fill) are computationally inadequate because they ignore the biological meaning encoded in each signal's temporal behavior. Furthermore, base lag values span five orders of magnitude — from 0 seconds (genotype) through 30 seconds (heart rate) to 28,800 seconds (sleep) — requiring a flexible, self-describing adapter architecture rather than hard-coded resampling.
+**(ii) Data Processing Bottleneck:** Processing heterogeneous sensor data with sampling rates ranging from 1 reading per 5 minutes (CGM) to 1 reading per day (sleep) to 1 reading per lifetime (genotype) on a unified temporal grid requires an unconventional data processing architecture. Standard time-series resampling techniques (linear interpolation, nearest-neighbor, forward-fill) are computationally inadequate because they ignore the biological meaning encoded in each signal's temporal behavior. Furthermore, base lag values span five orders of magnitude - from 0 seconds (genotype) through 30 seconds (heart rate) to 28,800 seconds (sleep) - requiring a flexible, self-describing adapter architecture rather than hard-coded resampling.
 
-**(iii) Edge Computing Constraint:** Raw biomarker data — particularly genetic data — is too sensitive to transmit to cloud servers. The entire multi-stage pipeline must execute within the constrained computational environment of a mobile edge device while maintaining real-time responsiveness. This requires specific architectural decisions about data structure design, memory management, and computation ordering that are distinct from server-based implementations.
+**(iii) Edge Computing Constraint:** Raw biomarker data - particularly genetic data - is too sensitive to transmit to cloud servers. The entire multi-stage pipeline must execute within the constrained computational environment of a mobile edge device while maintaining real-time responsiveness. This requires specific architectural decisions about data structure design, memory management, and computation ordering that are distinct from server-based implementations.
 
 **(iv) Sensor Noise and Staleness:** Real-world biomarker sensors produce noisy, intermittent data. The system must distinguish between a genuinely missing signal (requiring interpolation) and a stale signal (requiring confidence degradation), and must do so differently for each sensor type based on its declared sampling characteristics. This requires a specific technical mechanism (exponential staleness decay with per-sensor half-lives) that has no analogue in general-purpose data processing.
 
-The present invention solves these concrete technical problems through a specific, unconventional arrangement of computing steps — the seven-stage pipeline with dynamic lag compensation — that produces a measurable technical improvement: meal-to-glucose correlation improves from Pearson r ≈ 0.15 to r ≈ 0.78 (+420%), and peak timing prediction error decreases from ~45 minutes to ~8 minutes (−82%). These are improvements to the functioning of the computing system itself, not merely the application of a mathematical formula to pre-existing data.
+The present invention solves these concrete technical problems through a specific, unconventional arrangement of computing steps - the seven-stage pipeline with dynamic lag compensation - that produces a measurable technical improvement: meal-to-glucose correlation improves from Pearson r ≈ 0.15 to r ≈ 0.78 (+420%), and peak timing prediction error decreases from ~45 minutes to ~8 minutes (−82%). These are improvements to the functioning of the computing system itself, not merely the application of a mathematical formula to pre-existing data.
 
 ### Objects of the Invention
 
@@ -227,7 +227,7 @@ The present invention is not directed to an abstract idea, a law of nature, or a
 
 The dynamic physiological lag model fundamentally improves how a computing system aligns and processes multi-source sensor data streams. Prior art systems process each biomarker as an independent time series with fixed temporal offsets. The present invention's three-axis multiplicative lag model (Δt_base × γ_genetic × φ_circadian) constitutes an unconventional technical solution that enables the computing system to produce temporally coherent cross-signal representations from inherently asynchronous sensor inputs. This is analogous to the self-referential database table in *Enfish, LLC v. Microsoft Corp.* (Fed. Cir. 2016), which improved how a computer stores and retrieves data rather than merely using a computer to perform a known task.
 
-**Quantified improvement:** The system transforms meal-to-glucose Pearson correlation from r ≈ 0.15 (noise-level, computationally useless) to r ≈ 0.78 (strong, computationally actionable) — a 420% improvement in the accuracy of the computer system's data processing output.
+**Quantified improvement:** The system transforms meal-to-glucose Pearson correlation from r ≈ 0.15 (noise-level, computationally useless) to r ≈ 0.78 (strong, computationally actionable) - a 420% improvement in the accuracy of the computer system's data processing output.
 
 **(B) The Invention Is Tied to Specific, Interoperating Hardware Components (Machine-or-Transformation Test):**
 
@@ -235,27 +235,27 @@ The claims are not directed to mathematical formulas applied in the abstract. Th
 
 **(B.1) Biomarker Sensor Hardware:** A continuous glucose monitor (CGM) physically attached to the user's body via a subcutaneous filament, producing interstitial glucose readings at approximately 5-minute intervals through electrochemical sensing; wearable photoplethysmography (PPG) and electrocardiography (ECG) sensors for heart rate and HRV measurement; accelerometers for step count and sleep detection.
 
-**(B.2) Edge Computing Processor with Secure Enclave:** An ARM-based mobile system-on-chip (SoC) executing the complete seven-stage pipeline within a 500ms latency budget, with a hardware-isolated Trusted Execution Environment (TEE) or Secure Enclave for genetic data processing. The pipeline's computational requirements — simultaneous processing of 5+ concurrent sensor streams, real-time peak detection with EMA smoothing, three-channel error back-propagation, and dynamic privacy budget tracking — necessitate dedicated floating-point processing hardware that precludes mental execution or pen-and-paper calculation.
+**(B.2) Edge Computing Processor with Secure Enclave:** An ARM-based mobile system-on-chip (SoC) executing the complete seven-stage pipeline within a 500ms latency budget, with a hardware-isolated Trusted Execution Environment (TEE) or Secure Enclave for genetic data processing. The pipeline's computational requirements - simultaneous processing of 5+ concurrent sensor streams, real-time peak detection with EMA smoothing, three-channel error back-propagation, and dynamic privacy budget tracking - necessitate dedicated floating-point processing hardware that precludes mental execution or pen-and-paper calculation.
 
-**(B.3) Non-Transitory Persistent Storage:** Flash memory storing per-user calibration profiles that persist across power cycles. The self-improving nature of the system (Claim 2) fundamentally depends on this physical storage — without it, the three correction channels (δ_base, κ_genetic, δ_circ) cannot accumulate learned adjustments across sessions, and the system cannot converge from 45-minute MAE to 8-minute MAE.
+**(B.3) Non-Transitory Persistent Storage:** Flash memory storing per-user calibration profiles that persist across power cycles. The self-improving nature of the system (Claim 2) fundamentally depends on this physical storage - without it, the three correction channels (δ_base, κ_genetic, δ_circ) cannot accumulate learned adjustments across sessions, and the system cannot converge from 45-minute MAE to 8-minute MAE.
 
-**(B.4) Hardware-Enforced Privacy Boundary:** A network interface with cryptographic schema validation that physically prevents raw biomarker data from leaving the device. This is not a software access control — it is an architectural constraint where the network stack itself validates outgoing payloads against a whitelist schema, making privacy protection a hardware-level guarantee rather than a policy-level promise.
+**(B.4) Hardware-Enforced Privacy Boundary:** A network interface with cryptographic schema validation that physically prevents raw biomarker data from leaving the device. This is not a software access control - it is an architectural constraint where the network stack itself validates outgoing payloads against a whitelist schema, making privacy protection a hardware-level guarantee rather than a policy-level promise.
 
-**(B.5) Real-Time Sensor Fusion Requirement:** The claimed method requires concurrent, real-time data ingestion from multiple physically distinct sensors (CGM via BLE, wearable via BLE, genetic data from secure storage) with different sampling rates (5 min, 30 sec, one-time), different temporal behaviors (CONTINUOUS, EVENT, PERIODIC, STATIC), and different physical measurement modalities (electrochemical, optical, mechanical, molecular). This multi-modal real-time sensor fusion cannot be performed mentally, on paper, or through generic computer implementation — it requires specific sensor hardware, communication protocols, and processing architecture.
+**(B.5) Real-Time Sensor Fusion Requirement:** The claimed method requires concurrent, real-time data ingestion from multiple physically distinct sensors (CGM via BLE, wearable via BLE, genetic data from secure storage) with different sampling rates (5 min, 30 sec, one-time), different temporal behaviors (CONTINUOUS, EVENT, PERIODIC, STATIC), and different physical measurement modalities (electrochemical, optical, mechanical, molecular). This multi-modal real-time sensor fusion cannot be performed mentally, on paper, or through generic computer implementation - it requires specific sensor hardware, communication protocols, and processing architecture.
 
 Under *In re Alappat*, 33 F.3d 1526 (Fed. Cir. 1994), a general-purpose computer programmed to perform specific functions constitutes a "new machine." The present invention's edge device, programmed with the seven-stage pipeline and coupled to specific biomarker sensors, constitutes a special-purpose biomarker temporal synchronization machine that did not exist in the prior art.
 
 **(C) The Ordered Combination of Steps Is Unconventional (BASCOM-Type Analysis):**
 
-While individual mathematical operations (multiplication, averaging, decay functions) may be conventional in isolation, the specific ordered combination of seven processing stages — consent filtering → lag-compensated synchronization → genotype-aware normalization → circadian interpolation → composite metabolic state estimation → context-aware re-normalization → hierarchical conflict resolution with medical safety enforcement → dynamic differential privacy — constitutes an unconventional arrangement that produces a result not achievable by any prior art system. Each stage's output transforms the input for the subsequent stage in a physiologically-constrained sequence that cannot be reordered without breaking biological correctness.
+While individual mathematical operations (multiplication, averaging, decay functions) may be conventional in isolation, the specific ordered combination of seven processing stages - consent filtering → lag-compensated synchronization → genotype-aware normalization → circadian interpolation → composite metabolic state estimation → context-aware re-normalization → hierarchical conflict resolution with medical safety enforcement → dynamic differential privacy - constitutes an unconventional arrangement that produces a result not achievable by any prior art system. Each stage's output transforms the input for the subsequent stage in a physiologically-constrained sequence that cannot be reordered without breaking biological correctness.
 
 **(D) The Adaptive Self-Calibration Feedback Loop Creates a Self-Improving Machine:**
 
-The three-channel error back-propagation mechanism (δ_base, κ_genetic, δ_circ) with adaptive learning rate decay transforms a static computing model into a self-improving system. This is not a mathematical abstraction — it requires persistent storage of per-user calibration profiles across computing sessions, real-time peak detection in streaming sensor data, and coordinated updates across three independent correction channels. The result is a computing system whose temporal alignment accuracy autonomously improves over time without human intervention, from an initial peak timing error of ~45 minutes to ~8 minutes after calibration.
+The three-channel error back-propagation mechanism (δ_base, κ_genetic, δ_circ) with adaptive learning rate decay transforms a static computing model into a self-improving system. This is not a mathematical abstraction - it requires persistent storage of per-user calibration profiles across computing sessions, real-time peak detection in streaming sensor data, and coordinated updates across three independent correction channels. The result is a computing system whose temporal alignment accuracy autonomously improves over time without human intervention, from an initial peak timing error of ~45 minutes to ~8 minutes after calibration.
 
 **(E) The Invention Produces a Concrete, Tangible Result:**
 
-The output of the system is not an abstract mathematical value. It is a structured **NutrientBudget** — a concrete data artifact comprising 14 specific nutrient targets allocated across temporal windows, with a complete audit trail of every modification, conflict resolution, and privacy transformation. This tangible output directly controls the information displayed to the user on a physical device screen and can be transmitted to downstream systems (food ordering, meal planning) for automated actuation.
+The output of the system is not an abstract mathematical value. It is a structured **NutrientBudget** - a concrete data artifact comprising 14 specific nutrient targets allocated across temporal windows, with a complete audit trail of every modification, conflict resolution, and privacy transformation. This tangible output directly controls the information displayed to the user on a physical device screen and can be transmitted to downstream systems (food ordering, meal planning) for automated actuation.
 
 **(F) Edge-Cloud Architecture Provides Specific Technical Security Improvement:**
 
@@ -292,40 +292,40 @@ The accompanying drawings, which are incorporated in and constitute a part of th
 
 The following detailed specifications are provided for preparation of formal patent drawings conforming to 37 C.F.R. § 1.84.
 
-#### FIG. 1 — System Architecture Diagram
+#### FIG. 1 - System Architecture Diagram
 
 **Drawing type:** Block diagram (landscape orientation recommended)
 
 **Layout:** Two large rectangular regions separated by a thick dashed vertical line labeled **"PRIVACY BOUNDARY (102)"** spanning the full height of the drawing.
 
-**Left region — EDGE DEVICE (100):**
+**Left region - EDGE DEVICE (100):**
 
 - Top row: Five sensor blocks arranged horizontally, each drawn as a rounded rectangle with an antenna icon:
-  - **(110) CGM Adapter** — labeled "CGM Sensor / BLE 5.0 / CONTINUOUS / Δt=3,600s"
-  - **(112) Activity Adapter** — labeled "Wearable HR+HRV / BLE 5.0 / CONTINUOUS / Δt=30s"
-  - **(114) Sleep Adapter** — labeled "Sleep Tracker / BLE / PERIODIC / Δt=28,800s"
-  - **(116) Genetic Adapter** — labeled "SNP Genotype / NFC Import / STATIC / Δt=0"
-  - **(118) Location Adapter** — labeled "GPS+Environment / PERIODIC / Δt=1,800s"
+  - **(110) CGM Adapter** - labeled "CGM Sensor / BLE 5.0 / CONTINUOUS / Δt=3,600s"
+  - **(112) Activity Adapter** - labeled "Wearable HR+HRV / BLE 5.0 / CONTINUOUS / Δt=30s"
+  - **(114) Sleep Adapter** - labeled "Sleep Tracker / BLE / PERIODIC / Δt=28,800s"
+  - **(116) Genetic Adapter** - labeled "SNP Genotype / NFC Import / STATIC / Δt=0"
+  - **(118) Location Adapter** - labeled "GPS+Environment / PERIODIC / Δt=1,800s"
 
 - Below sensors: Arrow lines merge into a single bus labeled **"BiomarkerReading Stream (120)"** containing the text: "source_id, user_id, type, timestamp, value, unit, confidence, metadata, raw_hash"
 
 - Center of left region: A vertical stack of eight processing blocks connected by downward arrows forming the **Pipeline (130)**. Each block is a rectangle with stage number:
-  - **(130-0) Stage 0: Consent Filter** — icon: shield
-  - **(130-1) Stage 1: Temporal Sync** — icon: clock with arrows; formula "t_sync = t_event + Δt × γ × φ" shown adjacent
-  - **(130-2) Stage 2: Normalization** — icon: bell curve
-  - **(130-3) Stage 3: Interpolation** — icon: sine wave
-  - **(130-4) Stage 4: Metabolic State** — icon: gauge/meter
-  - **(130-4.5) Stage 4.5: Re-Normalization** — icon: refresh arrows
-  - **(130-5) Stage 5: Nutrient Calc** — icon: scale/balance
-  - **(130-6) Stage 6: DP Noise** — icon: lock with noise waves
+  - **(130-0) Stage 0: Consent Filter** - icon: shield
+  - **(130-1) Stage 1: Temporal Sync** - icon: clock with arrows; formula "t_sync = t_event + Δt × γ × φ" shown adjacent
+  - **(130-2) Stage 2: Normalization** - icon: bell curve
+  - **(130-3) Stage 3: Interpolation** - icon: sine wave
+  - **(130-4) Stage 4: Metabolic State** - icon: gauge/meter
+  - **(130-4.5) Stage 4.5: Re-Normalization** - icon: refresh arrows
+  - **(130-5) Stage 5: Nutrient Calc** - icon: scale/balance
+  - **(130-6) Stage 6: DP Noise** - icon: lock with noise waves
 
 - Bottom-left: Rectangle labeled **"Secure Enclave / TEE (140)"** with a lock icon, connected by a bidirectional arrow to Stage 1 (for genetic modifier computation) and Stage 6 (for privacy operations).
 
-- Bottom-center: Cylinder labeled **"Persistent Storage (142)"** — contents: "Calibration Profiles (δ_base, κ_genetic, δ_circ), Personal Baselines, Consent State"
+- Bottom-center: Cylinder labeled **"Persistent Storage (142)"** - contents: "Calibration Profiles (δ_base, κ_genetic, δ_circ), Personal Baselines, Consent State"
 
 - A feedback arrow from Stage 1 output loops back through an **"Adaptive Calibration Loop (144)"** block returning to Stage 1 input.
 
-**Right region — SERVER / CLOUD (200):**
+**Right region - SERVER / CLOUD (200):**
 
 - Small input block **(202)** labeled "Incoming: 64-dim embedding + DP-noised stats + metabolic labels"
 - Processing block **(210)** labeled "HL7 FHIR R4 Server / Recommendation Engine"
@@ -344,34 +344,34 @@ A large **X** symbol over a crossed-out arrow labeled "RAW DATA" to visually emp
 
 ---
 
-#### FIG. 2 — Dynamic Physiological Lag Model Flowchart
+#### FIG. 2 - Dynamic Physiological Lag Model Flowchart
 
 **Drawing type:** Detailed flowchart (portrait orientation)
 
 **Start:** Rounded rectangle **(300)** labeled "Receive BiomarkerReading (type b, timestamp t_event, user g)"
 
-**Step 1 — (310):** Decision diamond: "Is biomarker type STATIC?" → Yes: rectangle **(312)** "lag = 0, skip lag computation" → proceed to End. No: continue.
+**Step 1 - (310):** Decision diamond: "Is biomarker type STATIC?" → Yes: rectangle **(312)** "lag = 0, skip lag computation" → proceed to End. No: continue.
 
-**Step 2 — (320):** Rectangle: "Look up Δt_base(b) from SamplingCharacteristics" with adjacent table:
+**Step 2 - (320):** Rectangle: "Look up Δt_base(b) from SamplingCharacteristics" with adjacent table:
 ```
 GLUCOSE: 3,600s | HR: 30s | HRV: 300s | STEPS: 1,200s | SLEEP: 28,800s
 ```
 
-**Step 3 — (330):** Rectangle: "Retrieve user's SNP profile for biomarker type b"
+**Step 3 - (330):** Rectangle: "Retrieve user's SNP profile for biomarker type b"
 
-**Step 4 — (340):** Rectangle: "Compute γ_genetic = exp((1/k) × Σ ln(1/mᵢ))" with annotation: "Geometric mean of inverse modifiers"
+**Step 4 - (340):** Rectangle: "Compute γ_genetic = exp((1/k) × Σ ln(1/mᵢ))" with annotation: "Geometric mean of inverse modifiers"
 
-**Step 5 — (345):** Rectangle: "Clamp γ_genetic to [0.5, 2.0]"
+**Step 5 - (345):** Rectangle: "Clamp γ_genetic to [0.5, 2.0]"
 
-**Step 6 — (350):** Rectangle: "Extract hour h from t_event"
+**Step 6 - (350):** Rectangle: "Extract hour h from t_event"
 
-**Step 7 — (360):** Rectangle: "Look up φ_circadian from 24-hour table" with small embedded graph showing the 0.82-1.20 curve
+**Step 7 - (360):** Rectangle: "Look up φ_circadian from 24-hour table" with small embedded graph showing the 0.82-1.20 curve
 
-**Step 8 — (365):** Rectangle: "Sub-hour interpolation: φ(t) = φ_h + (φ_{h+1} − φ_h) × (min/60)"
+**Step 8 - (365):** Rectangle: "Sub-hour interpolation: φ(t) = φ_h + (φ_{h+1} − φ_h) × (min/60)"
 
-**Step 9 — (370):** Large bold rectangle with multiplication symbol: **"t_sync = t_event + Δt_base × γ_genetic × φ_circadian"**
+**Step 9 - (370):** Large bold rectangle with multiplication symbol: **"t_sync = t_event + Δt_base × γ_genetic × φ_circadian"**
 
-**Step 10 — (380):** Decision diamond: "Calibration profile exists?" → Yes: rectangle **(382)** "Apply corrections: t_sync_cal = t_event + (Δt + δ_base) × (γ × κ) × (φ + δ_circ)" → No: use uncalibrated t_sync.
+**Step 10 - (380):** Decision diamond: "Calibration profile exists?" → Yes: rectangle **(382)** "Apply corrections: t_sync_cal = t_event + (Δt + δ_base) × (γ × κ) × (φ + δ_circ)" → No: use uncalibrated t_sync.
 
 **End:** Rounded rectangle **(390)** "Output: LagComputation(base_lag, genetic_modifier, circadian_modifier, effective_lag, t_sync)"
 
@@ -379,43 +379,43 @@ GLUCOSE: 3,600s | HR: 30s | HRV: 300s | STEPS: 1,200s | SLEEP: 28,800s
 
 ---
 
-#### FIG. 3 — Seven-Stage Pipeline Data Flow Diagram
+#### FIG. 3 - Seven-Stage Pipeline Data Flow Diagram
 
 **Drawing type:** Horizontal swimlane diagram (landscape orientation)
 
 **Seven horizontal swimlanes** stacked vertically, each labeled with stage number and name. Arrows flow left-to-right within lanes and downward between lanes.
 
-**Swimlane 0 — Consent Filter (400):**
+**Swimlane 0 - Consent Filter (400):**
 - Input: "Raw BiomarkerReadings[]" → Process: "Check BIOMARKER_CONSENT_MAP" → Decision: "Consented?" → Yes: pass through → No: "Remove from stream" (red X). Side output: "If !GENETIC_DATA consent → γ = 1.0"
 - Output: "Filtered BiomarkerReadings[]"
 
-**Swimlane 1 — Temporal Sync (410):**
+**Swimlane 1 - Temporal Sync (410):**
 - Input: Filtered readings → Process: "PhysiologicalLagModel.compute_lag()" → Process: "TemporalSynchronizer.build_frame()" → Three nested processes: "FINE (5min) / MEDIUM (1hr) / COARSE (24hr)"
 - Output: "SynchronizedFrame{signals, confidences, completeness}"
 
-**Swimlane 2 — Normalization (420):**
+**Swimlane 2 - Normalization (420):**
 - Input: SynchronizedFrame → Five sequential sub-blocks: "(1) Circadian Correct → (2) Z-score (Personal→Genetic→Pop) → (3) Context Scale → (4) Genetic Weight → (5) Anomaly Score"
 - Output: "NormalizedSignal{z_score, context_factor, anomaly, confidence}"
 
-**Swimlane 3 — Interpolation (430):**
+**Swimlane 3 - Interpolation (430):**
 - Input: NormalizedSignals → Process: "CircadianInterpolator: c(t) = baseline × (1 + A_c cos + A_u cos)" → Blend: "r = sigmoid(gap) → (1-r)×neighbor + r×circadian"
 - Output: "Complete signal grid (no gaps)"
 
-**Swimlane 4 — Metabolic State (440):**
+**Swimlane 4 - Metabolic State (440):**
 - Input: Complete signals → Four parallel detection paths: "Dietary (meal timing) | Exercise (HR>100) | Sleep (steps<5) | Stress (HRV<30 / >60)" → Merge: "14-phase composite MetabolicState"
 - Side process: "Sleep Quality = 0.6×HRV_q + 0.4×Dur_q" → "Insulin Sensitivity Penalty"
 - Output: "MetabolicState{phases[], intensities, sleep_quality, insulin_sensitivity}"
 
-**Swimlane 4.5 — Re-Normalization (445):**
+**Swimlane 4.5 - Re-Normalization (445):**
 - Input: Stage 4 MetabolicState + Stage 2 NormalizedSignals → Decision: "|old_factor − new_factor| > 0.01?" → Yes: "Re-normalize with confirmed context" → No: "Keep existing"
 - Output: "Updated NormalizedSignals"
 
-**Swimlane 5 — Nutrient Calc (450):**
+**Swimlane 5 - Nutrient Calc (450):**
 - Input: All prior stages → Eight sequential steps: "(1) Base RDA → (2) Metabolic Mods → (3) Genetic Mods → (4) Biomarker Reactive → (5) Consumption Deduct → (6) Conflict Resolve → (7) Time Bucket → (8) Output"
 - Side block: "Hierarchical Conflict Resolution (priority 0-5)" with audit trail output
 - Output: "NutrientBudget{targets[14], buckets[], audit_trail[], conflicts[]}"
 
-**Swimlane 6 — DP Noise (460):**
+**Swimlane 6 - DP Noise (460):**
 - Input: NutrientBudget → Process: "Classify sensitivity tier (CRITICAL/HIGH/MEDIUM/LOW)" → Process: "DynamicEpsilonAllocator: ε × α(budget)" → Process: "Inject Laplace/Gaussian noise"
 - Side block: "PEI tracker: ε_consumed / ε_total"
 - Output: "Privacy-Protected NutrientBudget + 64-dim Embedding"
@@ -424,14 +424,14 @@ GLUCOSE: 3,600s | HR: 30s | HRV: 300s | STEPS: 1,200s | SLEEP: 28,800s
 
 ---
 
-#### FIG. 4 — Adaptive Self-Calibration Feedback Loop
+#### FIG. 4 - Adaptive Self-Calibration Feedback Loop
 
 **Drawing type:** Block diagram with feedback arrows (landscape orientation)
 
-**Top section — Forward Path (500):**
+**Top section - Forward Path (500):**
 - Block **(502):** "Meal/Exercise Event (trigger)" → Arrow to Block **(504):** "Physiological Lag Model (with current calibration)" → Arrow labeled "Predicted peak time t_pred" to Block **(506):** "Wait for observation window"
 
-**Middle section — Peak Detection (510):**
+**Middle section - Peak Detection (510):**
 - Block **(506)** feeds into Block **(512):** "PeakDetector" containing four sequential sub-blocks:
   - "(1) EMA Smoothing (α=0.3)"
   - "(2) Local Maximum Detection"
@@ -443,20 +443,20 @@ GLUCOSE: 3,600s | HR: 30s | HRV: 300s | STEPS: 1,200s | SLEEP: 28,800s
 - Block **(522):** "ε = t_actual − t_pred" (error computation)
 - Three arrows fan out from (522) labeled "Channel 1," "Channel 2," "Channel 3"
 
-**Bottom section — Three Correction Channels (530):**
+**Bottom section - Three Correction Channels (530):**
 
 Three parallel channel blocks arranged horizontally:
 
-- **(532) Channel 1 — Base Lag Offset:**
+- **(532) Channel 1 - Base Lag Offset:**
   - Formula: "δ_base^(k+1) = (1−α) × δ_base^(k) + α × ε"
   - Annotation: "α₀ = 0.3, clamp ±1,800s"
   - Small graph: decaying learning rate curve
 
-- **(534) Channel 2 — Circadian Phase:**
+- **(534) Channel 2 - Circadian Phase:**
   - Formula: "δ_circ^(k+1) = (1−α) × δ_circ^(k) + α × (ε/lag)"
   - Annotation: "α₀ = 0.2, clamp ±0.3"
 
-- **(536) Channel 3 — Genetic Coefficient:**
+- **(536) Channel 3 - Genetic Coefficient:**
   - Formula: "κ^(k+1) = (1−α) × κ^(k) + α × (1+ε_rel)"
   - Annotation: "α₀ = 0.1, clamp [0.5, 1.5]"
 
@@ -478,7 +478,7 @@ Three parallel channel blocks arranged horizontally:
 
 ---
 
-#### FIG. 5 — Circadian Lag Modifier 24-Hour Profile
+#### FIG. 5 - Circadian Lag Modifier 24-Hour Profile
 
 **Drawing type:** Line graph with data points (landscape orientation)
 
@@ -495,8 +495,8 @@ Three parallel channel blocks arranged horizontally:
 ```
 
 **Annotations:**
-- Arrow pointing to (8, 0.82): **"Morning Peak: φ = 0.82 — Shortest lag (highest insulin sensitivity)"**
-- Arrow pointing to (2, 1.20): **"Circadian Nadir: φ = 1.20 — Longest lag (lowest metabolic rate)"**
+- Arrow pointing to (8, 0.82): **"Morning Peak: φ = 0.82 - Shortest lag (highest insulin sensitivity)"**
+- Arrow pointing to (2, 1.20): **"Circadian Nadir: φ = 1.20 - Longest lag (lowest metabolic rate)"**
 - Shaded region (06:00–10:00) in light green: labeled "Optimal Metabolic Window"
 - Shaded region (00:00–04:00) in light red: labeled "Metabolic Nadir Zone"
 - Horizontal dashed line at 1.0: "Baseline Reference (15:00 = 1.00)"
@@ -510,21 +510,21 @@ Three parallel channel blocks arranged horizontally:
 
 ---
 
-#### FIG. 6 — Hierarchical Conflict Resolution Layer
+#### FIG. 6 - Hierarchical Conflict Resolution Layer
 
 **Drawing type:** Layered pyramid/stack diagram with example flow (portrait orientation)
 
-**Main element — Priority Pyramid (700):**
+**Main element - Priority Pyramid (700):**
 Six horizontal layers stacked vertically, widest at bottom, narrowest at top. Each layer colored with increasing intensity toward top:
 
-- **(706) Priority 5 — Medical Critical** (top, dark red): "NEVER overridable — CKD, severe allergies, drug interactions"
-- **(705) Priority 4 — Medical Warning** (orange): "NEVER overridable — Hypertension, diabetes thresholds"
-- **(704) Priority 3 — Genetic Optimization** (blue): "Overridable by medical — SNP-based nutrient efficiency"
-- **(703) Priority 2 — Biomarker Reactive** (green): "Overridable — Real-time Z-score adjustments"
-- **(702) Priority 1 — Metabolic State** (light green): "Overridable — Phase-specific modifiers"
-- **(701) Priority 0 — Base RDA** (gray, bottom): "Overridable — Population defaults"
+- **(706) Priority 5 - Medical Critical** (top, dark red): "NEVER overridable - CKD, severe allergies, drug interactions"
+- **(705) Priority 4 - Medical Warning** (orange): "NEVER overridable - Hypertension, diabetes thresholds"
+- **(704) Priority 3 - Genetic Optimization** (blue): "Overridable by medical - SNP-based nutrient efficiency"
+- **(703) Priority 2 - Biomarker Reactive** (green): "Overridable - Real-time Z-score adjustments"
+- **(702) Priority 1 - Metabolic State** (light green): "Overridable - Phase-specific modifiers"
+- **(701) Priority 0 - Base RDA** (gray, bottom): "Overridable - Population defaults"
 
-**Right side — Example Conflict Flow (720):**
+**Right side - Example Conflict Flow (720):**
 
 Flow diagram showing a concrete conflict scenario:
 
@@ -549,13 +549,13 @@ Flow diagram showing a concrete conflict scenario:
 
 ---
 
-#### FIG. 7 — Dynamic Epsilon Differential Privacy System
+#### FIG. 7 - Dynamic Epsilon Differential Privacy System
 
 **Drawing type:** Flowchart with state machine (landscape orientation)
 
 **Input (800):** Rectangle: "NutrientBudget from Stage 5 (14 nutrient targets)"
 
-**Step 1 — Tier Classification (810):**
+**Step 1 - Tier Classification (810):**
 Four-column classification table:
 ```
 CRITICAL (ε=0.1): Genetic data, rare conditions
@@ -564,25 +564,25 @@ MEDIUM   (ε=0.5): Heart rate, HRV, sleep
 LOW      (ε=0.8): Steps, exercise, activity
 ```
 
-**Step 2 — Budget Check (820):**
+**Step 2 - Budget Check (820):**
 State machine with three states connected by arrows:
 - **(822) Normal** (green): "Budget < 70% → α = 1.0 (full ε)"
 - **(824) Warning** (yellow): "70% ≤ Budget < 90% → α = 0.75 (reduced ε)"
 - **(826) Critical** (red): "Budget ≥ 90% → α = 0.5 (minimum ε)"
 - Arrows between states labeled with budget consumption thresholds
 
-**Step 3 — Noise Computation (830):**
+**Step 3 - Noise Computation (830):**
 Two parallel paths:
-- **(832) Laplace Mechanism:** "ṽ = v + Lap(Δ / (ε_tier × α))" — for pure ε-DP
-- **(834) Gaussian Mechanism:** "ṽ = v + N(0, σ²)" where "σ = sensitivity × √(2ln(1.25/δ)) / ε" — for (ε,δ)-DP
+- **(832) Laplace Mechanism:** "ṽ = v + Lap(Δ / (ε_tier × α))" - for pure ε-DP
+- **(834) Gaussian Mechanism:** "ṽ = v + N(0, σ²)" where "σ = sensitivity × √(2ln(1.25/δ)) / ε" - for (ε,δ)-DP
 
-**Step 4 — PEI Tracking (840):**
+**Step 4 - PEI Tracking (840):**
 Gauge/meter visualization:
 - Semicircular gauge from 0.0 to 1.0
 - Four colored zones: Green (0–0.39 "Low"), Yellow (0.4–0.69 "Moderate"), Orange (0.7–0.89 "High"), Red (0.9–1.0 "Critical")
 - Formula: "PEI = Σε_consumed / ε_total"
 
-**Step 5 — Reset (850):**
+**Step 5 - Reset (850):**
 Clock icon with "24-hour reset cycle: ε_total = 1.0, δ = 10⁻⁵"
 
 **Output (860):** "Privacy-Protected NutrientBudget + Privacy Exposure Report"
@@ -591,39 +591,39 @@ Clock icon with "24-hour reset cycle: ε_total = 1.0, δ = 10⁻⁵"
 
 ---
 
-#### FIG. 8 — Temporal Alignment Correlation Improvement (KEY EVIDENTIARY FIGURE)
+#### FIG. 8 - Temporal Alignment Correlation Improvement (KEY EVIDENTIARY FIGURE)
 
 **Drawing type:** Dual-panel comparative scatter plot with bar chart summary (landscape orientation)
 
 **This figure constitutes the primary quantitative evidence of technical improvement and should be prominently referenced in any Office Action response regarding 35 U.S.C. § 101 eligibility.**
 
-**Panel A — Left (900): "Before: Raw Timestamp Alignment"**
+**Panel A - Left (900): "Before: Raw Timestamp Alignment"**
 - Scatter plot with:
   - X-axis: "Meal Event Time (minutes)" [0 to 300]
   - Y-axis: "Glucose Peak Response (mg/dL)" [80 to 250]
   - ~50 data points scattered with no clear pattern (random cloud)
   - Regression line: nearly flat, shallow slope
-  - Annotation box: **"Pearson r = 0.15 (p > 0.1) — Noise-level correlation"**
+  - Annotation box: **"Pearson r = 0.15 (p > 0.1) - Noise-level correlation"**
   - Large red "✗" watermark: "COMPUTATIONALLY USELESS"
 
-**Panel B — Right (910): "After: Lag-Compensated Alignment"**
+**Panel B - Right (910): "After: Lag-Compensated Alignment"**
 - Scatter plot with same axes:
   - ~50 data points showing clear positive linear trend
   - Regression line: steep positive slope with narrow confidence band
-  - Annotation box: **"Pearson r = 0.78 (p < 0.001) — Strong correlation"**
+  - Annotation box: **"Pearson r = 0.78 (p < 0.001) - Strong correlation"**
   - Large green "✓" watermark: "COMPUTATIONALLY ACTIONABLE"
 
-**Panel C — Bottom center (920): Summary Bar Chart**
+**Panel C - Bottom center (920): Summary Bar Chart**
 - Three grouped bar pairs comparing Before (gray) vs. After (blue):
-  - Bar 1: "Pearson r" — 0.15 vs. 0.78 (+420%)
-  - Bar 2: "Peak Timing MAE" — 45 min vs. 8 min (−82%)
-  - Bar 3: "Causal Event Match" — 0/15 vs. 14/15 (93%)
+  - Bar 1: "Pearson r" - 0.15 vs. 0.78 (+420%)
+  - Bar 2: "Peak Timing MAE" - 45 min vs. 8 min (−82%)
+  - Bar 3: "Causal Event Match" - 0/15 vs. 14/15 (93%)
 - Delta labels above each pair: "+420%", "−82%", "+93%"
 
-**Panel D — Bottom right (930): Timing Error Distribution**
+**Panel D - Bottom right (930): Timing Error Distribution**
 - Two overlapping histograms:
-  - Gray histogram: "Before" — wide distribution centered at ~45 min, spread 10–90 min
-  - Blue histogram: "After" — narrow distribution centered at ~8 min, spread 2–15 min
+  - Gray histogram: "Before" - wide distribution centered at ~45 min, spread 10–90 min
+  - Blue histogram: "After" - narrow distribution centered at ~8 min, spread 2–15 min
   - Vertical dashed line at 15 min labeled "Clinical Relevance Threshold"
   - Annotation: "After calibration: 93% of predictions within clinically relevant window"
 
@@ -634,18 +634,18 @@ Clock icon with "24-hour reset cycle: ε_total = 1.0, δ = 10⁻⁵"
 
 ---
 
-#### FIG. 9 — Physiological Normalization Pipeline
+#### FIG. 9 - Physiological Normalization Pipeline
 
 **Drawing type:** Horizontal pipeline block diagram (landscape orientation)
 
 **Input (1000):** "Raw Biomarker Value (v_raw)" with example: "glucose = 108 mg/dL at 07:00"
 
-**Step 1 — (1010) Circadian Correction:**
+**Step 1 - (1010) Circadian Correction:**
 - Block showing: "v_adjusted = v_raw − circadian_offset(hour)"
 - Side annotation: circadian profile lookup (personal if mature, else population)
 - Example: "108 − (+3.2) = 104.8"
 
-**Step 2 — (1020) Personal Z-Score:**
+**Step 2 - (1020) Personal Z-Score:**
 - Three-tier decision tree:
   - "(A) Mature personal baseline (≥50 samples)?" → Yes: use personal μ, σ
   - "(B) Genetic baseline (confidence > 0.3)?" → Yes: use μ_genetic, σ_genetic
@@ -653,16 +653,16 @@ Clock icon with "24-hour reset cycle: ε_total = 1.0, δ = 10⁻⁵"
 - Z-score computation: "z = (v_adjusted − μ_ref) / σ_ref"
 - Example fork: "Genetic: z = (104.8 − 106) / 12 = −0.10" vs. "Population: z = (104.8 − 100) / 15 = +0.32"
 
-**Step 3 — (1030) Context-Dependent Scaling:**
+**Step 3 - (1030) Context-Dependent Scaling:**
 - Context lookup table showing scaling factors:
   - "Postprandial → ×0.7 | Sleeping → ×1.2 | Exercising → ×0.8 | Fasting → ×1.0"
 - "z_context = z × context_factor"
 
-**Step 4 — (1040) Genetic Modifier Weighting:**
+**Step 4 - (1040) Genetic Modifier Weighting:**
 - "Apply SNP-derived modifier weight to Z-score"
 - "z_weighted = z_context × genetic_factor"
 
-**Step 5 — (1050) Anomaly Score:**
+**Step 5 - (1050) Anomaly Score:**
 - Formula: "anomaly = 1 − exp(−0.5 × z²)"
 - Small graph: exponential curve from 0 (z=0) to ~1 (high z)
 
@@ -672,48 +672,48 @@ Clock icon with "24-hour reset cycle: ε_total = 1.0, δ = 10⁻⁵"
 
 ---
 
-#### FIG. 10 — Composite Metabolic State Estimation
+#### FIG. 10 - Composite Metabolic State Estimation
 
 **Drawing type:** Four-quadrant matrix with phase activation diagram (landscape orientation)
 
-**Main structure — Four-Category Matrix (1100):**
+**Main structure - Four-Category Matrix (1100):**
 
 Four labeled columns, each containing its metabolic phases as rounded rectangles:
 
-**Column 1 — Dietary (1110):**
-- **(1111)** POSTPRANDIAL_EARLY (0–2h) — intensity bar showing decay
+**Column 1 - Dietary (1110):**
+- **(1111)** POSTPRANDIAL_EARLY (0–2h) - intensity bar showing decay
 - **(1112)** POSTPRANDIAL_LATE (2–4h)
 - **(1113)** POST_ABSORPTIVE (4–12h)
-- **(1114)** FASTING (≥12h) — intensity bar showing increase
+- **(1114)** FASTING (≥12h) - intensity bar showing increase
 - Detection signal: "Meal timestamp → hours_since_meal"
 
-**Column 2 — Exercise (1120):**
+**Column 2 - Exercise (1120):**
 - **(1121)** PRE_EXERCISE* (extension point, dashed border)
 - **(1122)** DURING_EXERCISE (HR > 100 bpm)
 - **(1123)** RECOVERY_IMMEDIATE (0–2h post)
 - **(1124)** RECOVERY_DELAYED (2–48h, high/extreme intensity)
 - Detection signal: "Heart rate + exercise history"
 
-**Column 3 — Sleep (1130):**
+**Column 3 - Sleep (1130):**
 - **(1131)** PRE_SLEEP
 - **(1132)** SLEEPING (steps < 5)
 - **(1133)** POST_WAKING (0–1h)
 - Detection signal: "Step count + time of day"
 
-**Column 4 — Stress/Recovery (1140):**
+**Column 4 - Stress/Recovery (1140):**
 - **(1141)** METABOLIC_STRESS (HRV < 30ms)
 - **(1142)** RECOVERY (HRV > 60ms)
 - **(1143)** CIRCADIAN_LOW* (extension point, dashed border)
 - Detection signal: "HRV amplitude"
 
-**Bottom section — Composite State Engine (1150):**
+**Bottom section - Composite State Engine (1150):**
 - Shows that multiple phases from different columns can be simultaneously active
 - Example composite: "FASTING (1114) + SLEEPING (1132) + RECOVERY (1142)" → combined nutrient modifiers shown in table:
   - Carbs: 0.8 × 1.0 × 1.2 = 0.96×
   - Protein: 1.0 × 0.8 × 1.3 = 1.04×
   - Water: 0.7 × 0.7 × 1.1 = 0.54×
 
-**Right side — Sleep Quality Sub-Model (1160):**
+**Right side - Sleep Quality Sub-Model (1160):**
 - Two input signals merge into weighted average:
   - "HRV Signal → 4-tier piecewise → hrv_quality (weight: 0.6)"
   - "Duration → 5-tier piecewise → dur_quality (weight: 0.4)"
@@ -741,7 +741,7 @@ The edge device is characterized by the following specific hardware configuratio
 - **Persistent Storage:** Non-volatile storage (flash memory) for persisting per-user calibration profiles (δ_base, κ_genetic, δ_circ corrections) across device power cycles and application sessions, enabling continuous self-calibration refinement over weeks and months;
 - **Hardware Communication Interfaces:** Bluetooth Low Energy (BLE) 5.0+ for real-time CGM data ingestion (≤5-minute polling intervals), wearable heart rate sensor streaming, and sleep tracker synchronization; Near-Field Communication (NFC) for one-time genetic test result import;
 - **Secure Enclave / Trusted Execution Environment (TEE):** Hardware-isolated secure processing region for genetic data decryption and SNP modifier computation, ensuring that raw genetic sequences are never exposed to the general-purpose operating system kernel or user-space applications;
-- **Network Interface:** Wi-Fi or cellular modem for transmitting only the privacy-protected 64-dimensional embedding vector and differential-privacy-noised aggregate statistics to the remote server. The network interface enforces a **cryptographic privacy boundary** — outgoing data is validated against a schema whitelist that physically prevents raw biomarker values, genetic data, or individually identifiable health measurements from being included in any network packet.
+- **Network Interface:** Wi-Fi or cellular modem for transmitting only the privacy-protected 64-dimensional embedding vector and differential-privacy-noised aggregate statistics to the remote server. The network interface enforces a **cryptographic privacy boundary** - outgoing data is validated against a schema whitelist that physically prevents raw biomarker values, genetic data, or individually identifiable health measurements from being included in any network packet.
 
 **(b) Server (Cloud):** An HL7 FHIR R4-compliant server that receives only privacy-protected outputs from edge devices. The server provides dietary recommendation generation, population-level analytics, and FHIR-compatible electronic health record (EHR) integration. The server cannot reconstruct raw biomarker values, individual genotypes, or specific health measurements from the received embeddings due to the irreversibility of the differential privacy noise injection and the dimensionality reduction from full biomarker state to 64-dimensional embedding.
 
@@ -804,7 +804,7 @@ The first processing stage enforces granular user consent at the algorithm level
 
 This design ensures GDPR Article 7 and HIPAA §164.508 compliance at the algorithmic level.
 
-### 4. Stage 1: Temporal Synchronization — The Core Invention (FIG. 2, FIG. 3)
+### 4. Stage 1: Temporal Synchronization - The Core Invention (FIG. 2, FIG. 3)
 
 #### 4.1 The Dynamic Physiological Lag Model
 
@@ -814,7 +814,7 @@ Given a biomarker reading of type b, recorded at timestamp t_event, with user ge
 
 **t_sync = t_event + Δt_base(b) × γ_genetic(g) × φ_circadian(c)**
 
-##### 4.1.1 Δt_base(b) — Intrinsic Physiological Lag
+##### 4.1.1 Δt_base(b) - Intrinsic Physiological Lag
 
 Each biomarker type has a biologically determined base lag representing the inherent delay between cause and effect:
 
@@ -831,7 +831,7 @@ Each biomarker type has a biologically determined base lag representing the inhe
 
 These values are stored as default parameters in the `PhysiologicalLagModel` class and can be overridden per user through the self-calibration mechanism described in Section 7.
 
-##### 4.1.2 γ_genetic(g) — Genetic Metabolic Rate Modifier
+##### 4.1.2 γ_genetic(g) - Genetic Metabolic Rate Modifier
 
 The genetic modifier γ is derived from the user's SNP (Single Nucleotide Polymorphism) profile. For each biomarker type b, the system identifies all SNPs whose metabolic modifiers affect that biomarker. The genetic factor is computed as the geometric mean of the inverse of each modifier:
 
@@ -866,18 +866,18 @@ Each SNP-to-modifier mapping is grounded in published nutrigenomics research:
 
 | SNP | Gene | Modifier Value | Source Study |
 |---|---|---|---|
-| rs1801133 | MTHFR | Folate metabolism −50% for C677T homozygous | **Frosst P et al., *Nature Genetics* 10(1):111–113, 1995** — Original identification of 677C→T variant reducing MTHFR enzyme activity by ~50% |
-| rs9939609 | FTO | Obesity susceptibility ×1.2 | **Frayling TM et al., *Science* 316(5826):889–894, 2007** — FTO variant associated with ~1.67 increased obesity odds per allele, modeled as calorie sensitivity ×1.2 (conservative) |
-| rs429358 | APOE | Saturated fat sensitivity ×1.5 | **Bennet AM et al., *JAMA* 298(11):1300–1311, 2007** — APOE ε4 carriers show 42% greater LDL response to dietary saturated fat; ×1.5 models heightened lipid sensitivity |
-| rs7903146 | TCF7L2 | Insulin response ×0.8 (20% weaker) | **Grant SF et al., *Nature Genetics* 38(3):320–323, 2006** — TCF7L2 rs7903146 T allele associated with 1.4× increased T2D risk via impaired insulin secretion |
-| rs4988235 | LCT | Lactose tolerance = 0 for C/C | **Enattah NS et al., *Nature Genetics* 30(2):233–237, 2002** — LCT −13910 C/C genotype results in adult-type hypolactasia (lactose non-persistence) in virtually all carriers |
-| rs762551 | CYP1A2 | Caffeine metabolism ×0.5 | **Cornelis MC et al., *JAMA* 295(10):1135–1141, 2006** — CYP1A2 *1F allele carriers (slow metabolizers) show 64% higher MI risk from caffeine; ×0.5 metabolic rate |
-| rs1544410 | VDR | Vitamin D requirement ×1.4 | **Uitterlinden AG et al., *Gene* 338(2):143–156, 2004** — VDR BsmI polymorphism associated with 20-40% variation in vitamin D receptor efficiency |
-| rs4341 | ACE | Strength response ×1.2 | **Jones A & Woods DR, *British Journal of Sports Medicine* 37(3):197–201, 2003** — ACE I/D polymorphism affects exercise phenotype; DD genotype favors power/strength |
+| rs1801133 | MTHFR | Folate metabolism −50% for C677T homozygous | **Frosst P et al., *Nature Genetics* 10(1):111–113, 1995** - Original identification of 677C→T variant reducing MTHFR enzyme activity by ~50% |
+| rs9939609 | FTO | Obesity susceptibility ×1.2 | **Frayling TM et al., *Science* 316(5826):889–894, 2007** - FTO variant associated with ~1.67 increased obesity odds per allele, modeled as calorie sensitivity ×1.2 (conservative) |
+| rs429358 | APOE | Saturated fat sensitivity ×1.5 | **Bennet AM et al., *JAMA* 298(11):1300–1311, 2007** - APOE ε4 carriers show 42% greater LDL response to dietary saturated fat; ×1.5 models heightened lipid sensitivity |
+| rs7903146 | TCF7L2 | Insulin response ×0.8 (20% weaker) | **Grant SF et al., *Nature Genetics* 38(3):320–323, 2006** - TCF7L2 rs7903146 T allele associated with 1.4× increased T2D risk via impaired insulin secretion |
+| rs4988235 | LCT | Lactose tolerance = 0 for C/C | **Enattah NS et al., *Nature Genetics* 30(2):233–237, 2002** - LCT −13910 C/C genotype results in adult-type hypolactasia (lactose non-persistence) in virtually all carriers |
+| rs762551 | CYP1A2 | Caffeine metabolism ×0.5 | **Cornelis MC et al., *JAMA* 295(10):1135–1141, 2006** - CYP1A2 *1F allele carriers (slow metabolizers) show 64% higher MI risk from caffeine; ×0.5 metabolic rate |
+| rs1544410 | VDR | Vitamin D requirement ×1.4 | **Uitterlinden AG et al., *Gene* 338(2):143–156, 2004** - VDR BsmI polymorphism associated with 20-40% variation in vitamin D receptor efficiency |
+| rs4341 | ACE | Strength response ×1.2 | **Jones A & Woods DR, *British Journal of Sports Medicine* 37(3):197–201, 2003** - ACE I/D polymorphism affects exercise phenotype; DD genotype favors power/strength |
 
 **Note on Gene-Gene Interactions (Epistasis):** The present embodiment models each SNP independently and aggregates via geometric mean, which represents a first-order approximation. The geometric mean formulation (rather than arithmetic mean or weighted sum) was chosen specifically because metabolic pathways operate in series: two independent 20% reductions in efficiency compound to a 36% total reduction (0.8 × 0.8 = 0.64), which the geometric mean correctly captures. While gene-gene epistatic interactions (e.g., MTHFR × TCF7L2 combined effects) are established in the literature (Ordovas JM & Corella D, *Annual Review of Genomics and Human Genetics* 5:71–118, 2004), the independent-axis model remains valid as a clinically conservative baseline because (1) epistatic interaction effects are typically smaller than main effects for the SNPs modeled, and (2) the self-calibration feedback loop (Section 7) automatically adjusts κ_genetic to compensate for unmodeled gene-gene interactions in individual users. Alternative embodiments incorporating pairwise epistatic terms are discussed in Section 14.
 
-##### 4.1.3 φ_circadian(c) — Circadian Rhythm Modifier
+##### 4.1.3 φ_circadian(c) - Circadian Rhythm Modifier
 
 Metabolic efficiency varies systematically with time of day. The circadian modifier is determined by a 24-hour lookup table with sub-hour linear interpolation:
 
@@ -1236,8 +1236,8 @@ When genetically-optimized nutrient targets conflict with medical safety thresho
 
 | Priority (highest) | Layer | Description | Overridable? |
 |---|---|---|---|
-| 5 | Medical Critical | Life-threatening — CKD, severe allergies | Never |
-| 4 | Medical Warning | Clinically significant — hypertension, diabetes | Never |
+| 5 | Medical Critical | Life-threatening - CKD, severe allergies | Never |
+| 4 | Medical Warning | Clinically significant - hypertension, diabetes | Never |
 | 3 | Genetic Optimization | SNP-based nutrient efficiency | By medical constraints |
 | 2 | Biomarker Reactive | Real-time Z-score adjustments | Yes |
 | 1 | Metabolic State | Phase-specific modifiers | Yes |
@@ -1356,7 +1356,7 @@ To further confirm the enablement of the claimed method with real human physiolo
 - **Secondary endpoint:** Meal-to-glucose Pearson correlation (target: r > 0.65 on real data)
 
 **(b) OhioT1DM Dataset Validation:**
-The publicly available OhioT1DM dataset (Marling & Bunescu, 2018) provides Type 1 Diabetes patients with simultaneous CGM, meal, insulin, and exercise logs — enabling direct validation of the lag model on real patient trajectories without requiring new data collection.
+The publicly available OhioT1DM dataset (Marling & Bunescu, 2018) provides Type 1 Diabetes patients with simultaneous CGM, meal, insulin, and exercise logs - enabling direct validation of the lag model on real patient trajectories without requiring new data collection.
 
 **(c) Population Genomics Cross-Validation:**
 UK Biobank (N=500,000 genomes + health records) and NIH All of Us (N=1M+ diverse US participants) datasets provide population-scale SNP-to-metabolism correlations for validating the genetic modifier coefficients (γ_genetic) against empirical allele-phenotype associations.
@@ -1381,7 +1381,7 @@ The hierarchical conflict resolution system (Section 10.2, Claim 4) requires med
 - When conditions change, active constraints are automatically regenerated from the updated condition list
 - All constraint changes generate audit log entries for regulatory compliance
 
-**(c) Architectural Consistency:** Medical constraints are processed in Stage 5 (Nutrient Demand Calculation), which executes entirely on the edge device. The constraint data itself (condition code → nutrient limit mapping) is a small structured dataset (~500 bytes per constraint) stored in encrypted local storage. At no point do raw medical diagnoses, EHR records, or clinical notes leave the device boundary — only the resulting privacy-protected NutrientBudget is transmitted to the server.
+**(c) Architectural Consistency:** Medical constraints are processed in Stage 5 (Nutrient Demand Calculation), which executes entirely on the edge device. The constraint data itself (condition code → nutrient limit mapping) is a small structured dataset (~500 bytes per constraint) stored in encrypted local storage. At no point do raw medical diagnoses, EHR records, or clinical notes leave the device boundary - only the resulting privacy-protected NutrientBudget is transmitted to the server.
 
 ### 14. Alternative Embodiments
 
@@ -1436,15 +1436,15 @@ Instead of EMA-based calibration, a Bayesian approach may maintain posterior dis
 **(b) Batch Calibration with Sleep-Cycle Trigger:**
 Rather than continuous per-event calibration, updates may be batched and applied once per sleep cycle (e.g., daily at wake time), using all events from the preceding 24 hours. This reduces computation and avoids rapid oscillation in correction parameters.
 
-### 15. Technical Character of the Invention — Subject Matter Eligibility Analysis
+### 15. Technical Character of the Invention - Subject Matter Eligibility Analysis
 
 The following analysis is provided to demonstrate that the present invention constitutes patent-eligible subject matter under 35 U.S.C. § 101, consistent with the Alice Corp. v. CLS Bank (2014) two-step framework and subsequent Federal Circuit guidance.
 
 #### 13.1 Alice Step 1: The Claims Are Not Directed to an Abstract Idea
 
-The claims of the present invention are not directed to a mathematical formula, a mental process, or a method of organizing human activity. Rather, they are directed to **a specific improvement in the technological process of synchronizing heterogeneous sensor data streams** — a concrete problem that exists only in the context of computer-mediated biomarker data processing.
+The claims of the present invention are not directed to a mathematical formula, a mental process, or a method of organizing human activity. Rather, they are directed to **a specific improvement in the technological process of synchronizing heterogeneous sensor data streams** - a concrete problem that exists only in the context of computer-mediated biomarker data processing.
 
-Under *Enfish, LLC v. Microsoft Corp.*, 822 F.3d 1327 (Fed. Cir. 2016), claims directed to improvements in computer functionality itself — rather than merely using a computer as a tool — are patent-eligible at Step 1. The present invention improves the functioning of the computing system in at least four specific ways:
+Under *Enfish, LLC v. Microsoft Corp.*, 822 F.3d 1327 (Fed. Cir. 2016), claims directed to improvements in computer functionality itself - rather than merely using a computer as a tool - are patent-eligible at Step 1. The present invention improves the functioning of the computing system in at least four specific ways:
 
 **(a) Improved Data Processing Accuracy:** The lag-compensated temporal synchronization transforms unreliable cross-signal correlation (r ≈ 0.15) into actionable correlation (r ≈ 0.78). This is an improvement to the computer's ability to process data correctly, analogous to the improved database structure in *Enfish*.
 
@@ -1452,7 +1452,7 @@ Under *Enfish, LLC v. Microsoft Corp.*, 822 F.3d 1327 (Fed. Cir. 2016), claims d
 
 **(c) Reduced Data Transmission Requirements:** The edge-cloud architecture with privacy boundary reduces network data transmission by processing all seven pipeline stages on-device and transmitting only a fixed-size 64-dimensional embedding. This is a concrete architectural improvement that reduces bandwidth, latency, and privacy risk.
 
-**(d) Specific Data Structure Improvements:** The BiomarkerReading data structure with self-describing SamplingCharacteristics enables the synchronization engine to handle new biomarker sources without software modification — an improvement to the extensibility of the computing system analogous to the self-referential table in *Enfish*.
+**(d) Specific Data Structure Improvements:** The BiomarkerReading data structure with self-describing SamplingCharacteristics enables the synchronization engine to handle new biomarker sources without software modification - an improvement to the extensibility of the computing system analogous to the self-referential table in *Enfish*.
 
 #### 13.2 Alice Step 2 (If Reached): The Claims Recite Significantly More
 
@@ -1460,11 +1460,11 @@ Even if any aspect of the claims were deemed directed to an abstract idea at Ste
 
 **(a) Unconventional Ordered Combination (BASCOM Analysis):**
 
-The seven-stage pipeline represents an unconventional ordered combination of processing steps. Under *BASCOM Global Internet Services v. AT&T Mobility*, 827 F.3d 1341 (Fed. Cir. 2016), even conventional components can constitute an inventive concept when arranged in a non-conventional manner. The specific sequence — consent filtering → lag-compensated synchronization → genotype-aware normalization → circadian interpolation → composite metabolic state estimation → context-aware re-normalization → conflict resolution with medical safety enforcement → differential privacy — is not a routine or conventional arrangement. No prior art system performs these steps, let alone in this specific order.
+The seven-stage pipeline represents an unconventional ordered combination of processing steps. Under *BASCOM Global Internet Services v. AT&T Mobility*, 827 F.3d 1341 (Fed. Cir. 2016), even conventional components can constitute an inventive concept when arranged in a non-conventional manner. The specific sequence - consent filtering → lag-compensated synchronization → genotype-aware normalization → circadian interpolation → composite metabolic state estimation → context-aware re-normalization → conflict resolution with medical safety enforcement → differential privacy - is not a routine or conventional arrangement. No prior art system performs these steps, let alone in this specific order.
 
-**(b) Specific Machine Transformation — The Edge Device as a Special-Purpose Machine:**
+**(b) Specific Machine Transformation - The Edge Device as a Special-Purpose Machine:**
 
-The claims require a specific hardware configuration: CGM sensors physically attached to the user's body via subcutaneous filament, wearable PPG/ECG cardiac sensors, an ARM-based edge computing processor with secure enclave for genetic data, persistent flash storage for calibration profiles, and a network interface with hardware-enforced privacy boundary. The edge device, as programmed with the seven-stage pipeline and operatively coupled to these sensors, constitutes a **special-purpose biomarker temporal synchronization machine** under *In re Alappat* — a new machine that did not exist in the prior art. The claimed method cannot be performed mentally, on paper, or through generic computer implementation — it requires real-time fusion of 5+ concurrent streaming sensor data channels with different physical measurement modalities (electrochemical, optical, mechanical, molecular) within a 500ms processing budget.
+The claims require a specific hardware configuration: CGM sensors physically attached to the user's body via subcutaneous filament, wearable PPG/ECG cardiac sensors, an ARM-based edge computing processor with secure enclave for genetic data, persistent flash storage for calibration profiles, and a network interface with hardware-enforced privacy boundary. The edge device, as programmed with the seven-stage pipeline and operatively coupled to these sensors, constitutes a **special-purpose biomarker temporal synchronization machine** under *In re Alappat* - a new machine that did not exist in the prior art. The claimed method cannot be performed mentally, on paper, or through generic computer implementation - it requires real-time fusion of 5+ concurrent streaming sensor data channels with different physical measurement modalities (electrochemical, optical, mechanical, molecular) within a 500ms processing budget.
 
 **(c) The Claims Do Not Preempt All Uses of the Underlying Concepts:**
 
@@ -1472,7 +1472,7 @@ The claims are narrow and specific. They do not preempt all uses of circadian rh
 
 **(d) Non-Conventional Sensor Integration:**
 
-The adapter architecture with self-describing SamplingCharacteristics (declaring typical_interval, physiological_lag, temporal_behavior, circadian_sensitivity, and noise_floor per sensor type) is a specific technical mechanism for integrating physically heterogeneous sensors. This goes beyond mere data collection — it provides a structured framework that enables the synchronization engine to automatically adapt its processing strategy based on declared sensor properties, without requiring per-sensor-type code modifications.
+The adapter architecture with self-describing SamplingCharacteristics (declaring typical_interval, physiological_lag, temporal_behavior, circadian_sensitivity, and noise_floor per sensor type) is a specific technical mechanism for integrating physically heterogeneous sensors. This goes beyond mere data collection - it provides a structured framework that enables the synchronization engine to automatically adapt its processing strategy based on declared sensor properties, without requiring per-sensor-type code modifications.
 
 #### 13.3 Comparison with Relevant Case Law
 
@@ -1489,14 +1489,14 @@ The adapter architecture with self-describing SamplingCharacteristics (declaring
 
 If an Office Action raises a § 101 rejection, the following arguments should be presented:
 
-**(i) Primary Argument — Not Directed to an Abstract Idea (Step 1):**
+**(i) Primary Argument - Not Directed to an Abstract Idea (Step 1):**
 The claims are directed to a specific improvement in the technological process of processing multi-sensor biomedical data. The three-axis lag model is not a mathematical formula applied in the abstract; it is a technical mechanism for aligning physically heterogeneous sensor data streams that have different sampling rates (5 min to 1/lifetime), different temporal behaviors (CONTINUOUS, EVENT, PERIODIC, STATIC), and different causal delays (0 seconds to 8 hours). This problem exists only in the context of computer-mediated sensor data processing and has no analogue in manual or mental processes.
 
-**(ii) Secondary Argument — Significantly More (Step 2):**
+**(ii) Secondary Argument - Significantly More (Step 2):**
 Point to the unconventional seven-stage pipeline, the self-calibrating feedback loop, the specific hardware requirements (CGM, wearables, edge processor), the concrete quantified improvement (420% correlation improvement, 82% error reduction), and the specific data structures (BiomarkerReading, SamplingCharacteristics, SynchronizedFrame, NutrientBudget, ConflictResolution).
 
-**(iii) Tertiary Argument — Not a Diagnostic Method:**
-The system does not diagnose any disease or medical condition. It computes nutrient budgets — food recommendations — through a data processing pipeline. The output is a NutrientBudget (a data structure), not a diagnosis, prognosis, or treatment plan. The system is a wellness/nutrition tool, not a medical device making diagnostic determinations.
+**(iii) Tertiary Argument - Not a Diagnostic Method:**
+The system does not diagnose any disease or medical condition. It computes nutrient budgets - food recommendations - through a data processing pipeline. The output is a NutrientBudget (a data structure), not a diagnosis, prognosis, or treatment plan. The system is a wellness/nutrition tool, not a medical device making diagnostic determinations.
 
 ---
 ## CLAIMS
@@ -1505,7 +1505,7 @@ The system does not diagnose any disease or medical condition. It computes nutri
 
 What is claimed is:
 
-### Independent Claim 1 — Dynamic Physiological Lag Model
+### Independent Claim 1 - Dynamic Physiological Lag Model
 
 **1.** A computer-implemented method for temporally synchronizing heterogeneous biomarker data streams for personalized nutrition recommendation, the method executed by a processor operatively coupled to at least one biomarker sensor device, the method producing a measurable improvement in cross-signal temporal alignment accuracy over prior art timestamp-based sorting, the method comprising:
 
@@ -1529,7 +1529,7 @@ wherein:
 
 ---
 
-### Independent Claim 2 — Adaptive Self-Calibration Feedback Loop
+### Independent Claim 2 - Adaptive Self-Calibration Feedback Loop
 
 **2.** A computer-implemented method for adaptive calibration of a physiological lag prediction model, the method executed by an edge computing processor operatively coupled to at least one biomarker sensor device and a non-transitory computer-readable storage medium storing a persistent per-user calibration profile, the method producing a measurable improvement in temporal prediction accuracy over successive iterations, the method comprising:
 
@@ -1560,7 +1560,7 @@ wherein:
 
 ---
 
-### Independent Claim 3 — Seven-Stage Processing Pipeline
+### Independent Claim 3 - Seven-Stage Processing Pipeline
 
 **3.** A system for generating personalized real-time nutrient budget recommendations from heterogeneous biomarker data, the system comprising:
 
@@ -1592,7 +1592,7 @@ wherein the pipeline instructions, when executed by the edge computing processor
 
 ---
 
-### Independent Claim 4 — Hierarchical Conflict Resolution
+### Independent Claim 4 - Hierarchical Conflict Resolution
 
 **4.** A computer-implemented method for resolving conflicts between genetically-optimized nutrient targets and medical safety constraints in a personalized nutrition recommendation system, comprising:
 
@@ -1610,7 +1610,7 @@ wherein the pipeline instructions, when executed by the edge computing processor
 
 ---
 
-### Independent Claim 5 — Dynamic Epsilon Differential Privacy
+### Independent Claim 5 - Dynamic Epsilon Differential Privacy
 
 **5.** A computer-implemented method for protecting privacy of biomarker-derived nutrient recommendations, comprising:
 
@@ -1746,7 +1746,7 @@ A computer-implemented system and method for personalized nutrition recommendati
 
 ## ASSIGNEE
 
-[To be determined — may be assigned prior to non-provisional filing]
+[To be determined - may be assigned prior to non-provisional filing]
 
 ---
 
@@ -1763,15 +1763,15 @@ A computer-implemented system and method for personalized nutrition recommendati
 **Suggested Technology Center:** TC 2100 (Computer Architecture, Software, and Information Security) or TC 3600 (Transportation, Construction, Electronic Commerce, Agriculture, National Security, and License & Review)
 
 **Suggested CPC Classifications:**
-- **G16H 20/60** — ICT specially adapted for therapies or health-improving plans relating to nutrition control
-- **G16H 50/30** — ICT specially adapted for medical diagnosis; calculating health indices; individual health risk assessment
-- **G06F 16/27** — Replication, distribution, or synchronisation of data — *Temporal synchronization of heterogeneous biomarker streams*
-- **G06F 11/34** — Recording or statistical evaluation of computer activity — *Self-calibration feedback loop with adaptive learning*
-- **G06N 20/00** — Machine learning — *Adaptive self-calibration with EMA-based error back-propagation*
-- **G06N 7/01** — Probabilistic classifiers — *Circadian rhythm probabilistic interpolation model*
-- **G06F 21/62** — Protecting access to data via a platform — *Dynamic differential privacy with four-tier sensitivity classification*
-- **H04L 9/32** — Cryptographic mechanisms or protocols — *Edge-cloud cryptographic privacy boundary enforcement*
-- **G16H 50/20** — ICT for computer-aided diagnosis based on medical expert systems
+- **G16H 20/60** - ICT specially adapted for therapies or health-improving plans relating to nutrition control
+- **G16H 50/30** - ICT specially adapted for medical diagnosis; calculating health indices; individual health risk assessment
+- **G06F 16/27** - Replication, distribution, or synchronisation of data - *Temporal synchronization of heterogeneous biomarker streams*
+- **G06F 11/34** - Recording or statistical evaluation of computer activity - *Self-calibration feedback loop with adaptive learning*
+- **G06N 20/00** - Machine learning - *Adaptive self-calibration with EMA-based error back-propagation*
+- **G06N 7/01** - Probabilistic classifiers - *Circadian rhythm probabilistic interpolation model*
+- **G06F 21/62** - Protecting access to data via a platform - *Dynamic differential privacy with four-tier sensitivity classification*
+- **H04L 9/32** - Cryptographic mechanisms or protocols - *Edge-cloud cryptographic privacy boundary enforcement*
+- **G16H 50/20** - ICT for computer-aided diagnosis based on medical expert systems
 
 **International Patent Classification (IPC):**
 - **G16H 20/60** (Primary)
@@ -1785,13 +1785,13 @@ A computer-implemented system and method for personalized nutrition recommendati
 
 Per 37 CFR § 1.51(c), this provisional application includes:
 
-- [x] **Cover Sheet (PTO/SB/16)** — Identifying the application as a provisional application for patent
-- [x] **Specification** — Written description of the invention (Sections: Field, Background, Summary, Brief Description of Drawings, Detailed Description)
-- [x] **Claims** — 25 claims (5 independent + 20 dependent) included for completeness and to establish claim support; claims are NOT required for provisional applications but are recommended
-- [x] **Abstract** — Summary of the disclosure
-- [x] **Drawings** — Detailed specifications for 10 figures (FIG. 1 through FIG. 10); formal drawings to be prepared per 37 CFR § 1.84 prior to non-provisional filing
-- [ ] **Filing Fee** — $80 USD Micro Entity fee per 37 CFR § 1.16(d) — to be paid upon electronic filing
-- [ ] **Micro Entity Certification** — PTO/SB/15A to be filed concurrently
+- [x] **Cover Sheet (PTO/SB/16)** - Identifying the application as a provisional application for patent
+- [x] **Specification** - Written description of the invention (Sections: Field, Background, Summary, Brief Description of Drawings, Detailed Description)
+- [x] **Claims** - 25 claims (5 independent + 20 dependent) included for completeness and to establish claim support; claims are NOT required for provisional applications but are recommended
+- [x] **Abstract** - Summary of the disclosure
+- [x] **Drawings** - Detailed specifications for 10 figures (FIG. 1 through FIG. 10); formal drawings to be prepared per 37 CFR § 1.84 prior to non-provisional filing
+- [ ] **Filing Fee** - $80 USD Micro Entity fee per 37 CFR § 1.16(d) - to be paid upon electronic filing
+- [ ] **Micro Entity Certification** - PTO/SB/15A to be filed concurrently
 
 ---
 

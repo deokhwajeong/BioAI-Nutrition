@@ -2,9 +2,9 @@
 Real-Time Nutrient Demand Calculator.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06F 16/27 — Query processing (multi-source data integration)
-               G06N 20/00 — Machine learning (adaptive nutrient optimization)
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06F 16/27 - Query processing (multi-source data integration)
+               G06N 20/00 - Machine learning (adaptive nutrient optimization)
 
 Defensive Scope (G16H 20/60):
     This is the final pipeline stage producing actionable nutrient budgets.
@@ -21,7 +21,7 @@ requirements by integrating all upstream engine outputs:
 3. Current metabolic state (metabolic_state)
 4. Genetic modifiers (biomarkers/genetic_adapter)
 
-This is the final stage of the patent pipeline — it produces actionable
+This is the final stage of the patent pipeline - it produces actionable
 nutrient budgets that can drive recommendations.
 
 Key inventive concepts:
@@ -51,8 +51,8 @@ class NutrientTarget:
     Attributes:
         name: Nutrient name (e.g., "protein_g", "carbs_g").
         daily_target: Total daily requirement.
-        minimum: Hard floor — never recommend less.
-        maximum: Hard ceiling — medical constraint.
+        minimum: Hard floor - never recommend less.
+        maximum: Hard ceiling - medical constraint.
         consumed_today: Amount already consumed.
         unit: Measurement unit.
     """
@@ -83,7 +83,7 @@ PRIORITY_HIERARCHY = {
     "biomarker_reactive": 2,  # Real-time biomarker-driven
     "genetic": 3,  # Genetic optimization
     "medical_warning": 4,  # Medical warnings
-    "medical_critical": 5,  # Medical critical constraints — ALWAYS WINS
+    "medical_critical": 5,  # Medical critical constraints - ALWAYS WINS
 }
 
 
@@ -156,7 +156,7 @@ class TimeBucket:
 
 @dataclass
 class NutrientBudget:
-    """Complete nutrient budget — the final output of the pipeline.
+    """Complete nutrient budget - the final output of the pipeline.
 
     This is what drives recommendation generation. It contains:
     - What to eat (adjusted macro/micro targets)
@@ -353,7 +353,7 @@ class NutrientDemandCalculator:
 
         # Step 5: Consumed amounts already applied in base_targets
 
-        # Step 6: Conflict Resolution Layer — medical safety ALWAYS wins
+        # Step 6: Conflict Resolution Layer - medical safety ALWAYS wins
         constraints = self._user_constraints.get(user_id, [])
         self._resolve_conflicts_and_apply_constraints(
             adjusted, constraints, budget, genetic_modifiers
@@ -574,7 +574,7 @@ class NutrientDemandCalculator:
                     "new_value": targets["carbs_g"].daily_target,
                     "reason": (
                         f"Low insulin sensitivity ({state.insulin_sensitivity_estimate:.2f})"
-                        " — prefer low-GI carb sources"
+                        " - prefer low-GI carb sources"
                     ),
                     "biomarker": "insulin_sensitivity",
                     "qualitative": "prefer_low_gi",
@@ -596,12 +596,12 @@ class NutrientDemandCalculator:
         budget with a complete conflict audit trail."
 
         Priority hierarchy (highest wins):
-          5. Medical Critical  — life-threatening (CKD, severe allergy)
-          4. Medical Warning   — clinically significant (hypertension)
-          3. Genetic           — SNP-based optimization
-          2. Biomarker Reactive — real-time z-score adjustments
-          1. Metabolic State   — phase-driven modifications
-          0. Base RDA          — population-level defaults
+          5. Medical Critical  - life-threatening (CKD, severe allergy)
+          4. Medical Warning   - clinically significant (hypertension)
+          3. Genetic           - SNP-based optimization
+          2. Biomarker Reactive - real-time z-score adjustments
+          1. Metabolic State   - phase-driven modifications
+          0. Base RDA          - population-level defaults
 
         When a genetic recommendation conflicts with a medical constraint,
         the medical constraint ALWAYS wins, and a ConflictResolution
@@ -721,7 +721,7 @@ class NutrientDemandCalculator:
 
         # Dynamic bucket generation based on current state
         if MetabolicPhase.RECOVERY_IMMEDIATE in state.active_phases:
-            # Urgent: Recovery window — front-load carbs and protein
+            # Urgent: Recovery window - front-load carbs and protein
             buckets.append(
                 TimeBucket(
                     start_hour=now_hour,

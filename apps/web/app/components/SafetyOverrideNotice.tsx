@@ -61,7 +61,7 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
           <div>
             <h3 className="text-lg font-bold text-white">Safety Override Active</h3>
             <p className="text-xs text-gray-400">
-              Medical constraints override genetic recommendations — patient safety takes priority
+              Medical constraints override genetic recommendations - patient safety takes priority
             </p>
           </div>
           <div className="ml-auto px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold">
@@ -150,7 +150,7 @@ export default function SafetyOverrideNotice({ conflicts }: Props) {
                   <span className="font-semibold text-gray-200">
                     {c.constraint_reason}
                   </span>
-                  {" — "}
+                  {" - "}
                   {c.resolution_rationale}
                 </div>
               </div>

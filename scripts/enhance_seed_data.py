@@ -362,7 +362,7 @@ async def seed_default_data(
         ))
     counts["genotype"] = 2
 
-    # ── 3. CGM glucose — both users (every 5 min, 72 h) ────────────
+    # ── 3. CGM glucose - both users (every 5 min, 72 h) ────────────
     glucose_count = 0
     for user_id, profile in [(DEMO_USER, "healthy"), (DEMO_USER_T2D, "t2d_risk")]:
         t = start
@@ -645,7 +645,7 @@ async def seed_default_data(
             water_count += 1
     counts["water_intake"] = water_count
 
-    # ── 11. Sleep sessions (nightly, 3 nights — detailed stages) ────
+    # ── 11. Sleep sessions (nightly, 3 nights - detailed stages) ────
     sleep_count = 0
     for day_offset in range(3):
         bed_time = (start + timedelta(days=day_offset)).replace(

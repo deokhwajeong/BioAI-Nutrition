@@ -2,13 +2,13 @@
 Core engine for heterogeneous biomarker processing.
 
 USPTO/IPC Classification Coverage:
-    G16H 20/60 — ICT for nutrition control (primary, all modules)
-    G06F 16/27 — Data synchronization (temporal_sync)
-    G06F 11/34 — Performance monitoring (self_calibration)
-    G06N 20/00 — Machine learning (self_calibration feedback loop)
-    G06N 7/01  — Probabilistic models (temporal_sync, interpolation, normalization)
-    G06F 21/62 — Access control (pipeline consent filtering, DP noise)
-    H04L 9/32  — Security protocols (edge_processor)
+    G16H 20/60 - ICT for nutrition control (primary, all modules)
+    G06F 16/27 - Data synchronization (temporal_sync)
+    G06F 11/34 - Performance monitoring (self_calibration)
+    G06N 20/00 - Machine learning (self_calibration feedback loop)
+    G06N 7/01  - Probabilistic models (temporal_sync, interpolation, normalization)
+    G06F 21/62 - Access control (pipeline consent filtering, DP noise)
+    H04L 9/32  - Security protocols (edge_processor)
 
     See patent_classifications.py for the complete registry mapping
     each classification to its defensive rationale and claim keywords.

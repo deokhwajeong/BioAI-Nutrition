@@ -68,7 +68,7 @@ baseline = sync_signals()
 print(f"  Baseline signals: {sorted(baseline)}")
 
 if not baseline:
-    print("  ⚠️  No baseline signals — cannot test. Exiting.")
+    print("  ⚠️  No baseline signals - cannot test. Exiting.")
     exit(1)
 
 # ── PHASE 2: Revoke each scope → verify removal ──
@@ -103,7 +103,7 @@ for scope, expected_removed in test_cases:
         print(f"  {scope}: {sorted(expected_in_baseline)} REMOVED ✅")
     else:
         results[scope] = False
-        print(f"  {scope}: ❌ FAIL — {sorted(still_present)} STILL PRESENT after revoke")
+        print(f"  {scope}: ❌ FAIL - {sorted(still_present)} STILL PRESENT after revoke")
     print(f"    (remaining signals: {sorted(after)})")
 
 # ── PHASE 3: Genetic consent ──

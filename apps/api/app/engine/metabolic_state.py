@@ -2,9 +2,9 @@
 Metabolic State Estimator.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06N 7/01  — Probabilistic graphical models
-               G06N 20/00 — Machine learning
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06N 7/01  - Probabilistic graphical models
+               G06N 20/00 - Machine learning
 
 Defensive Scope (G06N 7/01):
     Multi-factor metabolic state inference using probabilistic combination
@@ -14,7 +14,7 @@ Defensive Scope (G06N 7/01):
 
 Defensive Scope (G06N 20/00):
     Insulin sensitivity estimation integrates sleep quality, exercise
-    history, and circadian phase via learned multiplicative factors —
+    history, and circadian phase via learned multiplicative factors -
     an adaptive model that improves with accumulated user data.
 
 Patent-core module: Infers the user's current metabolic state from
@@ -25,7 +25,7 @@ Metabolic state determines:
 2. How biomarker readings should be interpreted (normalization context)
 3. What recommendations are physiologically appropriate RIGHT NOW
 
-States are not simply "fasting vs fed" — they include:
+States are not simply "fasting vs fed" - they include:
 - Postprandial phases (absorption, post-absorptive)
 - Exercise states (during, immediate recovery, delayed recovery)
 - Sleep-related states (pre-sleep, deep sleep, post-waking)
@@ -547,14 +547,14 @@ class MetabolicStateEstimator:
 
         The algorithm uses three independent signals:
 
-        1. **HRV amplitude** — High nocturnal/post-waking HRV (>60ms)
+        1. **HRV amplitude** - High nocturnal/post-waking HRV (>60ms)
            indicates good parasympathetic recovery → high quality.
            Low HRV (<30ms) indicates poor autonomic recovery → low quality.
 
-        2. **Sleep duration** — From recorded sleep events.
+        2. **Sleep duration** - From recorded sleep events.
            <6h → sleep deficit penalty, 7-9h optimal, >9h diminishing.
 
-        3. **HRV trend** — If multiple HRV readings are available,
+        3. **HRV trend** - If multiple HRV readings are available,
            a rising trend post-waking indicates good recovery.
 
         The final estimate combines these into a 0-1 sleep quality score.

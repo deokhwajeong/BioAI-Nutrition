@@ -149,10 +149,10 @@ def _run_seed() -> None:
 
     try:
         asyncio.get_running_loop()
-        # Inside running loop (e.g. uvicorn startup) — create task
+        # Inside running loop (e.g. uvicorn startup) - create task
         asyncio.ensure_future(_do_seed())
     except RuntimeError:
-        # No running loop — run synchronously
+        # No running loop - run synchronously
         asyncio.run(_do_seed())
 
 
@@ -296,7 +296,7 @@ async def synchronize_biomarkers(req: SyncRequest) -> SyncResponse:
         user_id=req.user_id,
     )
 
-    # Convert to output — post-filter signals by consent
+    # Convert to output - post-filter signals by consent
     frame_outputs = []
     for f in frames:
         signals_out = {}
@@ -617,19 +617,19 @@ async def manage_consent(req: ConsentRequest) -> ConsentStatusOut:
             "granted": _consent_manager.check_consent(
                 req.user_id, ConsentScope.THIRD_PARTY_SHARING
             ),
-            "controls": "Edge processing — transmitting embeddings off-device",
+            "controls": "Edge processing - transmitting embeddings off-device",
         },
         "research_use": {
             "granted": _consent_manager.check_consent(req.user_id, ConsentScope.RESEARCH_USE),
-            "controls": "Lag comparison analytics — research-grade statistical analysis",
+            "controls": "Lag comparison analytics - research-grade statistical analysis",
         },
         "model_training": {
             "granted": _consent_manager.check_consent(req.user_id, ConsentScope.MODEL_TRAINING),
-            "controls": "Self-calibration feedback — model learns from your data to improve predictions",
+            "controls": "Self-calibration feedback - model learns from your data to improve predictions",
         },
         "location_data": {
             "granted": _consent_manager.check_consent(req.user_id, ConsentScope.LOCATION_DATA),
-            "controls": "Environmental context — altitude/temperature-based nutrient adjustments",
+            "controls": "Environmental context - altitude/temperature-based nutrient adjustments",
         },
     }
     return ConsentStatusOut(
@@ -652,19 +652,19 @@ async def get_consent_status(user_id: str) -> ConsentStatusOut:
     policy_gates = {
         "third_party_sharing": {
             "granted": _consent_manager.check_consent(user_id, ConsentScope.THIRD_PARTY_SHARING),
-            "controls": "Edge processing — transmitting embeddings off-device",
+            "controls": "Edge processing - transmitting embeddings off-device",
         },
         "research_use": {
             "granted": _consent_manager.check_consent(user_id, ConsentScope.RESEARCH_USE),
-            "controls": "Lag comparison analytics — research-grade statistical analysis",
+            "controls": "Lag comparison analytics - research-grade statistical analysis",
         },
         "model_training": {
             "granted": _consent_manager.check_consent(user_id, ConsentScope.MODEL_TRAINING),
-            "controls": "Self-calibration feedback — model learns from your data to improve predictions",
+            "controls": "Self-calibration feedback - model learns from your data to improve predictions",
         },
         "location_data": {
             "granted": _consent_manager.check_consent(user_id, ConsentScope.LOCATION_DATA),
-            "controls": "Environmental context — altitude/temperature-based nutrient adjustments",
+            "controls": "Environmental context - altitude/temperature-based nutrient adjustments",
         },
     }
     return ConsentStatusOut(
@@ -874,7 +874,7 @@ async def get_edge_manifest() -> dict[str, Any]:
     summary="Simulate on-device edge processing",
     description=(
         "Demonstrates the on-device privacy pipeline: raw biomarker data "
-        "is processed locally — only non-invertible embeddings and "
+        "is processed locally - only non-invertible embeddings and "
         "differentially-private aggregations leave the device."
     ),
 )

@@ -2,8 +2,8 @@
 Physiological-Aware Normalization Layer.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06N 7/01 — Probabilistic graphical models
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06N 7/01 - Probabilistic graphical models
 
 Defensive Scope (G06N 7/01):
     Anomaly scoring uses probabilistic formula: anomaly = 1 − exp(−0.5×z²),
@@ -14,15 +14,15 @@ Defensive Scope (G06N 7/01):
 Core module: Transforms raw biomarker values into physiologically
 meaningful normalized signals by accounting for:
 
-1. Personal Baseline Learning — adapts to individual "normal" ranges
+1. Personal Baseline Learning - adapts to individual "normal" ranges
    rather than population averages
-2. Circadian Rhythm Correction — time-of-day compensation for signals
+2. Circadian Rhythm Correction - time-of-day compensation for signals
    with known diurnal patterns (glucose, cortisol, heart rate)
-3. Context-Dependent Scaling — same raw value has different meaning
+3. Context-Dependent Scaling - same raw value has different meaning
    depending on metabolic state (fasting vs postprandial, rest vs exercise)
-4. Genetic Modifier Weighting — SNP-based metabolic efficiency coefficients
+4. Genetic Modifier Weighting - SNP-based metabolic efficiency coefficients
    that scale nutrient utilization rates
-5. Genetic-Baseline Normalization — computes genotype-adjusted reference
+5. Genetic-Baseline Normalization - computes genotype-adjusted reference
    ranges so z-scores reflect deviation from the user's GENETIC normal,
    not population average
 
@@ -584,7 +584,7 @@ class PhysiologicalNormalizer:
         # Step 1: Circadian correction
         circadian_adjusted = self._circadian_correct(raw_value, biomarker_type, timestamp, baseline)
 
-        # Step 2: Personal Z-score — use GENETIC baseline when available
+        # Step 2: Personal Z-score - use GENETIC baseline when available
         genetic_baseline = self.get_genetic_baseline(user_id)
         genetic_mean, genetic_std = genetic_baseline.get_range(biomarker_type)
 

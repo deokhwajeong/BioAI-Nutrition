@@ -1,14 +1,14 @@
 """
-NutritionPipeline — 5-Stage Patent-Core Orchestrator.
+NutritionPipeline - 5-Stage Patent-Core Orchestrator.
 
 USPTO/IPC Classifications:
-    Primary:   G16H 20/60 — ICT for nutrition control
-    Secondary: G06F 16/27 — Data synchronization (Stage 1)
-               G06F 11/34 — Performance monitoring (Self-Calibration loop)
-               G06N 20/00 — Machine learning (Adaptive calibration)
-               G06N 7/01  — Probabilistic models (Gaussian weighting, interpolation)
-               G06F 21/62 — Access control (Consent filtering, DP noise)
-               H04L 9/32  — Security protocols (Edge-cloud boundary)
+    Primary:   G16H 20/60 - ICT for nutrition control
+    Secondary: G06F 16/27 - Data synchronization (Stage 1)
+               G06F 11/34 - Performance monitoring (Self-Calibration loop)
+               G06N 20/00 - Machine learning (Adaptive calibration)
+               G06N 7/01  - Probabilistic models (Gaussian weighting, interpolation)
+               G06F 21/62 - Access control (Consent filtering, DP noise)
+               H04L 9/32  - Security protocols (Edge-cloud boundary)
 
     This pipeline integrates ALL patent classification scopes into a
     unified processing chain. The ordering constraint (sync → normalize
@@ -464,7 +464,7 @@ class NutritionPipeline:
         the z-scores passed to Stage 5 (nutrient calculation) reflect
         the ACTUAL metabolic context, not a placeholder "unknown" context.
 
-        This is selective — only signals whose context scaling factor
+        This is selective - only signals whose context scaling factor
         would differ from the initial "unknown" pass are re-normalized,
         minimizing redundant computation while guaranteeing physiological
         accuracy.
@@ -484,7 +484,7 @@ class NutritionPipeline:
 
         context_str = metabolic_state.to_context_string()
 
-        # Skip if context is still unknown — no benefit from re-running
+        # Skip if context is still unknown - no benefit from re-running
         if context_str == "unknown":
             result.stages_executed.append("renormalization:context_unknown_skip")
             return prev_normalized
@@ -514,7 +514,7 @@ class NutritionPipeline:
                 else:
                     renormalized[bt] = prev_ns
             else:
-                # Context factor unchanged — keep previous normalization
+                # Context factor unchanged - keep previous normalization
                 renormalized[bt] = prev_ns
 
         result.stages_executed.append(
@@ -624,7 +624,7 @@ class NutritionPipeline:
                 epsilon=epsilon,
             )
             if noisy_value is None:
-                # Privacy budget exhausted — keep original value
+                # Privacy budget exhausted - keep original value
                 continue
 
             # Record query for exposure tracking

@@ -1,5 +1,5 @@
 ======================================================================
-BioAI Nutrition — Lag-Time Synchronization Validation Report
+BioAI Nutrition - Lag-Time Synchronization Validation Report
 ======================================================================
 
 Date: 2026-02-11 01:49:40
