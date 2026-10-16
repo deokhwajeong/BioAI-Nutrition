@@ -27,6 +27,8 @@ interface Fixtures {
   metrics: Json;
   recommendations: Json;
   synthea: { status: Json; detail: Record<string, Json>; load: Record<string, Json> };
+  meal_plan: { default: Schemas["MealPlanResponse"]; protein_limit: Schemas["MealPlanResponse"] };
+  trends: Schemas["TrendsResponse"];
 }
 
 const fx = fixtureJson as unknown as Fixtures;
@@ -107,6 +109,7 @@ async function route(path: string, method: string, body: BodyInit | null | undef
       return fx.synthea.detail[id] ? json(fx.synthea.detail[id]) : notFound();
     }
     if (path === "/api/metrics") return json(fx.metrics);
+    if (path === "/analytics/sample") return json(fx.trends);
     return notFound();
   }
 
@@ -131,6 +134,11 @@ async function route(path: string, method: string, body: BodyInit | null | undef
       return json(p.nutrient_budget);
     case "/recommendations":
       return json(fx.recommendations);
+    case "/meal-plan": {
+      // Captured for the pipeline's targets, with and without the sample protein limit.
+      const limited = Array.isArray(payload.constraints) && payload.constraints.length > 0;
+      return json(limited ? fx.meal_plan.protein_limit : fx.meal_plan.default);
+    }
     case "/analyze-meal": {
       const items = (payload.items ?? []) as { name: string }[];
       return json({ items: items.map((i) => foodFor(i.name)) });

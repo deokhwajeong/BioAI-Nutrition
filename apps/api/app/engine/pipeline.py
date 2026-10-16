@@ -59,6 +59,9 @@ from typing import Any
 from ..biomarkers.base import BiomarkerReading, BiomarkerType
 from ..privacy.consent_manager import ConsentScope, DynamicConsentManager
 from ..privacy.differential_privacy import (
+    DAILY_RELEASE_EPSILON,
+    DEFAULT_NUTRIENT_DP_SENSITIVITY,
+    NUTRIENT_DP_SENSITIVITY,
     DifferentialPrivacyEngine,
     DynamicEpsilonAllocator,
 )
@@ -174,6 +177,8 @@ class NutritionPipeline:
         self._consent_manager = consent_manager
         self._privacy_engine = privacy_engine
         self._epsilon_allocator = DynamicEpsilonAllocator()
+        # Last released (true value, noisy value) per user and nutrient, for re-release.
+        self._released: dict[str, dict[str, tuple[float, float]]] = {}
         self._calibrator: AdaptiveLagCalibrator | None = None
 
     def set_calibrator(self, calibrator: AdaptiveLagCalibrator) -> None:
@@ -586,56 +591,63 @@ class NutritionPipeline:
             result.stages_executed.append("dp_noise:skipped")
             return
 
-        # Sensitivity = max plausible change in a single person's data
-        NUTRIENT_SENSITIVITIES = {
-            "kcal": 500.0,
-            "carbs_g": 50.0,
-            "protein_g": 30.0,
-            "fat_g": 20.0,
-            "fiber_g": 10.0,
-            "water_ml": 500.0,
-            "folate_mcg": 100.0,
-            "b12_mcg": 1.0,
-            "vitamin_d_iu": 200.0,
-            "magnesium_mg": 100.0,
-            "caffeine_mg": 100.0,
-            "calcium_mg": 200.0,
-            "sodium_mg": 500.0,
-            "vitamin_b6_mg": 0.5,
-        }
+        # Sensitivity per nutrient and the daily budget are documented next to their
+        # definitions in privacy/differential_privacy.py (metric privacy over a small,
+        # actionable unit per nutrient).
+        user_budget = self._privacy_engine.get_or_create_budget(
+            user_id, epsilon_total=DAILY_RELEASE_EPSILON
+        )
+        released = self._released.setdefault(user_id, {})
+        if user_budget.epsilon_spent == 0:
+            released.clear()  # new budget period: earlier releases no longer count
 
-        # Get user's privacy budget for adaptive allocation
-        user_budget = self._privacy_engine.get_or_create_budget(user_id)
+        # Allocate every nutrient's epsilon up front from the budget state at the start of
+        # the release, so one release uses one consistent set of parameters.
+        epsilons = {
+            name: self._epsilon_allocator.get_adaptive_epsilon(nutrient=name, budget=user_budget)
+            for name in budget.targets
+        }
         tier_summary: dict[str, int] = {}  # Tier → count for audit trail
+        reused = 0
+        unprotected = 0
 
         for name, target in budget.targets.items():
-            sensitivity = NUTRIENT_SENSITIVITIES.get(name, 50.0)
+            true_value = target.daily_target
+            previous = released.get(name)
+            sensitivity = NUTRIENT_DP_SENSITIVITY.get(name, DEFAULT_NUTRIENT_DP_SENSITIVITY)
+            epsilon = epsilons[name]
 
-            # Dynamic ε allocation: tier-based + budget-adaptive
-            tier = self._epsilon_allocator.get_tier_for_nutrient(name)
-            epsilon = self._epsilon_allocator.get_adaptive_epsilon(
-                nutrient=name,
-                budget=user_budget,
-            )
-
-            noisy_value = self._privacy_engine.add_laplace_noise(
-                user_id=user_id,
-                value=target.daily_target,
-                sensitivity=sensitivity,
-                epsilon=epsilon,
-            )
-            if noisy_value is None:
-                # Privacy budget exhausted - keep original value
-                continue
-
-            # Record query for exposure tracking
-            noise_scale = sensitivity / epsilon
-            self._epsilon_allocator.record_query(
-                user_id=user_id,
-                nutrient=name,
-                epsilon_consumed=epsilon,
-                noise_scale=noise_scale,
-            )
+            if previous is not None and abs(previous[0] - true_value) < 1e-9:
+                # Same input as the earlier release: re-release that noisy value. This is
+                # post-processing of a DP output and spends no budget.
+                noisy_value = previous[1]
+                reused += 1
+            else:
+                fresh = self._privacy_engine.add_laplace_noise(
+                    user_id=user_id,
+                    value=true_value,
+                    sensitivity=sensitivity,
+                    epsilon=epsilon,
+                )
+                if fresh is not None:
+                    noisy_value = fresh
+                    released[name] = (true_value, fresh)
+                    self._epsilon_allocator.record_query(
+                        user_id=user_id,
+                        nutrient=name,
+                        epsilon_consumed=epsilon,
+                        noise_scale=sensitivity / epsilon,
+                    )
+                    tier_key = self._epsilon_allocator.get_tier_for_nutrient(name).value
+                    tier_summary[tier_key] = tier_summary.get(tier_key, 0) + 1
+                elif previous is not None:
+                    # Budget spent: the earlier noisy value is stale but still private.
+                    noisy_value = previous[1]
+                    reused += 1
+                else:
+                    # Only reachable when a budget smaller than one release was configured.
+                    unprotected += 1
+                    continue
 
             # Clamp to the range the calculator left: bounds and medical limits included.
             # The maximum is applied last so a medical cap always wins over a floor.
@@ -643,13 +655,17 @@ class NutritionPipeline:
             hi = target.maximum if target.maximum is not None else float("inf")
             target.daily_target = min(hi, max(lo, noisy_value))
 
-            tier_key = tier.value
-            tier_summary[tier_key] = tier_summary.get(tier_key, 0) + 1
-
         # Audit trail with tier breakdown
         tier_str = ",".join(f"{k}={v}" for k, v in sorted(tier_summary.items()))
         result.dp_applied = True
-        result.stages_executed.append(f"dp_noise:dynamic_eps,tiers=[{tier_str}]")
+        result.stages_executed.append(
+            f"dp_noise:dynamic_eps,tiers=[{tier_str}],reused={reused},unprotected={unprotected}"
+        )
+
+    def forget_user(self, user_id: str) -> None:
+        """Drop cached releases and exposure history for a user (account deletion)."""
+        self._released.pop(user_id, None)
+        self._epsilon_allocator.reset_history(user_id)
 
     def get_privacy_exposure_report(self, user_id: str) -> Any | None:
         """Get the cumulative privacy exposure report for a user.

@@ -165,10 +165,10 @@ def test_get_recommendations() -> None:
 # ==================== User Management ====================
 
 
-def test_user_delete() -> None:
-    """Test user deletion endpoint."""
+def test_user_delete_requires_bearer_token() -> None:
+    """Deletion acts only on the caller's own account (see test_accounts.py)."""
     response = client.delete("/users/test-user", headers=headers)
-    assert response.status_code in [204, 404]
+    assert response.status_code == 401
 
 
 # ==================== Security Tests ====================

@@ -1,6 +1,56 @@
 {
   "components": {
     "schemas": {
+      "AccountConsentOut": {
+        "properties": {
+          "scopes": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Every scope the user has decided on",
+            "title": "Scopes",
+            "type": "object"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "scopes"
+        ],
+        "title": "AccountConsentOut",
+        "type": "object"
+      },
+      "AccountOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "username",
+          "created_at",
+          "profile"
+        ],
+        "title": "AccountOut",
+        "type": "object"
+      },
       "ActivityEvent": {
         "properties": {
           "activity_type": {
@@ -315,6 +365,33 @@
         "title": "ConsentRequest",
         "type": "object"
       },
+      "ConsentScope": {
+        "description": "Granular data categories that can be independently consented.",
+        "enum": [
+          "glucose_data",
+          "activity_data",
+          "sleep_data",
+          "genetic_data",
+          "meal_data",
+          "medication_data",
+          "weight_data",
+          "heart_rate_data",
+          "blood_test_data",
+          "water_intake_data",
+          "location_data",
+          "metabolic_state",
+          "nutrient_budget",
+          "recommendations",
+          "household_sharing",
+          "research_sharing",
+          "provider_sharing",
+          "third_party_sharing",
+          "research_use",
+          "model_training"
+        ],
+        "title": "ConsentScope",
+        "type": "string"
+      },
       "ConsentStatusOut": {
         "properties": {
           "allowed_biomarkers": {
@@ -363,6 +440,46 @@
           "allowed_biomarkers"
         ],
         "title": "ConsentStatusOut",
+        "type": "object"
+      },
+      "ConsentUpdate": {
+        "properties": {
+          "granted": {
+            "title": "Granted",
+            "type": "boolean"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/ConsentScope"
+          }
+        },
+        "required": [
+          "scope",
+          "granted"
+        ],
+        "title": "ConsentUpdate",
+        "type": "object"
+      },
+      "Credentials": {
+        "properties": {
+          "password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 40,
+            "minLength": 3,
+            "pattern": "^[a-z0-9_.-]+$",
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Credentials",
         "type": "object"
       },
       "DailyFeatures": {
@@ -482,6 +599,28 @@
           }
         },
         "title": "DailyFeatures",
+        "type": "object"
+      },
+      "DeletionReport": {
+        "properties": {
+          "deleted": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Rows removed per table",
+            "title": "Deleted",
+            "type": "object"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "deleted"
+        ],
+        "title": "DeletionReport",
         "type": "object"
       },
       "DietEvent": {
@@ -835,6 +974,264 @@
         "title": "LoadPatientResponse",
         "type": "object"
       },
+      "LoggedDay": {
+        "description": "A DailyFeatures row whose date is required.",
+        "properties": {
+          "calories": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Energy intake (kcal)",
+            "title": "Calories"
+          },
+          "carbs_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbs G"
+          },
+          "date": {
+            "description": "ISO date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Date",
+            "type": "string"
+          },
+          "fiber_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiber G"
+          },
+          "omega3_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Omega3 G"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protein G"
+          },
+          "sleep_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Hours"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "sugar_g": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sugar G"
+          },
+          "water_ml": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Ml"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "title": "LoggedDay",
+        "type": "object"
+      },
+      "MacroTotals": {
+        "properties": {
+          "carbs_g": {
+            "title": "Carbs G",
+            "type": "number"
+          },
+          "fat_g": {
+            "title": "Fat G",
+            "type": "number"
+          },
+          "kcal": {
+            "title": "Kcal",
+            "type": "number"
+          },
+          "protein_g": {
+            "title": "Protein G",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kcal",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "MacroTotals",
+        "type": "object"
+      },
+      "MealPlanRequest": {
+        "properties": {
+          "constraints": {
+            "description": "Medical limits. They override the targets and are hard ceilings.",
+            "items": {
+              "$ref": "#/components/schemas/MedicalConstraintIn"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "days": {
+            "default": 7,
+            "description": "Number of days to plan",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "exclude_foods": {
+            "description": "Foods to leave out (allergies, dislikes)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Foods",
+            "type": "array"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/PlanTargets"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Also apply the medical constraints stored for this user in the engine",
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "targets"
+        ],
+        "title": "MealPlanRequest",
+        "type": "object"
+      },
+      "MealPlanResponse": {
+        "properties": {
+          "adjustments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Adjustments",
+            "type": "array"
+          },
+          "ceilings": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Hard medical ceilings the plan respects",
+            "title": "Ceilings",
+            "type": "object"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedDayOut"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "effective_targets": {
+            "$ref": "#/components/schemas/MacroTotals",
+            "description": "Targets after medical limits and energy balancing"
+          },
+          "guardrails": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Guardrails",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "requested_targets": {
+            "$ref": "#/components/schemas/MacroTotals"
+          },
+          "weekly_average": {
+            "$ref": "#/components/schemas/MacroTotals"
+          }
+        },
+        "required": [
+          "days",
+          "requested_targets",
+          "effective_targets",
+          "ceilings",
+          "adjustments",
+          "notes",
+          "weekly_average",
+          "disclaimer"
+        ],
+        "title": "MealPlanResponse",
+        "type": "object"
+      },
       "MedicalConstraintIn": {
         "description": "Input schema for a single medical or safety constraint.",
         "properties": {
@@ -1030,6 +1427,132 @@
           "nutrient_priority_shifts"
         ],
         "title": "MetabolicStateOut",
+        "type": "object"
+      },
+      "MetricTrend": {
+        "properties": {
+          "adherence_pct": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of logged days that met the goal",
+            "title": "Adherence Pct"
+          },
+          "change_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last week versus first week, percent",
+            "title": "Change Pct"
+          },
+          "direction": {
+            "enum": [
+              "at_least",
+              "at_most",
+              "near"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "first_week_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Week Mean"
+          },
+          "goal": {
+            "title": "Goal",
+            "type": "number"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_week_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Week Mean"
+          },
+          "logged_days": {
+            "title": "Logged Days",
+            "type": "integer"
+          },
+          "mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/TrendPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "slope_per_week": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Least-squares slope, units per week",
+            "title": "Slope Per Week"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "goal",
+          "direction",
+          "series",
+          "mean",
+          "first_week_mean",
+          "last_week_mean",
+          "change_pct",
+          "slope_per_week",
+          "adherence_pct",
+          "logged_days"
+        ],
+        "title": "MetricTrend",
         "type": "object"
       },
       "ModificationOut": {
@@ -1327,6 +1850,248 @@
         "title": "PipelineStatusOut",
         "type": "object"
       },
+      "PlanTargets": {
+        "description": "Daily targets to plan against. Usually the pipeline's nutrient budget.",
+        "properties": {
+          "carbs_g": {
+            "anyOf": [
+              {
+                "maximum": 900.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily carbohydrate (g)",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "anyOf": [
+              {
+                "maximum": 400.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily fat target (g)",
+            "title": "Fat G"
+          },
+          "kcal": {
+            "description": "Daily energy target (kcal)",
+            "exclusiveMinimum": 0.0,
+            "maximum": 6000.0,
+            "title": "Kcal",
+            "type": "number"
+          },
+          "protein_g": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 400.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily protein target (g)",
+            "title": "Protein G"
+          }
+        },
+        "required": [
+          "kcal"
+        ],
+        "title": "PlanTargets",
+        "type": "object"
+      },
+      "PlannedDayOut": {
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "deviation_pct": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Percent difference from the effective targets, per nutrient",
+            "title": "Deviation Pct",
+            "type": "object"
+          },
+          "meals": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedMealOut"
+            },
+            "title": "Meals",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/MacroTotals"
+          },
+          "within_limits": {
+            "description": "True when every medical ceiling holds",
+            "title": "Within Limits",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "day",
+          "meals",
+          "totals",
+          "deviation_pct",
+          "within_limits"
+        ],
+        "title": "PlannedDayOut",
+        "type": "object"
+      },
+      "PlannedItemOut": {
+        "properties": {
+          "carbs_g": {
+            "title": "Carbs G",
+            "type": "number"
+          },
+          "fat_g": {
+            "title": "Fat G",
+            "type": "number"
+          },
+          "food": {
+            "title": "Food",
+            "type": "string"
+          },
+          "kcal": {
+            "title": "Kcal",
+            "type": "number"
+          },
+          "protein_g": {
+            "title": "Protein G",
+            "type": "number"
+          },
+          "servings": {
+            "title": "Servings",
+            "type": "number"
+          }
+        },
+        "required": [
+          "food",
+          "servings",
+          "kcal",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "PlannedItemOut",
+        "type": "object"
+      },
+      "PlannedMealOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "kcal": {
+            "title": "Kcal",
+            "type": "number"
+          },
+          "slot": {
+            "description": "breakfast, lunch, dinner, or snack",
+            "title": "Slot",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot",
+          "items",
+          "kcal"
+        ],
+        "title": "PlannedMealOut",
+        "type": "object"
+      },
+      "Profile": {
+        "properties": {
+          "activity_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "sedentary",
+                  "light",
+                  "moderate",
+                  "active",
+                  "very_active"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Level"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 13.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 260.0,
+                "exclusiveMinimum": 50.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "enum": [
+                  "male",
+                  "female"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 400.0,
+                "exclusiveMinimum": 20.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          }
+        },
+        "title": "Profile",
+        "type": "object"
+      },
       "Recommendation": {
         "properties": {
           "guardrails": {
@@ -1427,6 +2192,50 @@
           "recommendations"
         ],
         "title": "RecommendationResponse",
+        "type": "object"
+      },
+      "RuleDay": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Rule Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "count",
+          "rule_ids"
+        ],
+        "title": "RuleDay",
+        "type": "object"
+      },
+      "RuleFrequency": {
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "days"
+        ],
+        "title": "RuleFrequency",
         "type": "object"
       },
       "SleepEvent": {
@@ -1645,6 +2454,167 @@
         "title": "TimeBucketOut",
         "type": "object"
       },
+      "TokenOut": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_at",
+          "user_id"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "TrendPoint": {
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "rolling_7": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean of the last 7 logged values",
+            "title": "Rolling 7"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "date",
+          "value",
+          "rolling_7"
+        ],
+        "title": "TrendPoint",
+        "type": "object"
+      },
+      "TrendsRequest": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/LoggedDay"
+            },
+            "maxItems": 366,
+            "minItems": 1,
+            "title": "Days",
+            "type": "array"
+          },
+          "user_targets": {
+            "$ref": "#/components/schemas/UserTargets"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "TrendsRequest",
+        "type": "object"
+      },
+      "TrendsResponse": {
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricTrend"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "note": {
+            "default": "Descriptive statistics on logged days. Not a health assessment.",
+            "title": "Note",
+            "type": "string"
+          },
+          "rule_days": {
+            "items": {
+              "$ref": "#/components/schemas/RuleDay"
+            },
+            "title": "Rule Days",
+            "type": "array"
+          },
+          "rule_frequency": {
+            "items": {
+              "$ref": "#/components/schemas/RuleFrequency"
+            },
+            "title": "Rule Frequency",
+            "type": "array"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "synthetic": {
+            "default": false,
+            "description": "True when the days are generated sample data",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "days",
+          "start",
+          "end",
+          "metrics",
+          "rule_days",
+          "rule_frequency"
+        ],
+        "title": "TrendsResponse",
+        "type": "object"
+      },
       "UserTargets": {
         "description": "Daily targets. Anything left out falls back to the engine's defaults.",
         "properties": {
@@ -1758,6 +2728,10 @@
         "in": "header",
         "name": "X-API-Key",
         "type": "apiKey"
+      },
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
       }
     }
   },
@@ -1791,6 +2765,80 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/analytics/sample": {
+      "get": {
+        "description": "Trends for 28 days of a fictional user (fixed seed, identical on every call).",
+        "operationId": "sample_trends_analytics_sample_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Sample Trends",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/trends": {
+      "post": {
+        "description": "Rolling means, weekly slopes, goal adherence, and rule hits for the days sent.",
+        "operationId": "post_trends_analytics_trends_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrendsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Post Trends",
+        "tags": [
+          "analytics"
         ]
       }
     },
@@ -1885,6 +2933,120 @@
         "summary": "Get Metrics",
         "tags": [
           "metrics"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "register_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Register",
+        "tags": [
+          "auth"
         ]
       }
     },
@@ -2768,6 +3930,53 @@
         ]
       }
     },
+    "/meal-plan": {
+      "post": {
+        "description": "Plan up to 7 days of meals from the built-in food table against daily targets.\n\nMedical constraints (from the request and, with ``user_id``, those stored in the engine)\nare applied before planning and enforced as hard ceilings after it, so they always win\nover the targets. General wellness guidance, not medical advice.",
+        "operationId": "create_meal_plan_meal_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealPlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Create Meal Plan",
+        "tags": [
+          "meal-plan"
+        ]
+      }
+    },
     "/recommendations": {
       "post": {
         "description": "Evaluate the YAML rules in rules/ against one day of features and the user's targets.\n\nEvery matching rule is returned, highest priority first. An empty list means no rule\nfired. Suggestions are general wellness guidance, not medical advice.",
@@ -3013,23 +4222,114 @@
         ]
       }
     },
-    "/users/{user_id}": {
-      "delete": {
-        "description": "Schedule deletion of all data associated with a user. In a real implementation,\nthis would enqueue a task to delete user data from the database and storage.",
-        "operationId": "delete_user_users__user_id__delete",
-        "parameters": [
+    "/users/me": {
+      "get": {
+        "operationId": "me_users_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
           {
-            "in": "path",
-            "name": "user_id",
-            "required": true,
-            "schema": {
-              "title": "User Id",
-              "type": "string"
-            }
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
+        "summary": "Me",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/analytics": {
+      "get": {
+        "operationId": "my_analytics_users_me_analytics_get",
         "responses": {
-          "204": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Analytics",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/consent": {
+      "get": {
+        "operationId": "get_consent_users_me_consent_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountConsentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Consent",
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "description": "Store the decision and apply it to the engine's consent gate for this user id.",
+        "operationId": "set_consent_users_me_consent_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountConsentOut"
+                }
+              }
+            },
             "description": "Successful Response"
           },
           "422": {
@@ -3046,6 +4346,190 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Consent",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/days": {
+      "get": {
+        "operationId": "list_days_users_me_days_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LoggedDay"
+                  },
+                  "title": "Response List Days Users Me Days Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Days",
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "description": "Create or replace the log for one date.",
+        "operationId": "log_day_users_me_days_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoggedDay"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoggedDay"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Log Day",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/profile": {
+      "put": {
+        "operationId": "update_profile_users_me_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Profile",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "delete": {
+        "description": "Erase the account and all of its data: stored rows and in-process engine state.\n\nOnly the account itself may do this. Tokens stop working immediately.",
+        "operationId": "delete_user_users__user_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
         "summary": "Delete User",

@@ -1,9 +1,13 @@
 """Capture real API responses for the static web demo (apps/web, NEXT_PUBLIC_DEMO=1).
 
-Run against a live API started from the repo root, so Synthea fixtures resolve:
+Run against a live API started from the repo root (so Synthea fixtures resolve) with a fixed
+DP_SEED, so the differential-privacy noise in the published numbers is reproducible:
 
-    uv run --project apps/api uvicorn app.main:app --app-dir apps/api --port 8000
-    uv run --project apps/api python apps/api/scripts/capture_demo_fixtures.py
+    make demo-api         # DP_SEED=20261016 uvicorn ... on :8000
+    make demo-fixtures    # in a second terminal
+
+The noise itself is unchanged; the seed only fixes which draw the demo shows. Start a fresh
+API process for each capture: the budget and cached releases live in memory.
 
 It replays the same flows the dashboard runs (full pipeline, genetic panel, meal text and
 image analysis, rule-based suggestions, Synthea explorer) and writes the wire responses to
@@ -221,6 +225,26 @@ def capture_recommendations(budget: dict[str, Any]) -> Any:
     )
 
 
+def capture_meal_plans(budget: dict[str, Any]) -> dict[str, Any]:
+    """Meal plans for the pipeline's targets, as the Meal plan tab requests them (lib/api.ts)."""
+    t = {k: v["daily_target"] for k, v in budget["targets"].items()}
+    targets = {k: round(t[k]) for k in ("kcal", "protein_g", "carbs_g", "fat_g")}
+    limit = {
+        "nutrient": "protein_g",
+        "constraint_type": "max",
+        "value": 56,
+        "reason": "Sample kidney-related protein limit (0.8 g/kg/day)",
+        "severity": "critical",
+        "source": "user_reported",
+    }
+    return {
+        "default": call("POST", "/meal-plan", {"targets": targets, "days": 7, "constraints": []}),
+        "protein_limit": call(
+            "POST", "/meal-plan", {"targets": targets, "days": 7, "constraints": [limit]}
+        ),
+    }
+
+
 def capture_genetic_panel() -> list[dict[str, Any]]:
     """Every combination of the panel SNPs the engine scores (unselected or one of 3 genotypes).
 
@@ -283,6 +307,8 @@ def main() -> None:
         "user_id": USER_ID,
         "pipeline": pipeline,
         "recommendations": capture_recommendations(pipeline["nutrient_budget"]),
+        "meal_plan": capture_meal_plans(pipeline["nutrient_budget"]),
+        "trends": call("GET", "/analytics/sample"),
         "genetic_panel": capture_genetic_panel(),
         "meals": capture_meals(),
         "images": capture_images(),

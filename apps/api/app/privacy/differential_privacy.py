@@ -82,6 +82,54 @@ NUTRIENT_SENSITIVITY_TIERS: dict[str, SensitivityTier] = {
 }
 
 
+# ── Per-nutrient sensitivity for the pipeline's output noise ────────
+# The Laplace mechanism adds noise with scale b = sensitivity / epsilon. What "sensitivity"
+# means decides what the noise protects, so the choice is spelled out here.
+#
+# The released value is a single user's daily target, not a population statistic, so there
+# is no "one person more or less" neighbour to bound. Instead the guarantee is metric
+# (d_X) privacy, as in geo-indistinguishability (Andres, Bordenabe, Chatzikokolakis and
+# Palamidessi, CCS 2013): two targets that differ by k sensitivity units are
+# indistinguishable up to a factor of exp(k * epsilon). The unit is the smallest change in
+# a daily target worth acting on: about one teaspoon of sugar for energy (16 kcal) and
+# carbohydrate (4 g), a couple of grams for the other macronutrients, 50 mL of water, and
+# 1% of the adult reference intake for each micronutrient.
+#
+# This is a utility-first setting and the docs say so. It hides the fine-grained,
+# biomarker-driven day-to-day shifts in a target (the identifying part), not the coarse
+# target, which mostly follows the weight and energy figures the user typed in. The
+# earlier values (500 kcal, 30 g protein, ...) were whole-target ranges; at epsilon 0.3
+# they gave a 1,667 kcal noise scale, so almost every release was clipped to a bound.
+#
+# With the tier epsilons above, the resulting noise scale b (mean absolute noise) is:
+#   kcal 53 kcal, carbs 13 g, protein 2.5 g, fat 2.5 g, fiber 1.25 g, water 100 mL,
+#   folate 40 mcg, vitamin D 60 IU, caffeine 40 mg, sodium 46 mg.
+NUTRIENT_DP_SENSITIVITY: dict[str, float] = {
+    "kcal": 16.0,
+    "carbs_g": 4.0,
+    "protein_g": 2.0,
+    "fat_g": 2.0,
+    "fiber_g": 1.0,
+    "water_ml": 50.0,
+    "folate_mcg": 4.0,  # 1% of the 400 mcg RDA
+    "b12_mcg": 0.024,  # 1% of 2.4 mcg
+    "vitamin_d_iu": 6.0,  # 1% of 600 IU
+    "magnesium_mg": 4.0,  # 1% of 400 mg
+    "caffeine_mg": 4.0,  # 1% of the 400 mg FDA guidance figure
+    "calcium_mg": 10.0,  # 1% of 1000 mg
+    "sodium_mg": 23.0,  # 1% of 2300 mg
+    "vitamin_b6_mg": 0.017,  # 1% of 1.7 mg
+}
+DEFAULT_NUTRIENT_DP_SENSITIVITY = 1.0
+
+# Daily epsilon budget for nutrient-target releases. One full release of the 14 default
+# targets costs 6.2 under basic composition (4 x 0.1 + 2 x 0.3 + 4 x 0.5 + 4 x 0.8), so
+# the budget covers one fresh release per day with some headroom for changed targets.
+# Re-running the pipeline on unchanged inputs re-releases the earlier noisy value, which
+# is post-processing and costs nothing.
+DAILY_RELEASE_EPSILON = 8.0
+
+
 @dataclass
 class QueryRecord:
     """Records a single privacy-consuming query."""
@@ -313,9 +361,13 @@ class DifferentialPrivacyEngine:
     magnitude of the data itself.
     """
 
-    def __init__(self, default_epsilon: float = 1.0):
+    def __init__(self, default_epsilon: float = 1.0, seed: int | None = None):
         self._budgets: dict[str, PrivacyBudget] = {}
         self._default_epsilon = default_epsilon
+        # A seed makes the noise reproducible (demo fixture capture, tests). The noise is
+        # still drawn from the same distribution; only the sequence is fixed. Without a
+        # seed the module-level generator is used.
+        self._rng = random.Random(seed) if seed is not None else random
 
     def get_or_create_budget(self, user_id: str, epsilon_total: float = 1.0) -> PrivacyBudget:
         """Get or create a privacy budget for a user."""
@@ -385,7 +437,7 @@ class DifferentialPrivacyEngine:
             return None
 
         sigma = sensitivity * math.sqrt(2 * math.log(1.25 / delta)) / eps
-        noise = random.gauss(0, sigma)
+        noise = self._rng.gauss(0, sigma)
         return value + noise
 
     def privatize_aggregation(
@@ -436,10 +488,13 @@ class DifferentialPrivacyEngine:
 
         return result
 
-    @staticmethod
-    def _sample_laplace(scale: float) -> float:
+    def forget_user(self, user_id: str) -> None:
+        """Drop a user's privacy budget (account deletion)."""
+        self._budgets.pop(user_id, None)
+
+    def _sample_laplace(self, scale: float) -> float:
         """Sample from Laplace distribution with mean 0."""
-        u = random.uniform(-0.5, 0.5)
+        u = self._rng.uniform(-0.5, 0.5)
         if u == 0:
             return 0.0
         return -scale * math.copysign(1, u) * math.log(1 - 2 * abs(u))

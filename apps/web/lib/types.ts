@@ -63,3 +63,73 @@ export interface RecommendationsView {
 
 /** Free-form JSON returned by research/diagnostic endpoints (lag comparison, edge manifest). */
 export type JsonObject = Record<string, unknown>;
+
+/* ── Weekly meal plan (POST /meal-plan) ─────────────────────────── */
+
+export type MacroKey = "kcal" | "protein_g" | "carbs_g" | "fat_g";
+export type Macros = Record<MacroKey, number>;
+
+export interface MealPlanItemView {
+  food: string;
+  servings: number;
+  kcal: number;
+  protein: number;
+}
+
+export interface MealPlanMealView {
+  slot: string;
+  kcal: number;
+  items: MealPlanItemView[];
+}
+
+export interface MealPlanDayView {
+  day: number;
+  meals: MealPlanMealView[];
+  totals: Macros;
+  withinLimits: boolean;
+}
+
+/** Meal plan reshaped for MealPlanPanel. */
+export interface MealPlanView {
+  days: MealPlanDayView[];
+  requested: Macros;
+  effective: Macros;
+  ceilings: Record<string, number>;
+  weeklyAverage: Macros;
+  adjustments: string[];
+  notes: string[];
+  disclaimer: string;
+}
+
+/* ── Trend analytics (GET /analytics/sample) ────────────────────── */
+
+export interface TrendPointView {
+  date: string;
+  value: number | null;
+  rolling: number | null;
+}
+
+export interface MetricTrendView {
+  key: string;
+  label: string;
+  unit: string;
+  goal: number;
+  direction: "at_least" | "at_most" | "near";
+  points: TrendPointView[];
+  firstWeek: number | null;
+  lastWeek: number | null;
+  changePct: number | null;
+  slopePerWeek: number | null;
+  adherencePct: number | null;
+}
+
+export interface TrendsView {
+  days: number;
+  start: string | null;
+  end: string | null;
+  synthetic: boolean;
+  note: string;
+  metrics: MetricTrendView[];
+  ruleFrequency: { ruleId: string; days: number }[];
+  ruleCounts: { date: string; count: number }[];
+}
